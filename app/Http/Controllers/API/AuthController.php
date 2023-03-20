@@ -152,16 +152,24 @@ class AuthController extends Controller
     public function loginPassword(Request $request)
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()
-                ->json(['message' => 'Unauthorized'], 401);
+            $response['status'] = 422;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+            return response()->json($response);
         }
 
         $user = User::where('email', $request['email'])->firstOrFail();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()
-            ->json(['message' => 'Hi ' . $user->name . ', welcome to home', 'access_token' => $token, 'token_type' => 'Bearer',]);
+        $data = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'token' => $user->createToken('token-name')->plainTextToken,
+        ];
+        $response['status'] = 200;
+        $response['message'] = 'Successfully Login';
+        $response['payload'] = $data;
+        return response()->json($response);
     }
 
     // method for user logout and delete token
