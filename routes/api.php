@@ -26,7 +26,9 @@ Route::post('/login/v2', [AuthController::class, 'loginPassword']);
 
 Route::post('/logout', [AuthController::class, 'logout']);
 
-
+Route::get('login/test', function () {
+    return 'test bos';
+});
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

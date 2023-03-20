@@ -64,7 +64,7 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if (!$user->otp) {
-            $otp = rand(100000, 999999);
+            $otp = rand(10000, 99999);
             $user->otp = $otp;
             $user->save();
 
@@ -168,7 +168,7 @@ class AuthController extends Controller
             return response()->json($response);
         }
         $user = User::where('email', $credentials['email'])->first();
-        $otp = rand(100000, 999999);
+        $otp = rand(10000, 99999);
         $user->otp = $otp;
         $user->save();
         //send email;
