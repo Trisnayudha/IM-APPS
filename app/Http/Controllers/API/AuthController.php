@@ -39,7 +39,6 @@ class AuthController extends Controller
 
     public function loginOtp(Request $request)
     {
-        // dd($request->all());
         $credentials = $request->only('email');
 
         $validator = Validator::make(
@@ -98,8 +97,6 @@ class AuthController extends Controller
 
     public function VerifyLoginOtp(Request $request)
     {
-        // dd($request->all());
-
         $validator = Validator::make(
             $request->all(),
             [
@@ -145,6 +142,54 @@ class AuthController extends Controller
             }
         }
 
+        return response()->json($response);
+    }
+
+    public function resendVerifyLoginOtp(Request $request)
+    {
+        $credentials = $request->only('email');
+        $validator = Validator::make(
+            $credentials,
+            [
+                'email' => [
+                    'required', 'email',
+                    'exists:users,email'
+                ]
+            ],
+            [
+                'email.exists' => 'Email not found'
+            ]
+        );
+
+        if ($validator->fails()) {
+            $response['status'] = 404;
+            $response['message'] = $validator->errors()->first();
+            $response['payload'] = null;
+            return response()->json($response);
+        }
+        $user = User::where('email', $credentials['email'])->first();
+        $otp = rand(100000, 999999);
+        $user->otp = $otp;
+        $user->save();
+        //send email;
+        $send = new EmailSender();
+        $send->subject = "OTP Login Indonesia Miner";
+        $wording = 'We received a request to login your account. To login, please use this
+                    code:';
+        $send->template = "email.tokenverify";
+        $send->data = [
+            'name' => $user->name,
+            'wording' => $wording,
+            'otp' => $otp
+        ];
+        $send->from = env('EMAIL_SENDER');
+        $send->name_sender = env('EMAIL_NAME');
+        $send->to = $user->email;
+        $send->sendEmail();
+
+        $response['status'] = 200;
+        $response['message'] = 'Successfully send OTP to Email';
+        $response['payload'] = $send;
         return response()->json($response);
     }
 

@@ -19,6 +19,8 @@ Route::post('/register', [App\Http\Controllers\API\AuthController::class, 'regis
 //API route for login user otp
 Route::post('/login/v1', [AuthController::class, 'loginOtp']);
 Route::post('/verify/login/otp', [AuthController::class, 'verifyLoginOtp']);
+Route::post('/resend/verify/login/otp', [AuthController::class, 'resendVerifyLoginOtp']);
+
 //API route for login user password
 Route::post('/login/v2', [AuthController::class, 'loginPassword']);
 
