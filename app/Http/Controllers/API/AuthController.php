@@ -196,23 +196,43 @@ class AuthController extends Controller
 
     public function loginPassword(Request $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            $response['status'] = 422;
-            $response['message'] = 'Unauthorized';
-            $response['payload'] = null;
-            return response()->json($response);
-        }
+        $validate = Validator::make(
+            $request->all(),
+            [
+                'email' => ['required', 'email', 'exists:users,email'],
+            ],
+            [
+                'email.required' => 'Email wajib diisi',
+                'email.exists' => 'Email Not Found'
+            ]
+        );
 
-        $user = User::where('email', $request->email)->firstOrFail();
-        $data = [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'token' => $user->createToken('token-name')->plainTextToken,
-        ];
-        $response['status'] = 200;
-        $response['message'] = 'Successfully Login';
-        $response['payload'] = $data;
+        if ($validate->fails()) {
+            $data = [
+                'email' => $validate->errors()->first('email')
+            ];
+            $response['status'] = 422;
+            $response['message'] = 'Invalid data';
+            $response['payload'] = $data;
+        } else if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            $user = Auth::user();
+            $data = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'token' => $user->createToken('token-name')->plainTextToken,
+            ];
+            $response['status'] = 200;
+            $response['message'] = 'Successfully Login';
+            $response['payload'] = $data;
+        } else {
+            $data = [
+                'password' => 'Password was wrong'
+            ];
+            $response['status'] = 422;
+            $response['message'] = 'Invalid data';
+            $response['payload'] = $data;
+        }
         return response()->json($response);
     }
 
