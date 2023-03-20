@@ -20,7 +20,9 @@ Route::post('/register', [App\Http\Controllers\API\AuthController::class, 'regis
 Route::post('/login/v1', [AuthController::class, 'loginOtp']);
 Route::post('/verify/login/otp', [AuthController::class, 'verifyLoginOtp']);
 //API route for login user password
-Route::post('/login/v2', [AuthController::class, 'LoginPassword']);
+Route::post('/login/v2', [AuthController::class, 'loginPassword']);
+
+Route::post('/logout', [AuthController::class, 'logout']);
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

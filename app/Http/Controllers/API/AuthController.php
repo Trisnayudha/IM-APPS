@@ -158,8 +158,7 @@ class AuthController extends Controller
             return response()->json($response);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
-
+        $user = User::where('email', $request->email)->firstOrFail();
         $data = [
             'id' => $user->id,
             'name' => $user->name,
@@ -177,8 +176,9 @@ class AuthController extends Controller
     {
         auth()->user()->tokens()->delete();
 
-        return [
-            'message' => 'You have successfully logged out and the token was successfully deleted'
-        ];
+        $response['status'] = 200;
+        $response['message'] = 'Successfully Logout';
+        $response['payload'] = null;
+        return response()->json($response);
     }
 }
