@@ -32,6 +32,8 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 //API route for forgot password
 Route::post('/forgot', [AuthController::class, 'forgot']);
+Route::post('/verify/forgot/otp', [AuthController::class, 'verifyForgotPassword']);
+Route::post('/reset/password', [AuthController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

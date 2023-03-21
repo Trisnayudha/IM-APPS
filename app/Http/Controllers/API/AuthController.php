@@ -8,6 +8,7 @@ use App\Http\Requests\CompleteRegister;
 use App\Http\Requests\LoginOtpRequest;
 use App\Http\Requests\LoginPasswordRequest;
 use App\Http\Requests\RegisterOtpRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\VerifyRegisterOtpRequest;
 use App\Models\Auth\User;
 use App\Repositories\EmailServiceInterface;
@@ -313,6 +314,46 @@ class AuthController extends Controller
             $response['status'] = 200;
             $response['message'] = 'Successfully send OTP to Email';
             $response['payload'] = $user;
+        } else {
+            $response['status'] = 404;
+            $response['message'] = 'Email not Found.';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
+
+    public function verifyForgotPassword(VerifyRegisterOtpRequest $request)
+    {
+        $email = $request->email;
+        $otp = $request->otp;
+        $user = $this->userRepository->getUserByEmailActive($email);
+
+        if ($user->otp == $otp) {
+            $user->otp = null;
+            $user->save();
+            $response['status'] = 200;
+            $response['message'] = 'OTP verification successful';
+            $response['payload'] = null;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Invalid OTP';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $email = $request->email;
+        $password = $request->password;
+
+        $user = $this->userRepository->getUserByEmailActive($email);
+        if ($user) {
+            $user->password = Hash::make($password);
+            $user->save();
+            $response['status'] = 200;
+            $response['message'] = 'Password reset successfully';
+            $response['payload'] = null;
         } else {
             $response['status'] = 404;
             $response['message'] = 'Email not Found.';
