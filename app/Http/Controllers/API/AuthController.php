@@ -6,6 +6,7 @@ use App\Helpers\EmailSender;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CompleteRegister;
 use App\Http\Requests\LoginOtpRequest;
+use App\Http\Requests\LoginPasswordRequest;
 use App\Http\Requests\RegisterOtpRequest;
 use App\Http\Requests\VerifyRegisterOtpRequest;
 use App\Models\Auth\User;
@@ -226,94 +227,57 @@ class AuthController extends Controller
     }
 
 
-    public function resendVerifyLoginOtp(Request $request)
+    public function resendVerifyLoginOtp(LoginOtpRequest $request)
     {
         $credentials = $request->only('email');
-        $validator = Validator::make(
-            $credentials,
-            [
-                'email' => [
-                    'required', 'email',
-                    'exists:users,email'
-                ]
-            ],
-            [
-                'email.exists' => 'Email not found'
-            ]
-        );
+        $user = $this->userRepository->getUserByEmailActive($credentials['email']);
 
-        if ($validator->fails()) {
+        if ($user) {
+            $otp = rand(10000, 99999);
+            $user->otp = $otp;
+            $user->save();
+
+            $send = $this->emailService->sendOtpEmail($user, $otp);
+
+            $response['status'] = 200;
+            $response['message'] = 'Successfully send OTP to Email';
+            $response['payload'] = $user;
+            return response()->json($response);
+        } else {
             $response['status'] = 404;
-            $response['message'] = $validator->errors()->first();
+            $response['message'] = 'Email not Found.';
             $response['payload'] = null;
             return response()->json($response);
         }
-        $user = $this->userRepository->getUserByEmail($credentials['email']);
-        $otp = rand(10000, 99999);
-        $user->otp = $otp;
-        $user->save();
-        //send email;
-        $send = new EmailSender();
-        $send->subject = "OTP Login Indonesia Miner";
-        $wording = 'We received a request to login your account. To login, please use this
-                    code:';
-        $send->template = "email.tokenverify";
-        $send->data = [
-            'name' => $user->name,
-            'wording' => $wording,
-            'otp' => $otp
-        ];
-        $send->from = env('EMAIL_SENDER');
-        $send->name_sender = env('EMAIL_NAME');
-        $send->to = $user->email;
-        $send->sendEmail();
-
-        $response['status'] = 200;
-        $response['message'] = 'Successfully send OTP to Email';
-        $response['payload'] = $send;
-        return response()->json($response);
     }
 
 
-    public function loginPassword(Request $request)
+    public function loginPassword(LoginPasswordRequest $request)
     {
-        $validate = Validator::make(
-            $request->all(),
-            [
-                'email' => ['required', 'email', 'exists:users,email'],
-            ],
-            [
-                'email.required' => 'Email wajib diisi',
-                'email.exists' => 'Email Not Found'
-            ]
-        );
-        $user = $this->userRepository->getUserByEmail($request->email);
-        if ($validate->fails()) {
-            $data = [
-                'email' => $validate->errors()->first('email')
-            ];
-            $response['status'] = 422;
-            $response['message'] = 'Invalid data';
-            $response['payload'] = $data;
-        } else if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $user = Auth::user();
-            $data = [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'token' => $user->createToken('token-name')->plainTextToken,
-            ];
-            $response['status'] = 200;
-            $response['message'] = 'Successfully Login';
-            $response['payload'] = $data;
-        } else {
-            $data = [
-                'password' => 'Password was wrong'
-            ];
-            $response['status'] = 422;
-            $response['message'] = 'Invalid data';
-            $response['payload'] = $data;
+
+        $user = $this->userRepository->getUserByEmailActive($request->email);
+        if ($user) {
+            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+                $user = Auth::user();
+                $data = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'token' => $user->createToken('token-name')->plainTextToken,
+                ];
+                $response['status'] = 200;
+                $response['message'] = 'Successfully Login';
+                $response['payload'] = $data;
+            } else {
+                $data = [
+                    'password' => 'Password was wrong'
+                ];
+                $response['status'] = 422;
+                $response['message'] = 'Invalid data';
+                $response['payload'] = $data;
+            }
         }
+
         return response()->json($response);
     }
 
