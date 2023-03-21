@@ -7,6 +7,11 @@ use App\Repositories\UserRepositoryInterface;
 
 class UserService implements UserRepositoryInterface
 {
+    public function getUserById($id)
+    {
+        return User::where('id', $id)->where('is_register', '1')->first();
+    }
+
     public function getUserByEmail($email)
     {
         return User::where('email', $email)->first();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Helpers\EmailSender;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CompleteRegister;
 use App\Http\Requests\LoginOtpRequest;
 use App\Http\Requests\RegisterOtpRequest;
 use App\Http\Requests\VerifyRegisterOtpRequest;
@@ -140,9 +141,88 @@ class AuthController extends Controller
         return response()->json($response, $response['status']);
     }
 
-    public function registerCompleteV1(Request $request)
+    public function registerCompleteV1(CompleteRegister $request)
     {
-        dd($request);
+        $email = $request->email;
+        $name = $request->name;
+        $password = $request->password;
+
+        $user = $this->userRepository->getUserByEmailDeactive($email);
+        if ($user) {
+            //true
+            $user->name = $name;
+            $user->password = Hash::make($password);
+            $user->is_register = 1;
+            $user->save();
+            $data = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'token' => $user->createToken('token-name')->plainTextToken,
+            ];
+            $response['status'] = 200;
+            $response['message'] = 'OTP verification successful';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'You cant complete this account, because this account has been active';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
+
+    public function registerCompleteV2(Request $request)
+    {
+        $id =  auth('sanctum')->user()->id ?? null;
+        $phone = $request->phone;
+        $country = $request->country;
+        $state = $request->state;
+        $city = $request->city;
+        $email_alternate = $request->email_alternate;
+        $job_title = $request->job_title;
+        $company_web = $request->company_web;
+        $company_name = $request->company_name;
+        $category_name = $request->category_name;
+        $classify_minerals_name = $request->classify_minerals_name;
+        $classify_mining_name = $request->classify_mining_name;
+        $commodities_minerals_name = $request->commodities_minerals_name;
+        $commodities_minerals_coal_name = $request->commodities_minerals_coal_name;
+        $commodities_mining_name = $request->commodities_mining_name;
+        $origin_manufacturer_name = $request->origin_manufacturer_name;
+        if ($id) {
+            $save = $this->userRepository->getUserById($id);
+            if ($save) {
+                $save->job_title = $job_title;
+                $save->company_name = $company_name;
+                $save->phone = $phone;
+                $save->email_alternate = $email_alternate;
+                $save->country = strtoupper($country);
+                $save->state = strtoupper($state);
+                $save->city = strtoupper($city);
+                $save->company_web = $company_web;
+                $save->is_register = 1;
+                $save->ms_company_category_other = $category_name;
+                $save->class_company_minerals_other = $classify_minerals_name;
+                $save->class_company_mining_other = $classify_mining_name;
+                $save->commod_company_minerals_other = $commodities_minerals_name;
+                $save->commod_company_minerals_coal_other = $commodities_minerals_coal_name;
+                $save->commod_company_mining_other = $commodities_mining_name;
+                $save->origin_manufactur_company_other = $origin_manufacturer_name;
+                $save->save();
+                $response['status'] = 200;
+                $response['message'] = 'Complete register account';
+                $response['payload'] = $save;
+            } else {
+                $response['status'] = 401;
+                $response['message'] = 'You cant complete this account, because this account has been active';
+                $response['payload'] = null;
+            }
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
     }
     public function resendVerifyLoginOtp(Request $request)
     {

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('register/otp', [AuthController::class, 'registerOtp']);
 Route::post('/verify/register/otp', [AuthController::class, 'verifyRegisterOtp']);
 Route::post('/register/complete/v1', [AuthController::class, 'registerCompleteV1']);
+Route::post('/register/complete/v2', [AuthController::class, 'registerCompleteV2']);
 //API route for login user otp
 Route::post('/login/v1', [AuthController::class, 'loginOtp']);
 Route::post('/verify/login/otp', [AuthController::class, 'verifyLoginOtp']);
