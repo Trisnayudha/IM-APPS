@@ -74,7 +74,7 @@ class AuthController extends Controller
 
             $response['status'] = 200;
             $response['message'] = 'Successfully send OTP to Email';
-            $response['payload'] = $send;
+            $response['payload'] = $user;
             return response()->json($response);
         } else {
             $response['status'] = 404;
