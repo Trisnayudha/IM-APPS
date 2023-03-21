@@ -242,13 +242,12 @@ class AuthController extends Controller
             $response['status'] = 200;
             $response['message'] = 'Successfully send OTP to Email';
             $response['payload'] = $user;
-            return response()->json($response);
         } else {
             $response['status'] = 404;
             $response['message'] = 'Email not Found.';
             $response['payload'] = null;
-            return response()->json($response);
         }
+        return response()->json($response);
     }
 
 
@@ -297,6 +296,28 @@ class AuthController extends Controller
             $response['payload'] = null;
         }
 
+        return response()->json($response);
+    }
+
+    public function forgot(LoginOtpRequest $request)
+    {
+        $email = $request->email;
+        $user = $this->userRepository->getUserByEmailActive($email);
+
+        if ($user) {
+            $otp = rand(10000, 99999);
+            $user->otp = $otp;
+            $user->save();
+            $send = $this->emailService->sendOtpForgotPassword($user, $otp);
+
+            $response['status'] = 200;
+            $response['message'] = 'Successfully send OTP to Email';
+            $response['payload'] = $user;
+        } else {
+            $response['status'] = 404;
+            $response['message'] = 'Email not Found.';
+            $response['payload'] = null;
+        }
         return response()->json($response);
     }
 }

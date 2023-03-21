@@ -27,8 +27,11 @@ Route::post('/resend/verify/login/otp', [AuthController::class, 'resendVerifyLog
 //API route for login user password
 Route::post('/login/v2', [AuthController::class, 'loginPassword']);
 
+//API route for logout
 Route::post('/logout', [AuthController::class, 'logout']);
 
+//API route for forgot password
+Route::post('/forgot', [AuthController::class, 'forgot']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
