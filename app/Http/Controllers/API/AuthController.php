@@ -224,6 +224,8 @@ class AuthController extends Controller
         }
         return response()->json($response);
     }
+
+
     public function resendVerifyLoginOtp(Request $request)
     {
         $credentials = $request->only('email');
@@ -318,11 +320,19 @@ class AuthController extends Controller
     // method for user logout and delete token
     public function logout()
     {
-        auth()->user()->tokens()->delete();
+        $user = auth('sanctum')->user();
 
-        $response['status'] = 200;
-        $response['message'] = 'Successfully Logout';
-        $response['payload'] = null;
+        if ($user) {
+            $result = $user->tokens()->delete();
+            $response['status'] = 200;
+            $response['message'] = 'Successfully Logout';
+            $response['payload'] = null;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
+
         return response()->json($response);
     }
 }
