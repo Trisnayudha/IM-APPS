@@ -11,4 +11,19 @@ class UserService implements UserRepositoryInterface
     {
         return User::where('email', $email)->first();
     }
+
+    public function getUserByEmailActive($email)
+    {
+        return User::where('email', $email)->where('is_register', '1')->first();
+    }
+
+    public function getUserByEmailDeactive($email)
+    {
+        return User::where('email', $email)->where('is_register', '0')->select('otp', 'is_register', 'email', 'created_at', 'updated_at', 'created_at', 'id')->first();
+    }
+
+    public function createUsers()
+    {
+        return new User();
+    }
 }

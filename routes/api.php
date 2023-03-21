@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 //API route for register new user
-Route::post('/register', [App\Http\Controllers\API\AuthController::class, 'register']);
+Route::post('register/otp', [AuthController::class, 'registerOtp']);
+Route::post('/verify/register/otp', [AuthController::class, 'verifyRegisterOtp']);
+Route::post('/register/complete/v1', [AuthController::class, 'registerCompleteV1']);
 //API route for login user otp
 Route::post('/login/v1', [AuthController::class, 'loginOtp']);
 Route::post('/verify/login/otp', [AuthController::class, 'verifyLoginOtp']);
@@ -26,9 +28,7 @@ Route::post('/login/v2', [AuthController::class, 'loginPassword']);
 
 Route::post('/logout', [AuthController::class, 'logout']);
 
-Route::get('login/test', function () {
-    return 'test bos';
-});
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

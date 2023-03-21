@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Helpers\EmailSender;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginOtpRequest;
+use App\Http\Requests\RegisterOtpRequest;
+use App\Http\Requests\VerifyRegisterOtpRequest;
 use App\Models\Auth\User;
 use App\Repositories\EmailServiceInterface;
 use App\Repositories\UserRepositoryInterface;
@@ -25,52 +27,81 @@ class AuthController extends Controller
         $this->emailService = $emailService;
     }
 
-    public function register(Request $request)
+    public function registerOtp(RegisterOtpRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors());
+        $email = $request->email;
+        $user = $this->userRepository->getUserByEmailActive($email);
+        if ($user) {
+            // Langsung masuk ke return karena email dan is_register nya 1
+            $response['status'] = 409;
+            $response['message'] = 'Email already register.';
+            $response['payload'] = null;
+            return response()->json($response);
+        } else {
+            // Cek jika email dan is_register nya 0
+            $user = $this->userRepository->getUserByEmailDeactive($email);
+            if (!$user) {
+                // Masuk ke else karena email tidak ketemu
+                $user = $this->userRepository->createUsers();
+            }
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
-        ]);
+        $otp = rand(10000, 99999);
+        $user->otp = $otp;
+        $user->is_register = 0;
+        $user->email = $email;
+        $user->save();
+        $send = $this->emailService->sendOtpRegisterEmail($user, $otp);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $response['status'] = 200;
+        $response['message'] = 'Successfully send OTP to Email';
+        $response['payload'] = $user;
 
-        return response()
-            ->json(['data' => $user, 'access_token' => $token, 'token_type' => 'Bearer',]);
+        return response()->json($response);
     }
 
-    public function loginOtp(LoginOtpRequest $request): JsonResponse
+    public function loginOtp(LoginOtpRequest $request)
     {
         $credentials = $request->only('email');
-        $user = $this->userRepository->getUserByEmail($credentials['email']);
+        $user = $this->userRepository->getUserByEmailActive($credentials['email']);
 
-        if (!$user->otp) {
+        if ($user) {
             $otp = rand(10000, 99999);
             $user->otp = $otp;
             $user->save();
 
-            // Send email
             $send = $this->emailService->sendOtpEmail($user, $otp);
 
             $response['status'] = 200;
-            $response['message'] = 'Successfully sent OTP to email';
+            $response['message'] = 'Successfully send OTP to Email';
             $response['payload'] = $send;
+            return response()->json($response);
         } else {
-            $response['status'] = 400;
-            $response['message'] = 'OTP already exists';
+            $response['status'] = 404;
+            $response['message'] = 'Email not Found.';
+            $response['payload'] = null;
+            return response()->json($response);
+        }
+    }
+
+    public function verifyRegisterOtp(VerifyRegisterOtpRequest $request)
+    {
+        $email = $request->email;
+        $otp = $request->otp;
+        $user = $this->userRepository->getUserByEmailDeactive($email);
+
+        if ($user->otp == $otp) {
+            $user->otp = null;
+            $user->save();
+            $response['status'] = 200;
+            $response['message'] = 'OTP verification successful';
+            $response['payload'] = null;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Invalid OTP';
             $response['payload'] = null;
         }
-        return response()->json($response, $response['status']);
+        return response()->json($response);
     }
 
     public function verifyLoginOtp(Request $request): JsonResponse
@@ -109,6 +140,10 @@ class AuthController extends Controller
         return response()->json($response, $response['status']);
     }
 
+    public function registerCompleteV1(Request $request)
+    {
+        dd($request);
+    }
     public function resendVerifyLoginOtp(Request $request)
     {
         $credentials = $request->only('email');

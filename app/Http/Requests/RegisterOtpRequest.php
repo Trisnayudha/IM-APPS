@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
-class LoginOtpRequest extends FormRequest
+class RegisterOtpRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,22 +28,8 @@ class LoginOtpRequest extends FormRequest
     {
         return [
             'email' => [
-                'required',
-                'email',
-                Rule::exists('users', 'email'),
+                'required', 'email'
             ],
-        ];
-    }
-
-    /**
-     * Get the error messages for the defined validation rules.
-     *
-     * @return array
-     */
-    public function messages()
-    {
-        return [
-            'email.exists' => 'Email not found',
         ];
     }
 
