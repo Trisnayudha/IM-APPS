@@ -76,6 +76,6 @@ class LoginPasswordRequest extends FormRequest
         $response['message'] = 'Invalid data';
         $response['payload'] = $data;
 
-        throw new HttpResponseException(response()->json($response, 404));
+        throw new HttpResponseException(response()->json($response, 200));
     }
 }

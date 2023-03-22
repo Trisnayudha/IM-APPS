@@ -64,6 +64,6 @@ class ResetPasswordRequest extends FormRequest
             'payload' => null
         ];
 
-        throw new HttpResponseException(response()->json($response, 404));
+        throw new HttpResponseException(response()->json($response, 200));
     }
 }
