@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\MsPrefixController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -38,3 +39,6 @@ Route::post('/reset/password', [AuthController::class, 'resetPassword']);
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/msphone', [MsPrefixController::class, 'showMsPrefixPhoneAll']);
+Route::post('/msphone/detail', [MsPrefixController::class, 'showMsPrefixPhoneDetail']);
