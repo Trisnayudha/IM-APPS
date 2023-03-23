@@ -48,3 +48,4 @@ Route::post('/msphone/detail', [MsPrefixController::class, 'showMsPrefixPhoneDet
 
 //API route Home
 Route::post('/home/banner', [HomeController::class, 'banner']);
+Route::post('/home/sponsors', [HomeController::class, 'sponsors']);
