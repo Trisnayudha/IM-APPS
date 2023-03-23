@@ -17,6 +17,6 @@ class MsService implements MsRepositoryInterface
     public function getMsPrefixPhoneDetail($code)
     {
         return DB::table('ms_phone_code')
-            ->where('ms_country_id', $code)->first();
+            ->where('code', $code)->first();
     }
 }

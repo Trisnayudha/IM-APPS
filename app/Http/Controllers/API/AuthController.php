@@ -13,6 +13,7 @@ use App\Http\Requests\VerifyRegisterOtpRequest;
 use App\Models\Auth\User;
 use App\Repositories\EmailServiceInterface;
 use App\Repositories\UserRepositoryInterface;
+use App\Services\MsPrefix\MsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,11 +24,13 @@ class AuthController extends Controller
 {
     protected $userRepository;
     protected $emailService;
+    protected $msService;
 
-    public function __construct(UserRepositoryInterface $userRepository, EmailServiceInterface $emailService)
+    public function __construct(UserRepositoryInterface $userRepository, EmailServiceInterface $emailService, MsService $msService)
     {
         $this->userRepository = $userRepository;
         $this->emailService = $emailService;
+        $this->msService = $msService;
     }
 
     public function registerOtp(RegisterOtpRequest $request)
@@ -176,6 +179,7 @@ class AuthController extends Controller
     public function registerCompleteV2(Request $request)
     {
         $id =  auth('sanctum')->user()->id ?? null;
+        $code_phone = $request->code_phone;
         $phone = $request->phone;
         $country = $request->country;
         $state = $request->state;
@@ -184,18 +188,22 @@ class AuthController extends Controller
         $job_title = $request->job_title;
         $company_web = $request->company_web;
         $company_name = $request->company_name;
-        $category_name = $request->category_name;
+        $category_name = $request->ms_company_category_other;
+        $ms_company_project_type_id = $request->ms_company_project_type_id;
         $classify_minerals_name = $request->classify_minerals_name;
         $classify_mining_name = $request->classify_mining_name;
         $commodities_minerals_name = $request->commodities_minerals_name;
         $commodities_minerals_coal_name = $request->commodities_minerals_coal_name;
         $commodities_mining_name = $request->commodities_mining_name;
         $origin_manufacturer_name = $request->origin_manufacturer_name;
+        $msPhonePrefix = $this->msService->getMsPrefixPhoneDetail($code_phone);
+        $msPhoneId = $msPhonePrefix->id ?? 102;
         if ($id) {
             $save = $this->userRepository->getUserById($id);
             if ($save) {
                 $save->job_title = $job_title;
                 $save->company_name = $company_name;
+                $save->ms_prefix_call_id = $msPhoneId;
                 $save->phone = $phone;
                 $save->email_alternate = $email_alternate;
                 $save->country = strtoupper($country);
@@ -210,6 +218,7 @@ class AuthController extends Controller
                 $save->commod_company_minerals_coal_other = $commodities_minerals_coal_name;
                 $save->commod_company_mining_other = $commodities_mining_name;
                 $save->origin_manufactur_company_other = $origin_manufacturer_name;
+                $save->ms_company_project_type_id = $ms_company_project_type_id;
                 $save->save();
                 $response['status'] = 200;
                 $response['message'] = 'Complete register account';
