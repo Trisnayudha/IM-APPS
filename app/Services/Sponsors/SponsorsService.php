@@ -23,6 +23,7 @@ class SponsorsService implements SponsorRepositoryInterface
 
         foreach ($sponsor as $x => $row) {
             $row->name = $row->type . ' Sponsors';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }
         return $sponsor;
@@ -30,7 +31,7 @@ class SponsorsService implements SponsorRepositoryInterface
 
     public function getLandyark()
     {
-        return DB::table('md_landyark')
+        $sponsor =  DB::table('md_landyark')
             ->select(
                 'md_landyark.id',
                 'md_landyark.image',
@@ -38,11 +39,18 @@ class SponsorsService implements SponsorRepositoryInterface
             )
             ->orderBy('md_landyark.sort', 'asc')
             ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Landyard Sponsors';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
     }
 
     public function getMedia()
     {
-        return DB::table('md_media_partner')
+        $sponsor = DB::table('md_media_partner')
             ->select(
                 'md_media_partner.id',
                 'md_media_partner.image',
@@ -50,11 +58,18 @@ class SponsorsService implements SponsorRepositoryInterface
             )
             ->orderBy('md_media_partner.sort', 'asc')
             ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Media PARTNERS';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
     }
 
     public function getSupporting()
     {
-        return DB::table('md_association')
+        $sponsor = DB::table('md_association')
             ->select(
                 'md_association.id',
                 'md_association.image',
@@ -62,5 +77,12 @@ class SponsorsService implements SponsorRepositoryInterface
             )
             ->orderBy('md_association.sort', 'asc')
             ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Media PARTNERS';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
     }
 }

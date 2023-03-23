@@ -52,7 +52,7 @@ class HomeController extends Controller
                 ],
                 [
                     'name' => 'LANDYARD & BADGES SPONSOR',
-                    'type' => 'free',
+                    'type' => 'landyard',
                     'data' => $landyark
                 ]
             ];
@@ -63,12 +63,12 @@ class HomeController extends Controller
             $data = [
                 [
                     'name' => 'SUPPORTING ASSOCIATIONS',
-                    'type' => 'free',
+                    'type' => 'supporting',
                     'data' => $supporting
                 ],
                 [
                     'name' => 'MEDIA PARTNERS',
-                    'type' => 'free',
+                    'type' => 'media',
                     'data' => $media
                 ]
             ];
