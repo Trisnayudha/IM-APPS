@@ -6,4 +6,5 @@ interface MsRepositoryInterface
 {
     public function getMsPrefixPhone();
     public function getMsPrefixPhoneDetail($code);
+    public function getBannerHome();
 }
