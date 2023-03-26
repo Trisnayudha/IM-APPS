@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\DirectoryController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\MsPrefixController;
 use Illuminate\Http\Request;
@@ -49,3 +50,14 @@ Route::post('/msphone/detail', [MsPrefixController::class, 'showMsPrefixPhoneDet
 //API route Home
 Route::post('/home/banner', [HomeController::class, 'banner']);
 Route::post('/home/sponsors', [HomeController::class, 'sponsors']);
+
+//API get detail sponsors
+Route::post('/sponsors/free/detail', [HomeController::class, 'detail_free']);
+Route::post('/sponsors/premium/detail', [HomeController::class, 'detail_premium']);
+
+
+//API route Directory
+
+Route::post('/contact/detail', [DirectoryController::class, 'getContactDetail']);
+
+Route::post('/timeline/directory', [DirectoryController::class, 'listTimeline']);

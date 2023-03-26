@@ -4,6 +4,7 @@ namespace App\Services\Sponsors;
 
 use App\Repositories\SponsorRepositoryInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
 
 class SponsorsService implements SponsorRepositoryInterface
 {
@@ -84,5 +85,29 @@ class SponsorsService implements SponsorRepositoryInterface
         }
 
         return $sponsor;
+    }
+
+
+    public function getDetailSponsorFree($id, $type)
+    {
+        if ($type == 'Sponsor') {
+            $find = DB::table('md_sponsor')->where('id', '=', $id)->first();
+        } elseif ($type == 'Media Partner') {
+            $find = DB::table('md_media_partner')->where('id', '=', $id)->first();
+        } elseif ($type == 'Association') {
+            $find = DB::table('md_association')->where('id', '=', $id)->first();
+        } elseif ($type == 'Landyard') {
+            $find = DB::table('md_landyark')->where('id', '=', $id)->first();
+        } elseif ($type == 'Badges') {
+            $find = DB::table('md_landyark')->where('id', '=', $id)->first();
+        } else {
+            $find = 'Type Not Found';
+        }
+        return $find;
+    }
+
+    public function getDetailSponsorPremium($slug)
+    {
+        //
     }
 }

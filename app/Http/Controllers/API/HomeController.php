@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Services\Company\CompanyService;
 use App\Services\MsPrefix\MsService;
 use App\Services\Sponsors\SponsorsService;
 use Illuminate\Http\Request;
@@ -11,11 +12,14 @@ class HomeController extends Controller
 {
     protected $msService;
     protected $sponsorsService;
-    public function __construct(MsService $msService, SponsorsService $sponsorsService)
+    protected $companyService;
+    public function __construct(MsService $msService, SponsorsService $sponsorsService, CompanyService $companyService)
     {
         $this->msService = $msService;
         $this->sponsorsService = $sponsorsService;
+        $this->companyService = $companyService;
     }
+
     public function banner()
     {
         $banner = $this->msService->getBannerHome();
@@ -76,6 +80,39 @@ class HomeController extends Controller
         $response['status'] = 200;
         $response['message'] = 'Successfully show list sponsors';
         $response['payload'] = $data;
+        return response()->json($response);
+    }
+
+    public function detail_free(Request $request)
+    {
+        $id  = $request->id;
+        $type = $request->type;
+        $data = $this->sponsorsService->getDetailSponsorFree($id, $type);
+        $response['status'] = 200;
+        $response['message'] = 'Successfully show detail sponsors';
+        $response['payload'] = $data;
+        return response()->json($response);
+    }
+
+    public function detail_premium(Request $request)
+    {
+        $slug = $request->slug;
+
+        $findCompany = $this->companyService->getCompanyBySlug($slug);
+        if ($findCompany) {
+            $findContact = $this->companyService->getListContactById($findCompany->id);
+            $data = [
+                'company' => $findCompany,
+                'contact' => $findContact
+            ];
+            $response['status'] = 200;
+            $response['message'] = 'Successfully show detail sponsors';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 404;
+            $response['message'] = 'Company Not Found';
+            $response['payload'] = null;
+        }
         return response()->json($response);
     }
 }
