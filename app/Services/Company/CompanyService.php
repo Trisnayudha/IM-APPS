@@ -421,28 +421,28 @@ class CompanyService implements CompanyRepositoryInterface
             if ($row->flag == "Product") {
                 $row->title = (strlen($row->product_title) > 100 ? substr($row->product_title, 0,  100) . '...' : $row->product_title);
                 $row->date_timeline = (!empty($row->product_date) ? date('d M Y, H:i A', strtotime($row->product_date)) : '');
-
                 $row->views = (!empty($row->product_views) ? $row->product_views : 0);
                 $row->download = 0;
+                $row->slug = $row->product_slug;
                 $row->desc = (strlen(strip_tags($row->product_desc)) > 300 ? substr(strip_tags($row->product_desc), 0,  300) . '...' : strip_tags($row->product_desc));
             } else if ($row->flag == "Project") {
                 $row->title = (strlen($row->project_title) > 100 ? substr($row->project_title, 0,  100) . '...' : $row->project_title);
                 $row->date_timeline = (!empty($row->project_date) ? date('d M Y, H:i A', strtotime($row->project_date)) : '');
-
                 $row->views = (!empty($row->project_views) ? $row->project_views : 0);
+                $row->slug = $row->project_slug;
                 $row->download = (!empty($row->project_download) ? $row->project_download : 0);
                 $row->desc = (strlen(strip_tags($row->project_desc)) > 300 ? substr(strip_tags($row->project_desc), 0,  300) . '...' : strip_tags($row->project_desc));
             } else if ($row->flag == "Media Resource") {
                 $row->title = (strlen($row->media_title) > 100 ? substr($row->media_title, 0,  100) . '...' : $row->media_title);
                 $row->date_timeline = (!empty($row->media_date) ? date('d M Y, H:i A', strtotime($row->media_date)) : '');
-
                 $row->views = (!empty($row->media_views) ? $row->media_views : 0);
+                $row->slug = $row->media_slug;
                 $row->download = (!empty($row->media_download) ? $row->media_download : 0);
                 $row->desc = (strlen(strip_tags($row->media_desc)) > 300 ? substr(strip_tags($row->media_desc), 0,  300) . '...' : strip_tags($row->media_desc));
             } else if ($row->flag == "News") {
                 $row->title = (strlen($row->news_title) > 100 ? substr($row->news_title, 0,  100) . '...' : $row->news_title);
                 $row->date_timeline = (!empty($row->news_date) ? date('d M Y, H:i A', strtotime($row->news_date)) : '');
-
+                $row->slug = $row->news_slug;
                 $row->views = (!empty($row->news_views) ? $row->news_views : 0);
                 $row->download = 0;
                 $row->desc = (strlen(strip_tags($row->news_desc)) > 300 ? substr(strip_tags($row->news_desc), 0,  300) . '...' : strip_tags($row->news_desc));
@@ -466,6 +466,7 @@ class CompanyService implements CompanyRepositoryInterface
                     "download" => $row->download,
                     "desc" => $row->desc,
                     "path_link" => $row->path_link,
+                    'slug' => $row->slug
                 ];
             }
             $query[$x] = $rowx;
