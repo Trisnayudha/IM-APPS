@@ -62,7 +62,9 @@ class CompanyService implements CompanyRepositoryInterface
     public function getListTimeline($type, $company, $category, $search, $tags, $filter)
     {
 
-        if ($type == 'Product') {
+        if ($type == 'Timeline') {
+            return $this->timelineList($company);
+        } elseif ($type == 'Product') {
             return $this->productList($company, $category, $search, $tags);
         } elseif ($type == 'Media') {
             return $this->mediaList($company, $category, $search, $tags);
@@ -335,5 +337,139 @@ class CompanyService implements CompanyRepositoryInterface
             })
             ->orderby('company_video.id', 'desc')
             ->paginate(12);
+    }
+
+    private function timelineList($company)
+    {
+        $query = DB::table('company_timeline')
+            ->select(
+                'company_timeline.id',
+                'company_timeline.target_id',
+                'company_timeline.flag',
+                'company_timeline.title',
+                'company_timeline.image',
+                'company_timeline.date_timeline',
+                'company_timeline.desc',
+                'company_timeline.views',
+                'company_timeline.download',
+                'company_timeline.path_link',
+                'company_timeline.location',
+
+                'product.title as product_title',
+                'product.slug as product_slug',
+                'product.image as product_image',
+                'product.date_product as product_date',
+                'product.desc as product_desc',
+                'product.views as product_views',
+                'product.location as product_location',
+
+                'media_resource.title as media_title',
+                'media_resource.slug as media_slug',
+                'media_resource.image as media_image',
+                'media_resource.date_media as media_date',
+                'media_resource.desc as media_desc',
+                'media_resource.views as media_views',
+                'media_resource.download as media_download',
+                'media_resource.location as media_location',
+
+                'project.title as project_title',
+                'project.slug as project_slug',
+                'project.image as project_image',
+                'project.date_project as project_date',
+                'project.desc as project_desc',
+                'project.views as project_views',
+                'project.download as project_download',
+                'project.location as project_location',
+
+                'news.title as news_title',
+                'news.slug as news_slug',
+                'news.image as news_image',
+                'news.date_news as news_date',
+                'news.desc as news_desc',
+                'news.views as news_views',
+                'news.location as news_location',
+            )
+            ->leftjoin('media_resource', function ($join) {
+                $join->on('company_timeline.target_id', '=', 'media_resource.id');
+                $join->where('company_timeline.flag', 'Media Resource');
+                $join->whereNotNull('media_resource.id');
+            })
+            ->leftjoin('news', function ($join) {
+                $join->on('company_timeline.target_id', '=', 'news.id');
+                $join->where('company_timeline.flag', 'News');
+                $join->whereNotNull('news.id');
+            })
+            ->leftjoin('product', function ($join) {
+                $join->on('company_timeline.target_id', '=', 'product.id');
+                $join->where('company_timeline.flag', 'Product');
+                $join->whereNotNull('product.id');
+            })
+            ->leftjoin('project', function ($join) {
+                $join->on('company_timeline.target_id', '=', 'project.id');
+                $join->where('company_timeline.flag', 'Project');
+                $join->whereNotNull('project.id');
+            })
+            ->where(function ($q) use ($company) {
+                if (!empty($company)) {
+                    $q->where('company_timeline.company_id', $company);
+                }
+            })
+            ->orderBy('company_timeline.id', 'desc')
+            //            ->simplePaginate(1);
+            ->paginate(5);
+        foreach ($query as $x => $row) {
+            if ($row->flag == "Product") {
+                $row->title = (strlen($row->product_title) > 100 ? substr($row->product_title, 0,  100) . '...' : $row->product_title);
+                $row->date_timeline = (!empty($row->product_date) ? date('d M Y, H:i A', strtotime($row->product_date)) : '');
+
+                $row->views = (!empty($row->product_views) ? $row->product_views : 0);
+                $row->download = 0;
+                $row->desc = (strlen(strip_tags($row->product_desc)) > 300 ? substr(strip_tags($row->product_desc), 0,  300) . '...' : strip_tags($row->product_desc));
+            } else if ($row->flag == "Project") {
+                $row->title = (strlen($row->project_title) > 100 ? substr($row->project_title, 0,  100) . '...' : $row->project_title);
+                $row->date_timeline = (!empty($row->project_date) ? date('d M Y, H:i A', strtotime($row->project_date)) : '');
+
+                $row->views = (!empty($row->project_views) ? $row->project_views : 0);
+                $row->download = (!empty($row->project_download) ? $row->project_download : 0);
+                $row->desc = (strlen(strip_tags($row->project_desc)) > 300 ? substr(strip_tags($row->project_desc), 0,  300) . '...' : strip_tags($row->project_desc));
+            } else if ($row->flag == "Media Resource") {
+                $row->title = (strlen($row->media_title) > 100 ? substr($row->media_title, 0,  100) . '...' : $row->media_title);
+                $row->date_timeline = (!empty($row->media_date) ? date('d M Y, H:i A', strtotime($row->media_date)) : '');
+
+                $row->views = (!empty($row->media_views) ? $row->media_views : 0);
+                $row->download = (!empty($row->media_download) ? $row->media_download : 0);
+                $row->desc = (strlen(strip_tags($row->media_desc)) > 300 ? substr(strip_tags($row->media_desc), 0,  300) . '...' : strip_tags($row->media_desc));
+            } else if ($row->flag == "News") {
+                $row->title = (strlen($row->news_title) > 100 ? substr($row->news_title, 0,  100) . '...' : $row->news_title);
+                $row->date_timeline = (!empty($row->news_date) ? date('d M Y, H:i A', strtotime($row->news_date)) : '');
+
+                $row->views = (!empty($row->news_views) ? $row->news_views : 0);
+                $row->download = 0;
+                $row->desc = (strlen(strip_tags($row->news_desc)) > 300 ? substr(strip_tags($row->news_desc), 0,  300) . '...' : strip_tags($row->news_desc));
+            } else {
+                $row->title = (strlen($row->title) > 100 ? substr($row->title, 0,  100) . '...' : $row->title);
+                $row->date_timeline = (!empty($row->date_timeline) ? date('d M Y, H:i A', strtotime($row->date_timeline)) : '');
+                $row->views = (!empty($row->views) ? $row->views : 0);
+                $row->download = (!empty($row->download) ? $row->download : 0);
+                $row->desc = (strlen(strip_tags($row->desc)) > 300 ? substr(strip_tags($row->desc), 0,  300) . '...' : strip_tags($row->desc));
+            }
+
+            foreach ($query[$x] as $key => $value) {
+                $rowx = (object) [
+                    "id" => $row->id,
+                    "flag" => $row->flag,
+                    "target_id" => $row->target_id,
+                    "title" => $row->title,
+                    "date_timeline" => $row->date_timeline,
+                    "image" => $row->image,
+                    "views" => $row->views,
+                    "download" => $row->download,
+                    "desc" => $row->desc,
+                    "path_link" => $row->path_link,
+                ];
+            }
+            $query[$x] = $rowx;
+        }
+        return $query;
     }
 }
