@@ -39,18 +39,22 @@ class DirectoryController extends Controller
     public function listTimeline(Request $request)
     {
         $type = $request->type;
-        $id = $request->id;
+        $slug = $request->slug;
         $search = $request->search;
         $tags = $request->tags;
         $category = $request->category;
         $filter = $request->filter;
-        $company = $request->company;
-        $is_directory = $request->is_directory;
-
-        $data = $this->companyService->getListTimeline($type, $id, $search, $tags, $category, $filter, $company, $is_directory);
-        $response['status'] = 200;
-        $response['message'] = 'Successfully show data';
-        $response['payload'] = $data;
+        $company_id = $this->companyService->getCompanyBySlug($slug);
+        if ($company_id) {
+            $data = $this->companyService->getListTimeline($type, $company_id->id, $category, $search, $tags, $filter);
+            $response['status'] = 200;
+            $response['message'] = 'Successfully show data';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 404;
+            $response['message'] = 'Company Not Found';
+            $response['payload'] = null;
+        }
         return response()->json($response);
     }
 }

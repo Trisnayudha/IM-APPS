@@ -13,5 +13,5 @@ interface CompanyRepositoryInterface
     public function getDetailContactById($id);
 
     //timeline
-    public function getListTimeline($type, $id);
+    public function getListTimeline($type, $id, $category, $search, $tags, $filter);
 }
