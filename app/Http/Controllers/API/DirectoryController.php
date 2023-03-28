@@ -57,4 +57,34 @@ class DirectoryController extends Controller
         }
         return response()->json($response);
     }
+
+    public function detailProduct($slug)
+    {
+        dd($slug);
+    }
+
+    public function detailNews($slug)
+    {
+
+        $news = $this->companyService->getDetailNews($slug);
+        $relate = $this->companyService->getRelateNews($slug);
+        $data = [
+            'news' => $news,
+            'releate' => $relate
+        ];
+        $response['status'] = 200;
+        $response['message'] = 'Successfully show data';
+        $response['payload'] = $data;
+        return response()->json($response);
+    }
+
+
+    public function detailProject($slug)
+    {
+        dd($slug);
+    }
+    public function detailMedia($slug)
+    {
+        dd($slug);
+    }
 }

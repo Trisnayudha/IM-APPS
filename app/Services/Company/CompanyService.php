@@ -78,7 +78,56 @@ class CompanyService implements CompanyRepositoryInterface
     }
 
 
+    public function getDetailNews($slug)
+    {
+        return DB::table('news')->where('slug', '=', $slug)->first();
+    }
+    public function getDetailProduct($slug)
+    {
+    }
+    public function getDetailProject($slug)
+    {
+        //
+    }
+    public function getDetailMedia($slug)
+    {
+        //
+    }
 
+
+    public function getRelateNews($slug)
+    {
+        $news = DB::table('news')->where('slug', '=', $slug)->first();
+        $news_id = $news->id;
+        $company_id = $news->company_id;
+        return DB::table('news')
+            ->select(
+                'news.id',
+                'news.title',
+                'news.slug',
+                'news.image',
+                'news.location',
+                'news.date_news',
+                // 'news.desc',
+                'news.views'
+            )
+            ->where(function ($q) use ($news_id, $company_id) {
+                if (!empty($news_id)) {
+                    $q->where('news.id', '!=', $news_id);
+                }
+                if (!empty($company_id)) {
+                    $q->where('news.company_id', $company_id);
+                    $q->where('news.flag', 'Company');
+                    $q->where('news.highlight', 'Yes');
+                } else {
+                    $q->where('news.flag', 'Portal');
+                }
+            })
+            ->inRandomOrder()
+            ->orderby('news.id', 'desc')
+            ->limit(4)
+            ->get();
+    }
 
 
 
