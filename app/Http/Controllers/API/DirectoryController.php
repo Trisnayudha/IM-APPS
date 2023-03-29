@@ -60,7 +60,16 @@ class DirectoryController extends Controller
 
     public function detailProduct($slug)
     {
-        dd($slug);
+        $product = $this->companyService->getDetailProduct($slug);
+        $relate = $this->companyService->getRelateProduct($slug);
+        $data = [
+            'product' => $product,
+            'releate' => $relate
+        ];
+        $response['status'] = 200;
+        $response['message'] = 'Successfully show data';
+        $response['payload'] = $data;
+        return response()->json($response);
     }
 
     public function detailNews($slug)
@@ -81,10 +90,28 @@ class DirectoryController extends Controller
 
     public function detailProject($slug)
     {
-        dd($slug);
+        $project = $this->companyService->getDetailProject($slug);
+        $relate = $this->companyService->getRelateProject($slug);
+        $data = [
+            'project' => $project,
+            'releate' => $relate
+        ];
+        $response['status'] = 200;
+        $response['message'] = 'Successfully show data';
+        $response['payload'] = $data;
+        return response()->json($response);
     }
     public function detailMedia($slug)
     {
-        dd($slug);
+        $media = $this->companyService->getDetailMedia($slug);
+        $relate = $this->companyService->getRelateMedia($slug);
+        $data = [
+            'media' => $media,
+            'releate' => $relate
+        ];
+        $response['status'] = 200;
+        $response['message'] = 'Successfully show data';
+        $response['payload'] = $data;
+        return response()->json($response);
     }
 }

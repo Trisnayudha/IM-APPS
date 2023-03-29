@@ -84,14 +84,15 @@ class CompanyService implements CompanyRepositoryInterface
     }
     public function getDetailProduct($slug)
     {
+        return DB::table('product')->where('slug', '=', $slug)->first();
     }
     public function getDetailProject($slug)
     {
-        //
+        return DB::table('project')->where('slug', '=', $slug)->first();
     }
     public function getDetailMedia($slug)
     {
-        //
+        return DB::table('media_resource')->where('slug', '=', $slug)->first();
     }
 
 
@@ -125,6 +126,108 @@ class CompanyService implements CompanyRepositoryInterface
             })
             ->inRandomOrder()
             ->orderby('news.id', 'desc')
+            ->limit(4)
+            ->get();
+    }
+
+    public function getRelateProduct($slug)
+    {
+        $product = DB::table('product')->where('slug', '=', $slug)->first();
+        $id = $product->id;
+        $company_id = $product->company_id;
+
+        return DB::table('product')
+            ->select(
+                'product.id',
+                'product.title',
+                'product.slug',
+                'product.image',
+                'product.location',
+                // 'company.name as company_name',
+                'product.company_id',
+                'product.created_at',
+                'product.views'
+            )
+
+            ->where(function ($q) use ($id, $company_id) {
+                if (!empty($id)) {
+                    $q->where('product.id', '!=', $id);
+                }
+                if (!empty($company_id)) {
+                    $q->where('product.company_id', $company_id);
+                }
+            })
+            ->inRandomOrder()
+            ->orderby('product.id', 'desc')
+            ->limit(4)
+            ->get();
+    }
+    public function getRelateProject($slug)
+    {
+
+        $project =  DB::table('project')->where('slug', '=', $slug)->first();
+        $id = $project->id;
+        $company_id = $project->company_id;
+        return DB::table('project')
+            ->select(
+                'project.id',
+                'project.title',
+                'project.slug',
+                'project.image',
+                'project.location',
+                'project.desc',
+                'project.created_at',
+                'project.views'
+            )
+            ->where(function ($q) use ($id, $company_id) {
+                if (!empty($id)) {
+                    $q->where('project.id', '!=', $id);
+                }
+                if (!empty($company_id)) {
+                    $q->where('project.company_id', '=', $company_id);
+                }
+            })
+            ->inRandomOrder()
+            ->orderby('project.id', 'desc')
+            ->limit(4)
+            ->get();
+    }
+    public function getRelateMedia($slug)
+    {
+
+        $media = DB::table('media_resource')->where('slug', '=', $slug)->first();
+        $id = $media->id;
+        $company_id = $media->company_id;
+        return DB::table('media_resource')
+            ->select(
+                'media_resource.id',
+                'media_resource.title',
+                'media_resource.slug',
+                'media_resource.image',
+                'media_resource.desc',
+                'media_resource.views',
+                'media_resource.download',
+                'media_resource.location',
+                'media_resource.created_at'
+            )
+            ->leftJoin("company", function ($join) {
+                $join->on('company.id', '=', 'media_resource.company_id');
+                $join->whereNotNull('company.id');
+            })
+            ->leftJoin('media_tags_list', function ($join) {
+                $join->on('media_tags_list.media_resource_id', '=', 'media_resource.id');
+                $join->whereNotNull('media_tags_list.media_tags_id');
+            })
+            ->where(function ($q) use ($id, $company_id) {
+                if (!empty($id)) {
+                    $q->where('media_resource.id', '!=', $id);
+                }
+                if (!empty($company_id)) {
+                    $q->where('media_resource.company_id', '=', $company_id);
+                }
+            })
+            ->inRandomOrder()
+            ->orderby('media_resource.id', 'desc')
             ->limit(4)
             ->get();
     }

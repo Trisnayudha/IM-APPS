@@ -20,5 +20,8 @@ interface CompanyRepositoryInterface
     public function getDetailProject($slug);
     public function getDetailMedia($slug);
 
-    public function getRelateNews($news_id);
+    public function getRelateNews($slug);
+    public function getRelateProduct($slug);
+    public function getRelateProject($slug);
+    public function getRelateMedia($slug);
 }
