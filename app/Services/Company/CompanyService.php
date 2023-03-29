@@ -78,21 +78,33 @@ class CompanyService implements CompanyRepositoryInterface
     }
 
 
-    public function getDetailNews($slug)
+    public function getDetailNews($slug, $users_id)
     {
-        return DB::table('news')->where('slug', '=', $slug)->first();
+        $db = DB::table('news')->where('slug', '=', $slug)->first();
+        $check_book = DB::table('news_bookmark')->where('news_id', '=', $db->id)->where('users_id', '=', $users_id)->first();
+        $db->bookmark = $check_book ? 1 : 0;
+        return $db;
     }
-    public function getDetailProduct($slug)
+    public function getDetailProduct($slug, $users_id)
     {
-        return DB::table('product')->where('slug', '=', $slug)->first();
+        $db = DB::table('product')->where('slug', '=', $slug)->first();
+        $check_book = DB::table('product_bookmark')->where('product_id', '=', $db->id)->where('users_id', '=', $users_id)->first();
+        $db->bookmark = $check_book ? 1 : 0;
+        return $db;
     }
-    public function getDetailProject($slug)
+    public function getDetailProject($slug, $users_id)
     {
-        return DB::table('project')->where('slug', '=', $slug)->first();
+        $db = DB::table('project')->where('slug', '=', $slug)->first();
+        $check_book = DB::table('project_bookmark')->where('project_id', '=', $db->id)->where('users_id', '=', $users_id)->first();
+        $db->bookmark = $check_book ? 1 : 0;
+        return $db;
     }
-    public function getDetailMedia($slug)
+    public function getDetailMedia($slug, $users_id)
     {
-        return DB::table('media_resource')->where('slug', '=', $slug)->first();
+        $db = DB::table('media_resource')->where('slug', '=', $slug)->first();
+        $check_book = DB::table('media_bookmark')->where('media_resource_id', '=', $db->id)->where('users_id', '=', $users_id)->first();
+        $db->bookmark = $check_book ? 1 : 0;
+        return $db;
     }
 
 

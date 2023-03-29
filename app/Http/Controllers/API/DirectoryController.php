@@ -60,7 +60,8 @@ class DirectoryController extends Controller
 
     public function detailProduct($slug)
     {
-        $product = $this->companyService->getDetailProduct($slug);
+        $id =  auth('sanctum')->user()->id ?? null;
+        $product = $this->companyService->getDetailProduct($slug, $id);
         $relate = $this->companyService->getRelateProduct($slug);
         $data = [
             'product' => $product,
@@ -74,8 +75,9 @@ class DirectoryController extends Controller
 
     public function detailNews($slug)
     {
+        $id =  auth('sanctum')->user()->id ?? null;
 
-        $news = $this->companyService->getDetailNews($slug);
+        $news = $this->companyService->getDetailNews($slug, $id);
         $relate = $this->companyService->getRelateNews($slug);
         $data = [
             'news' => $news,
@@ -90,7 +92,8 @@ class DirectoryController extends Controller
 
     public function detailProject($slug)
     {
-        $project = $this->companyService->getDetailProject($slug);
+        $id =  auth('sanctum')->user()->id ?? null;
+        $project = $this->companyService->getDetailProject($slug, $id);
         $relate = $this->companyService->getRelateProject($slug);
         $data = [
             'project' => $project,
@@ -101,9 +104,11 @@ class DirectoryController extends Controller
         $response['payload'] = $data;
         return response()->json($response);
     }
+
     public function detailMedia($slug)
     {
-        $media = $this->companyService->getDetailMedia($slug);
+        $id =  auth('sanctum')->user()->id ?? null;
+        $media = $this->companyService->getDetailMedia($slug, $id);
         $relate = $this->companyService->getRelateMedia($slug);
         $data = [
             'media' => $media,

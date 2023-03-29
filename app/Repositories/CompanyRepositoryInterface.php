@@ -15,10 +15,10 @@ interface CompanyRepositoryInterface
     //timeline
     public function getListTimeline($type, $id, $category, $search, $tags, $filter);
 
-    public function getDetailNews($slug);
-    public function getDetailProduct($slug);
-    public function getDetailProject($slug);
-    public function getDetailMedia($slug);
+    public function getDetailNews($slug, $users_id);
+    public function getDetailProduct($slug, $users_id);
+    public function getDetailProject($slug, $users_id);
+    public function getDetailMedia($slug, $users_id);
 
     public function getRelateNews($slug);
     public function getRelateProduct($slug);
