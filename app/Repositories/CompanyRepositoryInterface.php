@@ -24,4 +24,6 @@ interface CompanyRepositoryInterface
     public function getRelateProduct($slug);
     public function getRelateProject($slug);
     public function getRelateMedia($slug);
+
+    public function postBookmark($users_id, $bookmark_id, $type);
 }

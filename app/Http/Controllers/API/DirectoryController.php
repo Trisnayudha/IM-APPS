@@ -119,4 +119,23 @@ class DirectoryController extends Controller
         $response['payload'] = $data;
         return response()->json($response);
     }
+
+    public function postBookmarkTimeline(Request $request)
+    {
+        $id =  auth('sanctum')->user()->id ?? null;
+        $type = $request->type;
+        $bookmark_id = $request->bookmark_id;
+        $type = $request->type;
+        if ($id) {
+            $data = $this->companyService->postBookmark($id, $bookmark_id, $type);
+            $response['status'] = 200;
+            $response['message'] = $data;
+            $response['payload'] = null;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
 }

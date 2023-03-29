@@ -65,3 +65,5 @@ Route::post('detail/{slug}/product', [DirectoryController::class, 'detailProduct
 Route::post('detail/{slug}/news', [DirectoryController::class, 'detailNews']);
 Route::post('detail/{slug}/project', [DirectoryController::class, 'detailProject']);
 Route::post('detail/{slug}/media', [DirectoryController::class, 'detailMedia']);
+
+Route::post('/timeline/bookmark', [DirectoryController::class, 'postBookmarkTimeline']);
