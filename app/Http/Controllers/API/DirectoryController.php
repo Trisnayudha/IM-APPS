@@ -4,10 +4,13 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Services\Company\CompanyService;
+use App\Traits\Directory;
 use Illuminate\Http\Request;
 
 class DirectoryController extends Controller
 {
+    use Directory;
+
     protected $companyService;
     public function __construct(CompanyService $companyService)
     {
@@ -63,6 +66,7 @@ class DirectoryController extends Controller
         $id =  auth('sanctum')->user()->id ?? null;
         $product = $this->companyService->getDetailProduct($slug, $id);
         $relate = $this->companyService->getRelateProduct($slug);
+        self::countVisitPage('Product', 'Out Events', $product->id, $product->company_id, 11, $id);
         $data = [
             'product' => $product,
             'releate' => $relate
@@ -79,6 +83,7 @@ class DirectoryController extends Controller
 
         $news = $this->companyService->getDetailNews($slug, $id);
         $relate = $this->companyService->getRelateNews($slug);
+        self::countVisitPage('News', 'Out Events', $news->id, $news->company_id, 11, $id);
         $data = [
             'news' => $news,
             'releate' => $relate
@@ -95,6 +100,7 @@ class DirectoryController extends Controller
         $id =  auth('sanctum')->user()->id ?? null;
         $project = $this->companyService->getDetailProject($slug, $id);
         $relate = $this->companyService->getRelateProject($slug);
+        self::countVisitPage('Project', 'Out Events', $project->id, $project->company_id, 11, $id);
         $data = [
             'project' => $project,
             'releate' => $relate
@@ -110,6 +116,7 @@ class DirectoryController extends Controller
         $id =  auth('sanctum')->user()->id ?? null;
         $media = $this->companyService->getDetailMedia($slug, $id);
         $relate = $this->companyService->getRelateMedia($slug);
+        self::countVisitPage('Media', 'Out Events', $media->id, $media->company_id, 11, $id);
         $data = [
             'media' => $media,
             'releate' => $relate
