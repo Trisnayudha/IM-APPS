@@ -34,4 +34,15 @@ class MsService implements MsRepositoryInterface
             ->orderBy('md_banner.sort', 'asc')
             ->get();
     }
+
+    public function getMdCategorySuggest()
+    {
+        return DB::table('md_category_suggest_meet')
+            ->select(
+                'md_category_suggest_meet.id',
+                'md_category_suggest_meet.name'
+            )
+            ->orderBy('md_category_suggest_meet.id', 'desc')
+            ->get();
+    }
 }

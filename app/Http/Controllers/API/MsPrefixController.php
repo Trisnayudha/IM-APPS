@@ -31,4 +31,13 @@ class MsPrefixController extends Controller
         $response['payload'] = $payload;
         return response()->json($response);
     }
+
+    public function showMdCategorySuggest()
+    {
+        $payload = $this->msService->getMdCategorySuggest();
+        $response['status'] = 200;
+        $response['message'] = 'Successfully show detail Category';
+        $response['payload'] = $payload;
+        return response()->json($response);
+    }
 }

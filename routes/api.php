@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //API route MsService
 Route::post('/msphone', [MsPrefixController::class, 'showMsPrefixPhoneAll']);
 Route::post('/msphone/detail', [MsPrefixController::class, 'showMsPrefixPhoneDetail']);
+Route::post('/mdCategorySuggest', [MsPrefixController::class, 'showMdCategorySuggest']);
 
 
 //API route Home
