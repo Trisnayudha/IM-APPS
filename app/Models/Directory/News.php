@@ -10,6 +10,7 @@ class News extends Model
     use HasFactory;
     protected $table = 'news';
     protected $fillable = [
-        'views'
+        'views',
+        'download'
     ];
 }

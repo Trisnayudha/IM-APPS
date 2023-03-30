@@ -132,11 +132,29 @@ class DirectoryController extends Controller
         $id =  auth('sanctum')->user()->id ?? null;
         $type = $request->type;
         $bookmark_id = $request->bookmark_id;
-        $type = $request->type;
         if ($id) {
             $data = $this->companyService->postBookmark($id, $bookmark_id, $type);
             $response['status'] = 200;
             $response['message'] = $data;
+            $response['payload'] = null;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
+
+    public function postDownloadTimeline(Request $request)
+    {
+        $id =  auth('sanctum')->user()->id ?? null;
+        $type = $request->type;
+        $directory_id = $request->directory_id;
+        $company_id = $request->company_id;
+        if ($id) {
+            self::countDownloadPage($type, $directory_id, $company_id, 11, $id);
+            $response['status'] = 200;
+            $response['message'] = 'Success Download';
             $response['payload'] = null;
         } else {
             $response['status'] = 401;

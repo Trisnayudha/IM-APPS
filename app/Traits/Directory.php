@@ -26,34 +26,23 @@ trait Directory
      * @return bool
      * @throws \Exception
      */
-    public static function isExpiredSendCard($company_id, $users_id)
-    {
-        date_default_timezone_set('Asia/Jakarta');
-        $find = \App\Repositories\CompanySendCard::findByCompanyUsers($company_id, $users_id);
-        if (!empty($find->id)) {
-            $dateNow = date('Y-m-d H:i:s');
-            $date = date('Y-m-d H:i:s', strtotime($find->date_expired_req));
+    // public static function isExpiredSendCard($company_id, $users_id)
+    // {
+    //     date_default_timezone_set('Asia/Jakarta');
+    //     $find = \App\Repositories\CompanySendCard::findByCompanyUsers($company_id, $users_id);
+    //     if (!empty($find->id)) {
+    //         $dateNow = date('Y-m-d H:i:s');
+    //         $date = date('Y-m-d H:i:s', strtotime($find->date_expired_req));
 
-            if (new \DateTime($dateNow) <= new \DateTime($date)) {
-                return true;
-            }
-        }
+    //         if (new \DateTime($dateNow) <= new \DateTime($date)) {
+    //             return true;
+    //         }
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    /**
-     * check login or not
-     *
-     * @return bool
-     */
-    public static function isLogin()
-    {
-        if (getSessionDelegate('login_id')) {
-            return true;
-        }
-        return false;
-    }
+
 
     /**
      * count visit page Media Resource, Project, Product
@@ -202,13 +191,12 @@ trait Directory
      * @param $id
      * @return bool
      */
-    public static function countDownloadPage($page, $id, $company_id = null, $events_id = null)
+    public static function countDownloadPage($page, $id, $company_id = null, $events_id = null, $users_id)
     {
-        $users_id =  auth('sanctum')->user()->id ?? null;
         $visit = (self::isInEvents() ? 'In' : 'Out') . ' Events';
 
         if ($page == 'Media') {
-            $save = new \App\Repositories\MediaResourceLog();
+            $save = new MediaResourceLog();
             $save->flag = 'Download';
             $save->flag_visit = $visit;
             $save->day = date('d');
@@ -222,7 +210,7 @@ trait Directory
             $save->user_agent = request()->userAgent();
             $save->save();
 
-            $find = \App\Repositories\MediaResource::findById($id);
+            $find = MediaResource::find($id);
             $find->download = (int) $find->download + 1;
             $find->save();
 
@@ -230,7 +218,7 @@ trait Directory
 
             return true;
         } elseif ($page == 'Project') {
-            $save = new \App\Repositories\ProjectLog();
+            $save = new ProjectLog();
             $save->flag = 'Download';
             $save->flag_visit = $visit;
             $save->day = date('d');
@@ -244,7 +232,7 @@ trait Directory
             $save->user_agent = request()->userAgent();
             $save->save();
 
-            $find = \App\Repositories\Project::findById($id);
+            $find = Project::find($id);
             $find->download = (int) $find->download + 1;
             $find->save();
 
@@ -252,7 +240,7 @@ trait Directory
 
             return true;
         } elseif ($page == 'Product') {
-            $save = new \App\Repositories\ProductLog();
+            $save = new ProductLog();
             $save->flag = 'Download';
             $save->flag_visit = $visit;
             $save->day = date('d');
@@ -266,7 +254,7 @@ trait Directory
             $save->user_agent = request()->userAgent();
             $save->save();
 
-            $find = \App\Repositories\Product::findById($id);
+            $find = Product::find($id);
             $find->download = (int) $find->download + 1;
             $find->save();
 
@@ -316,33 +304,33 @@ trait Directory
         return false;
     }
 
-    public static function isBookmark($type, $id, $events_id = null)
-    {
-        $users_id =  auth('sanctum')->user()->id ?? null;
-        if ($type == 'Company') {
-            $find = \App\Repositories\CompanyBookmark::findBy(['company_id' => $id, 'users_id' => $users_id]);
-        } else if ($type == 'Media Directory') {
-            $find = \App\Repositories\MediaBookmark::findBy(['media_resource_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        } else if ($type == 'Project') {
-            $find = \App\Repositories\ProjectBookmark::findBy(['project_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        } else if ($type == 'Product') {
-            $find = \App\Repositories\ProductBookmark::findBy(['product_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        } else if ($type == 'News') {
-            $find = \App\Repositories\NewsBookmark::findBy(['news_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        } else if ($type == 'Networking') {
-            $find = \App\Repositories\NetworkingBookmark::findBy(['users_delegate_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        } else if ($type == 'Conference') {
-            $find = \App\Repositories\ConferenceBookmark::findBy(['events_conferen_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        } else if ($type == 'Conference Agenda') {
-            $find = \App\Repositories\ConferenceAgendaBookmark::findBy(['events_schedule_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        } else if ($type == 'Video') {
-            $find = \App\Repositories\CompanyVideoBookmark::findBy(['company_video_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-        }
+    // public static function isBookmark($type, $id, $events_id = null)
+    // {
+    //     $users_id =  auth('sanctum')->user()->id ?? null;
+    //     if ($type == 'Company') {
+    //         $find = \App\Repositories\CompanyBookmark::findBy(['company_id' => $id, 'users_id' => $users_id]);
+    //     } else if ($type == 'Media Directory') {
+    //         $find = \App\Repositories\MediaBookmark::findBy(['media_resource_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     } else if ($type == 'Project') {
+    //         $find = \App\Repositories\ProjectBookmark::findBy(['project_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     } else if ($type == 'Product') {
+    //         $find = \App\Repositories\ProductBookmark::findBy(['product_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     } else if ($type == 'News') {
+    //         $find = \App\Repositories\NewsBookmark::findBy(['news_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     } else if ($type == 'Networking') {
+    //         $find = \App\Repositories\NetworkingBookmark::findBy(['users_delegate_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     } else if ($type == 'Conference') {
+    //         $find = \App\Repositories\ConferenceBookmark::findBy(['events_conferen_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     } else if ($type == 'Conference Agenda') {
+    //         $find = \App\Repositories\ConferenceAgendaBookmark::findBy(['events_schedule_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     } else if ($type == 'Video') {
+    //         $find = \App\Repositories\CompanyVideoBookmark::findBy(['company_video_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
+    //     }
 
-        if (!empty($find->id))
-            return true;
-        return false;
-    }
+    //     if (!empty($find->id))
+    //         return true;
+    //     return false;
+    // }
 
     /**
      * check before destroy cookie
@@ -424,7 +412,7 @@ trait Directory
 
         $users_id =  auth('sanctum')->user()->id ?? null;
         if ($page == 'Media Resource') {
-            $save = new \App\Repositories\MediaResourceLog();
+            $save = new MediaResourceLog();
             $save->flag = 'Share';
             $save->flag_visit = $visit;
             $save->day = date('d');
@@ -439,7 +427,7 @@ trait Directory
             $save->share_type = $type;
             $save->save();
 
-            $find = \App\Repositories\MediaResource::findById($id);
+            $find = MediaResource::findById($id);
             $find->share = (int) $find->share + 1;
             $find->save();
 
@@ -447,7 +435,7 @@ trait Directory
 
             return true;
         } elseif ($page == 'Project') {
-            $save = new \App\Repositories\ProjectLog();
+            $save = new ProjectLog();
             $save->flag = 'Share';
             $save->flag_visit = $visit;
             $save->day = date('d');
@@ -462,7 +450,7 @@ trait Directory
             $save->share_type = $type;
             $save->save();
 
-            $find = \App\Repositories\Project::findById($id);
+            $find = Project::findById($id);
             $find->share = (int) $find->share + 1;
             $find->save();
 
@@ -470,7 +458,7 @@ trait Directory
 
             return true;
         } elseif ($page == 'Product') {
-            $save = new \App\Repositories\ProductLog();
+            $save = new ProductLog();
             $save->flag = 'Share';
             $save->flag_visit = $visit;
             $save->day = date('d');
@@ -485,7 +473,7 @@ trait Directory
             $save->share_type = $type;
             $save->save();
 
-            $find = \App\Repositories\Product::findById($id);
+            $find = Product::findById($id);
             $find->share = (int) $find->share + 1;
             $find->save();
 
@@ -493,7 +481,7 @@ trait Directory
 
             return true;
         } elseif ($page == 'News') {
-            $save = new \App\Repositories\NewsLog();
+            $save = new NewsLog();
             $save->flag = 'Share';
             $save->flag_visit = $visit;
             $save->day = date('d');
@@ -508,7 +496,7 @@ trait Directory
             $save->share_type = $type;
             $save->save();
 
-            $find = \App\Repositories\News::findById($id);
+            $find = News::findById($id);
             $find->share = (int) $find->share + 1;
             $find->save();
 
@@ -516,7 +504,7 @@ trait Directory
 
             return true;
         } elseif ($page == 'Company') {
-            $save = new \App\Repositories\CompanyLog();
+            $save = new CompanyLog();
             $save->flag_visit = $visit;
             $save->day = date('d');
             $save->month = date('m');

@@ -10,6 +10,7 @@ class MediaResource extends Model
     use HasFactory;
     protected $table = 'media_resource';
     protected $fillable = [
-        'views'
+        'views',
+        'download'
     ];
 }

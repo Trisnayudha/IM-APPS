@@ -67,3 +67,4 @@ Route::post('detail/{slug}/project', [DirectoryController::class, 'detailProject
 Route::post('detail/{slug}/media', [DirectoryController::class, 'detailMedia']);
 
 Route::post('/timeline/bookmark', [DirectoryController::class, 'postBookmarkTimeline']);
+Route::post('/timeline/download', [DirectoryController::class, 'postDownloadTimeline']);

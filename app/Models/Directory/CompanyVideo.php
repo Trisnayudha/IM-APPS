@@ -10,6 +10,7 @@ class CompanyVideo extends Model
     use HasFactory;
     protected $table = 'company_video';
     protected $fillable = [
-        'views'
+        'views',
+        'download'
     ];
 }
