@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Services\Profile\ProfileService;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 
 class ProfileController extends Controller
@@ -71,6 +73,30 @@ class ProfileController extends Controller
             $response['payload'] = null;
         }
 
+        return response()->json($response, 200);
+    }
+
+    public function changePassword(ChangePasswordRequest $request)
+    {
+        $id = auth('sanctum')->user()->id ?? null;
+        $old_password = $request->current_password;
+        $new_password = $request->new_password;
+        $find = $this->userService->getUserById($id);
+        if (Hash::check($old_password, $find->password)) {
+            //password true
+            $find->password = Hash::make($new_password);
+            $find->save();
+            $response['status'] = 200;
+            $response['message'] = 'Successfully Update new password';
+            $response['payload'] = null;
+        } else {
+            $data = [
+                'current_password' => 'Password was wrong',
+            ];
+            $response['status'] = 422;
+            $response['message'] = 'Invalid data';
+            $response['payload'] = $data;
+        }
         return response()->json($response, 200);
     }
     //

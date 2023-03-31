@@ -77,3 +77,4 @@ Route::post('/timeline/sendCard', [DirectoryController::class, 'postSendCard']);
 //Profile
 Route::post('/profile', [ProfileController::class, 'getIndex']);
 Route::post('/profile/updatePersonal', [ProfileController::class, 'updatePersonal']);
+Route::post('/profile/updatePassword', [ProfileController::class, 'changePassword']);
