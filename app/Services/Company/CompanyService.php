@@ -720,4 +720,52 @@ class CompanyService implements CompanyRepositoryInterface
 
         return $message;
     }
+
+    public function postSendMeet($company_id, $delegation_id, $category_suggest_id, $message, $users_id)
+    {
+        //
+    }
+
+
+    public function getDetailFormSuggest($id)
+    {
+        return DB::table('company_suggest_meet')
+            ->select(
+                'company_suggest_meet.id',
+                'company_suggest_meet.company_id',
+                'company.name as company_name',
+                'company.name_pic as company_name_pic',
+                'company.email as company_email',
+                'company_suggest_meet.users_id',
+                'users.name as users_name',
+                'users.company_name as users_company_name',
+                'users.job_title as users_job_title',
+                'company_suggest_meet.md_category_suggest_meet_id',
+                'md_category_suggest_meet.name as category_name',
+                'company_suggest_meet.company_representative_id',
+                'company_representative.name as representative_name',
+                'company_representative.email as representative_email',
+                'company_suggest_meet.message'
+            )
+            ->leftJoin('users', function ($join) {
+                $join->on('users.id', '=', 'company_suggest_meet.users_id');
+                $join->whereNotNull('company_suggest_meet.users_id');
+            })
+            ->leftJoin('md_category_suggest_meet', function ($join) {
+                $join->on('md_category_suggest_meet.id', '=', 'company_suggest_meet.md_category_suggest_meet_id');
+                $join->whereNotNull('company_suggest_meet.md_category_suggest_meet_id');
+            })
+            ->leftJoin('company_representative', function ($join) {
+                $join->on('company_representative.id', '=', 'company_suggest_meet.company_representative_id');
+            })
+            ->leftJoin('company', function ($join) {
+                $join->on('company.id', '=', 'company_suggest_meet.company_id');
+            })
+            ->where(function ($q) use ($id) {
+                if ($id) {
+                    $q->where('company_suggest_meet.id', $id);
+                }
+            })
+            ->first();
+    }
 }

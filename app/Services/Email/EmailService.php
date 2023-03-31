@@ -5,6 +5,7 @@ namespace App\Services\Email;
 use App\Mail\OtpForgotMail;
 use App\Mail\OtpMail;
 use App\Mail\OtpRegisterMail;
+use App\Mail\SuggestMeetMail;
 use App\Repositories\EmailServiceInterface;
 use Illuminate\Support\Facades\Mail;
 
@@ -26,5 +27,12 @@ class EmailService implements EmailServiceInterface
     {
         $mail = new OtpForgotMail($user, $otp);
         Mail::to($user->email)->send($mail);
+    }
+
+    public function sendSuggestMeet($name, $users_name, $category_name, $message, $email)
+    {
+        //
+        $mail = new SuggestMeetMail($name, $users_name, $category_name, $message);
+        Mail::to($email)->send($mail);
     }
 }

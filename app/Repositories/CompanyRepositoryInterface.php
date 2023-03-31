@@ -26,4 +26,6 @@ interface CompanyRepositoryInterface
     public function getRelateMedia($slug);
 
     public function postBookmark($users_id, $bookmark_id, $type);
+    public function getDetailFormSuggest($id);
+    public function postSendMeet($company_id, $delegation_id, $category_suggest_id, $message, $users_id);
 }
