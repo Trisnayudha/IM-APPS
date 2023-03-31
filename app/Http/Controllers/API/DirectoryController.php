@@ -228,4 +228,17 @@ class DirectoryController extends Controller
         }
         return response()->json($response);
     }
+
+    public function postSendCard(Request $request)
+    {
+        $id =  auth('sanctum')->user()->id ?? null;
+        $company_id = $request->company_id;
+        $data  = $this->companyService->postSendCard($company_id, $id);
+        self::usersActivity('Send Business Card to Company', (self::isInEvents() ? 'In' : 'Out') . ' Events', self::getIdEvents(), null);
+        $response['status'] = 200;
+        $response['message'] = 'Success send card';
+        $response['payload'] = null;
+
+        return response()->json($response, 200);
+    }
 }

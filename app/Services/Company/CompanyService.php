@@ -768,4 +768,18 @@ class CompanyService implements CompanyRepositoryInterface
             })
             ->first();
     }
+
+    public function postSendCard($company_id, $users_id)
+    {
+        $date_expired = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+        return DB::table('company_send_card')->insert([
+            'flag_visit' => 'In',
+            'day' => date('d'),
+            'month' => date('m'),
+            'year' => date('Y'),
+            'company_id' => $company_id,
+            'users_id' => $users_id,
+            'date_expired_req' => $date_expired
+        ]);
+    }
 }

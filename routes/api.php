@@ -70,3 +70,4 @@ Route::post('detail/{slug}/media', [DirectoryController::class, 'detailMedia']);
 Route::post('/timeline/bookmark', [DirectoryController::class, 'postBookmarkTimeline']);
 Route::post('/timeline/download', [DirectoryController::class, 'postDownloadTimeline']);
 Route::post('/timeline/sendMeet', [DirectoryController::class, 'postSendMeet']);
+Route::post('/timeline/sendCard', [DirectoryController::class, 'postSendCard']);
