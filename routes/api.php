@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\DirectoryController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\MsPrefixController;
+use App\Http\Controllers\API\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,3 +72,8 @@ Route::post('/timeline/bookmark', [DirectoryController::class, 'postBookmarkTime
 Route::post('/timeline/download', [DirectoryController::class, 'postDownloadTimeline']);
 Route::post('/timeline/sendMeet', [DirectoryController::class, 'postSendMeet']);
 Route::post('/timeline/sendCard', [DirectoryController::class, 'postSendCard']);
+
+
+//Profile
+Route::post('/profile', [ProfileController::class, 'getIndex']);
+Route::post('/profile/updatePersonal', [ProfileController::class, 'updatePersonal']);
