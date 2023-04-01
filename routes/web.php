@@ -18,4 +18,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/term', function () {
+    return view('term');
+});
+Route::get('/privacy', function () {
+    return view('privacy');
+});
 // Route::get('users', [TestController::class, 'index']);
