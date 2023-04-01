@@ -166,12 +166,9 @@ class ProfileController extends Controller
             $response['status'] = 200;
             $response['message'] = 'Successfully send OTP to Email';
             $response['payload'] = $send;
-        } else {
-            //Phone Number
+            $find->otp = $otp;
+            $find->save();
+            return response()->json($response);
         }
-        $find->otp = $otp;
-        $find->save();
-
-        return response()->json($response);
     }
 }
