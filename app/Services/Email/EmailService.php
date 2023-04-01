@@ -6,6 +6,7 @@ use App\Mail\OtpForgotMail;
 use App\Mail\OtpMail;
 use App\Mail\OtpRegisterMail;
 use App\Mail\SuggestMeetMail;
+use App\Mail\verifMail;
 use App\Repositories\EmailServiceInterface;
 use Illuminate\Support\Facades\Mail;
 
@@ -33,6 +34,12 @@ class EmailService implements EmailServiceInterface
     {
         //
         $mail = new SuggestMeetMail($name, $users_name, $category_name, $message);
+        Mail::to($email)->send($mail);
+    }
+
+    public function sendOtpVerify($user, $otp, $wording, $subject, $email)
+    {
+        $mail  = new verifMail($user, $otp, $wording, $subject);
         Mail::to($email)->send($mail);
     }
 }

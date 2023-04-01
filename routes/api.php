@@ -79,3 +79,4 @@ Route::post('/profile', [ProfileController::class, 'getIndex']);
 Route::post('/profile/checking', [ProfileController::class, 'checking']);
 Route::post('/profile/updatePersonal', [ProfileController::class, 'updatePersonal']);
 Route::post('/profile/updatePassword', [ProfileController::class, 'changePassword']);
+Route::post('/profile/verify/change', [ProfileController::class, 'requestOtp']);

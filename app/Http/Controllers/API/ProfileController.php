@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Services\Email\EmailService;
 use App\Services\Profile\ProfileService;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
@@ -15,11 +16,12 @@ class ProfileController extends Controller
 {
     protected $userService;
     protected $profileService;
-
-    public function __construct(UserService $userService, ProfileService $profileService)
+    protected $emailService;
+    public function __construct(UserService $userService, ProfileService $profileService, EmailService $emailService)
     {
         $this->userService = $userService;
         $this->profileService = $profileService;
+        $this->emailService = $emailService;
     }
 
     public function getIndex()
@@ -137,5 +139,39 @@ class ProfileController extends Controller
             }
         }
         return response()->json($response, 200);
+    }
+
+    public function requestOtp(Request $request)
+    {
+        $id = auth('sanctum')->user()->id ?? null;
+        $email = $request->email;
+        $phone = $request->phone;
+        $params = $request->params;
+        $otp = rand(10000, 99999);
+        $find = $this->userService->getUserById($id);
+        if ($params == 'change') {
+            //request Change
+            $subject = 'Change Email From Indonesia Miner';
+            $wording = 'We received a request to change your account. To change, please use this
+                    code:';
+        } else {
+            //request Verify
+            $subject = 'Verify Email From Indonesia Miner';
+            $wording = 'We received a request to verify your account. To verify, please use this
+                    code:';
+        }
+        if (!empty($email)) {
+            //Email
+            $send = $this->emailService->sendOtpVerify($find, $otp, $wording, $subject, $email);
+            $response['status'] = 200;
+            $response['message'] = 'Successfully send OTP to Email';
+            $response['payload'] = $send;
+        } else {
+            //Phone Number
+        }
+        $find->otp = $otp;
+        $find->save();
+
+        return response()->json($response);
     }
 }
