@@ -49,7 +49,7 @@ class ProfileController extends Controller
             $file = $request->image;
             if (!empty($file)) {
                 $imageName = time() . '.' . $request->image->extension();
-                $db = '/storage/profile/' . $imageName;
+                $db = 'storage/profile/' . $imageName;
                 $save_folder = $request->image->storeAs('public/profile', $imageName);
                 // Create a new Intervention Image instance from the uploaded file
                 $compressedImage = Image::make(storage_path('app/' . $save_folder));
