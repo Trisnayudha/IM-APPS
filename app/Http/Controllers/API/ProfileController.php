@@ -171,4 +171,9 @@ class ProfileController extends Controller
             return response()->json($response);
         }
     }
+
+    public function verify(Request $request)
+    {
+        //
+    }
 }
