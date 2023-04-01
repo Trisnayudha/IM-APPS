@@ -100,4 +100,42 @@ class ProfileController extends Controller
         return response()->json($response, 200);
     }
     //
+
+    public function checking(Request $request)
+    {
+        $email = $request->email;
+        $phone = $request->phone;
+
+        if (!empty($email)) {
+            //
+            $find = $this->userService->getUserByEmailActive($email);
+            if (empty($find)) {
+                $response['status'] = 200;
+                $response['message'] = 'Next';
+                $response['payload'] = null;
+            } else {
+                $data = [
+                    'email' => 'Email address already used',
+                ];
+                $response['status'] = 401;
+                $response['message'] = 'Something was wrong';
+                $response['payload'] = $data;
+            }
+        } else {
+            $find = $this->userService->getUserByPhone($phone);
+            if (empty($find)) {
+                $response['status'] = 200;
+                $response['message'] = 'Next';
+                $response['payload'] = null;
+            } else {
+                $data = [
+                    'Phone' => 'Phone number already used',
+                ];
+                $response['status'] = 401;
+                $response['message'] = 'Something was wrong';
+                $response['payload'] = $data;
+            }
+        }
+        return response()->json($response, 200);
+    }
 }

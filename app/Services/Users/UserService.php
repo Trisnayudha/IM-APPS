@@ -31,4 +31,9 @@ class UserService implements UserRepositoryInterface
     {
         return new User();
     }
+
+    public function getUserByPhone($phone)
+    {
+        return User::where('phone', $phone)->first();
+    }
 }

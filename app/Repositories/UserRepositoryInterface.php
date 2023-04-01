@@ -9,4 +9,5 @@ interface UserRepositoryInterface
     public function getUserByEmailDeactive($email);
     public function createUsers();
     public function getUserById($id);
+    public function getUserByPhone($phone);
 }
