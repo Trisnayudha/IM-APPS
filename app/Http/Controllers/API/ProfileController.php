@@ -174,6 +174,34 @@ class ProfileController extends Controller
 
     public function verify(Request $request)
     {
-        //
+        $id = auth('sanctum')->user()->id ?? null;
+        $otp = $request->otp;
+        $email = $request->email;
+        $phone = $request->phone;
+
+        $find = $this->userService->getUserById($id);
+        if (!empty($email)) {
+            //email
+            if ($otp == $find->otp) {
+                $find->email = $email;
+                $find->otp = null;
+                $find->save();
+                $response['status'] = 200;
+                $response['message'] = 'Successfully change Email';
+                $response['payload'] = null;
+            } else {
+                $response['status'] = 401;
+                $response['message'] = 'OTP Not Match';
+                $response['payload'] = null;
+            }
+        } else {
+            $find->phone = $phone;
+            $find->is_verification = 1;
+            $find->save();
+            $response['status'] = 200;
+            $response['message'] = 'Successfully change mobile number';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
     }
 }

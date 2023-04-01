@@ -80,3 +80,4 @@ Route::post('/profile/checking', [ProfileController::class, 'checking']);
 Route::post('/profile/updatePersonal', [ProfileController::class, 'updatePersonal']);
 Route::post('/profile/updatePassword', [ProfileController::class, 'changePassword']);
 Route::post('/profile/verify/change', [ProfileController::class, 'requestOtp']);
+Route::post('/profile/verify/change/v2', [ProfileController::class, 'verify']);
