@@ -9,7 +9,10 @@ class UserService implements UserRepositoryInterface
 {
     public function getUserById($id)
     {
-        return User::where('id', $id)->where('is_register', '1')->first();
+        return User::join('ms_phone_code', 'ms_phone_code.ms_country_id', 'users.ms_prefix_call_id')
+            ->select('users.*', 'ms_phone_code.code')
+            ->where('users.id', $id)
+            ->where('is_register', '1')->first();
     }
 
     public function getUserByEmail($email)

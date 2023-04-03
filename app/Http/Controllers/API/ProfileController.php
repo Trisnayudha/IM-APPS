@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Services\Email\EmailService;
+use App\Services\MsPrefix\MsService;
 use App\Services\Profile\ProfileService;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
@@ -17,10 +18,12 @@ class ProfileController extends Controller
     protected $userService;
     protected $profileService;
     protected $emailService;
-    public function __construct(UserService $userService, ProfileService $profileService, EmailService $emailService)
+    protected $msService;
+    public function __construct(UserService $userService, ProfileService $profileService, EmailService $emailService, MsService $msService)
     {
         $this->userService = $userService;
         $this->profileService = $profileService;
+        $this->msService = $msService;
         $this->emailService = $emailService;
     }
 
@@ -178,6 +181,7 @@ class ProfileController extends Controller
         $otp = $request->otp;
         $email = $request->email;
         $phone = $request->phone;
+        $code = $request->code;
 
         $find = $this->userService->getUserById($id);
         if (!empty($email)) {
@@ -195,6 +199,9 @@ class ProfileController extends Controller
                 $response['payload'] = null;
             }
         } else {
+
+            $check_id = $this->msService->getMsPrefixPhoneDetail($code);
+            $find->ms_prefix_call_id = $check_id->ms_country_id;
             $find->phone = $phone;
             $find->is_verification = 1;
             $find->save();
