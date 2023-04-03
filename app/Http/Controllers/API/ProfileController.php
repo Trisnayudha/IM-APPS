@@ -211,4 +211,14 @@ class ProfileController extends Controller
         }
         return response()->json($response);
     }
+
+    public function deleteAccount()
+    {
+        //
+    }
+
+    public function updateCompany(Request $request)
+    {
+        //
+    }
 }

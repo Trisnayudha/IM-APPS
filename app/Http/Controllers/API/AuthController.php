@@ -179,6 +179,7 @@ class AuthController extends Controller
     public function registerCompleteV2(Request $request)
     {
         $id =  auth('sanctum')->user()->id ?? null;
+        // dd($id);
         $code_phone = $request->code_phone;
         $phone = $request->phone;
         $country = $request->country;
