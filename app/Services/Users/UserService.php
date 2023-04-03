@@ -17,7 +17,9 @@ class UserService implements UserRepositoryInterface
 
     public function getUserByEmail($email)
     {
-        return User::where('email', $email)->first();
+        return User::join('ms_phone_code', 'ms_phone_code.ms_country_id', 'users.ms_prefix_call_id')
+            ->select('users.*', 'ms_phone_code.code')
+            ->where('email', $email)->first();
     }
 
     public function getUserByEmailActive($email)
