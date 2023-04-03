@@ -10,4 +10,5 @@ interface UserRepositoryInterface
     public function createUsers();
     public function getUserById($id);
     public function getUserByPhone($phone);
+    public function deleteAccount($id);
 }

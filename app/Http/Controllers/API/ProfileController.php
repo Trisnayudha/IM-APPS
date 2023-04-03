@@ -214,11 +214,73 @@ class ProfileController extends Controller
 
     public function deleteAccount()
     {
-        //
+        $id = auth('sanctum')->user()->id ?? null;
+        $this->userService->deleteAccount($id);
+        $response['status'] = 200;
+        $response['message'] = 'Successfully Delete Account';
+        $response['payload'] = null;
+
+        return response()->json($response);
     }
 
     public function updateCompany(Request $request)
     {
-        //
+        $id =  auth('sanctum')->user()->id ?? null;
+        // dd($id);
+        $code_phone = $request->code_phone;
+        $phone = $request->phone;
+        $country = $request->country;
+        $state = $request->state;
+        $city = $request->city;
+        $email_alternate = $request->email_alternate;
+        $job_title = $request->job_title;
+        $company_web = $request->company_web;
+        $company_name = $request->company_name;
+        $category_name = $request->category_name;
+        $ms_company_project_type_id = $request->ms_company_project_type_id;
+        $classify_minerals_name = $request->classify_minerals_name;
+        $classify_mining_name = $request->classify_mining_name;
+        $commodities_minerals_name = $request->commodities_minerals_name;
+        $commodities_minerals_coal_name = $request->commodities_minerals_coal_name;
+        $commodities_mining_name = $request->commodities_mining_name;
+        $origin_manufacturer_name = $request->origin_manufacturer_name;
+        $msPhonePrefix = $this->msService->getMsPrefixPhoneDetail($code_phone);
+        $msPhoneId = $msPhonePrefix->id ?? 102;
+        if ($id) {
+            $save = $this->userService->getUserById($id);
+            if ($save) {
+                $save->job_title = $job_title;
+                $save->company_name = $company_name;
+                $save->ms_prefix_call_id = $msPhoneId;
+                $save->phone = $phone;
+                $save->email_alternate = $email_alternate;
+                $save->country = strtoupper($country);
+                $save->state = strtoupper($state);
+                $save->city = strtoupper($city);
+                $save->company_web = $company_web;
+                $save->is_register = 1;
+                $save->ms_company_category_other = $category_name;
+                $save->class_company_minerals_other = $classify_minerals_name;
+                $save->class_company_mining_other = $classify_mining_name;
+                $save->commod_company_minerals_other = $commodities_minerals_name;
+                $save->commod_company_minerals_coal_other = $commodities_minerals_coal_name;
+                $save->commod_company_mining_other = $commodities_mining_name;
+                $save->origin_manufactur_company_other = $origin_manufacturer_name;
+                $save->ms_company_project_type_id = $ms_company_project_type_id;
+                $save->save();
+                $response['status'] = 200;
+                $response['message'] = 'Update Company Success';
+                $response['payload'] = $save;
+            } else {
+                $response['status'] = 401;
+                $response['message'] = 'You cant complete this account, because this account has been active';
+                $response['payload'] = null;
+            }
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services\Users;
 
 use App\Models\Auth\User;
 use App\Repositories\UserRepositoryInterface;
+use Illuminate\Support\Facades\DB;
 
 class UserService implements UserRepositoryInterface
 {
@@ -40,5 +41,20 @@ class UserService implements UserRepositoryInterface
     public function getUserByPhone($phone)
     {
         return User::where('phone', $phone)->first();
+    }
+
+    public function deleteAccount($id)
+    {
+        User::where('id', $id)->delete();
+        DB::table('payment')->where('users_id', $id)->delete();
+        DB::table('users_delegate')->where('users_id', $id)->delete();
+        DB::table('users_log')->where('users_id', $id)->delete();
+        DB::table('users_notification')->where('users_id', $id)->delete();
+        DB::table('project_bookmark')->where('users_id', $id)->delete();
+        DB::table('product_bookmark')->where('users_id', $id)->delete();
+        DB::table('news_bookmark')->where('users_id', $id)->delete();
+        DB::table('media_bookmark')->where('users_id', $id)->delete();
+
+        return true;
     }
 }
