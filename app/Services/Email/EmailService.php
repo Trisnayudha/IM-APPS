@@ -2,6 +2,7 @@
 
 namespace App\Services\Email;
 
+use App\Mail\ContactMail;
 use App\Mail\OtpForgotMail;
 use App\Mail\OtpMail;
 use App\Mail\OtpRegisterMail;
@@ -41,5 +42,11 @@ class EmailService implements EmailServiceInterface
     {
         $mail  = new verifMail($user, $otp, $wording, $subject);
         Mail::to($email)->send($mail);
+    }
+
+    public function sendContactUs($user, $category, $subject, $message)
+    {
+        $mail = new ContactMail($user, $category, $subject, $message);
+        Mail::to('yudha@indonesiaminer.com')->send($mail);
     }
 }

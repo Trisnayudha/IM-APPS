@@ -292,4 +292,18 @@ class ProfileController extends Controller
         $response['payload'] = $data;
         return response()->json($response);
     }
+
+    public function contactUs(Request $request)
+    {
+        $category = $request->category;
+        $subject = $request->subject;
+        $message = $request->message;
+        $id =  auth('sanctum')->user()->id ?? null;
+        $user = $this->userService->getUserById($id);
+        $send = $this->emailService->sendContactUs($user, $category, $subject, $message);
+        $response['status'] = 200;
+        $response['message'] = 'Send Contact success';
+        $response['payload'] = null;
+        return response()->json($response);
+    }
 }
