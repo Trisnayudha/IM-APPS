@@ -83,3 +83,4 @@ Route::post('/profile/verify/change', [ProfileController::class, 'requestOtp']);
 Route::post('/profile/verify/change/v2', [ProfileController::class, 'verify']);
 Route::post('/profile/deleteAccount', [ProfileController::class, 'deleteAccount']);
 Route::post('/profile/updateCompany', [ProfileController::class, 'updateCompany']);
+Route::post('/profile/faq', [ProfileController::class, 'faq']);

@@ -6,4 +6,5 @@ interface ProfileRepositoryInterface
 {
 
     public function postChangeEmail($email);
+    public function getFaq();
 }

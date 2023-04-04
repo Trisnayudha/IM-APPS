@@ -283,4 +283,13 @@ class ProfileController extends Controller
         }
         return response()->json($response);
     }
+
+    public function faq()
+    {
+        $data = $this->profileService->getFaq();
+        $response['status'] = 200;
+        $response['message'] = 'Get data Faq';
+        $response['payload'] = $data;
+        return response()->json($response);
+    }
 }
