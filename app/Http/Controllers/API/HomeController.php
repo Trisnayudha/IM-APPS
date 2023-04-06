@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Services\Company\CompanyService;
+use App\Services\Events\EventService;
 use App\Services\MsPrefix\MsService;
 use App\Services\Sponsors\SponsorsService;
 use Illuminate\Http\Request;
@@ -13,11 +14,13 @@ class HomeController extends Controller
     protected $msService;
     protected $sponsorsService;
     protected $companyService;
-    public function __construct(MsService $msService, SponsorsService $sponsorsService, CompanyService $companyService)
+    protected $eventService;
+    public function __construct(MsService $msService, SponsorsService $sponsorsService, CompanyService $companyService, EventService $eventService)
     {
         $this->msService = $msService;
         $this->sponsorsService = $sponsorsService;
         $this->companyService = $companyService;
+        $this->eventService = $eventService;
     }
 
     public function banner()
@@ -111,6 +114,30 @@ class HomeController extends Controller
         } else {
             $response['status'] = 404;
             $response['message'] = 'Company Not Found';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
+
+
+    public function checkEvent(Request $request)
+    {
+        $id =  auth('sanctum')->user()->id ?? null;
+        if ($id) {
+            //ada id
+            $event = $this->eventService->getLastEvent();
+            $checkPayment = $this->eventService->getCheckPayment($id, $event->id);
+            $data = [
+                'type' => $checkPayment->package,
+                'show_restriction' => $event->status_event == 'on' ? true : false,
+
+            ];
+            $response['status'] = 200;
+            $response['message'] = 'Successfully check data users to event';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
             $response['payload'] = null;
         }
         return response()->json($response);
