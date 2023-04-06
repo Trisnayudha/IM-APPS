@@ -127,14 +127,21 @@ class HomeController extends Controller
             //ada id
             $event = $this->eventService->getLastEvent();
             $checkPayment = $this->eventService->getCheckPayment($id, $event->id);
-            $data = [
-                'type' => $checkPayment->package,
-                'show_restriction' => $event->status_event == 'on' ? true : false,
+            if ($checkPayment) {
 
-            ];
-            $response['status'] = 200;
-            $response['message'] = 'Successfully check data users to event';
-            $response['payload'] = $data;
+                $data = [
+                    'type' => $checkPayment->package,
+                    'show_restriction' => $event->status_event == 'on' ? true : false,
+
+                ];
+                $response['status'] = 200;
+                $response['message'] = 'Successfully check data users to event';
+                $response['payload'] = $data;
+            } else {
+                $response['status'] = 404;
+                $response['message'] = 'Register Event Not Found / Waiting list';
+                $response['payload'] = null;
+            }
         } else {
             $response['status'] = 401;
             $response['message'] = 'Unauthorized';

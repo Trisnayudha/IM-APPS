@@ -26,6 +26,6 @@ class EventService implements EventRepositoryInterface
     }
     public function getCheckPayment($users_id, $events_id)
     {
-        return DB::table('payment')->where('users_id', $users_id)->where('events_id', $events_id)->first();
+        return DB::table('payment')->where('users_id', $users_id)->where('events_id', $events_id)->where('aproval_quota_users', 1)->first();
     }
 }
