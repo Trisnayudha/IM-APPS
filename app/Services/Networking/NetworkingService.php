@@ -20,6 +20,7 @@ class NetworkingService implements NetworkingRepositoryInterface
                 'users.job_title as users_job_title',
                 'users.company_name as users_company_name',
                 'users.image_users as image_users',
+                'users.email'
             )
             ->leftJoin('users', function ($join) {
                 $join->on('users.id', '=', 'users_delegate.users_id');
