@@ -15,6 +15,7 @@ class NetworkingService implements NetworkingRepositoryInterface
             ->select(
                 'users_delegate.id',
                 'users_delegate.users_id',
+                'users_delegate.events_id',
                 'users.name as users_name',
                 'users.job_title as users_job_title',
                 'users.company_name as users_company_name',
@@ -30,16 +31,16 @@ class NetworkingService implements NetworkingRepositoryInterface
                 $join->whereNotNull('events.id');
             })
             ->where(function ($q) use ($events_id, $search, $users_id) {
-                $q->whereIn('users_delegate.payment_status', ['Free', 'Paid Off']);
-                if ($events_id) {
-                    $q->where('users_delegate.events_id', $events_id);
-                }
                 if ($search) {
-                    $q->where('users.name', "LIKE", "%" . $search . "%")
-                        ->orWhere('users.job_title', "LIKE", "%" . $search . "%");
+                    $q->where('users.name', "LIKE", "%" . $search . "%");
+                    // ->orWhere('users.job_title', "LIKE", "%" . $search . "%");
                 }
                 if ($users_id) {
                     $q->where('users_delegate.users_id', '<>', $users_id);
+                }
+                $q->whereIn('users_delegate.payment_status', ['Free', 'Paid Off']);
+                if ($events_id) {
+                    $q->where('users_delegate.events_id', $events_id);
                 }
                 $q->whereNotNull('users.name');
             })
