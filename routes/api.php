@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\DirectoryController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\MsPrefixController;
+use App\Http\Controllers\API\NetworkingController;
 use App\Http\Controllers\API\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -87,3 +88,8 @@ Route::post('/profile/deleteAccount', [ProfileController::class, 'deleteAccount'
 Route::post('/profile/updateCompany', [ProfileController::class, 'updateCompany']);
 Route::post('/profile/faq', [ProfileController::class, 'faq']);
 Route::post('/profile/contactus', [ProfileController::class, 'contactUs']);
+
+
+//Networking
+Route::post('/networking', [NetworkingController::class, 'index']);
+Route::post('/networking/detail', [NetworkingController::class, 'detail']);
