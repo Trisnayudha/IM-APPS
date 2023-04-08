@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\DirectoryController;
 use App\Http\Controllers\API\HomeController;
+use App\Http\Controllers\API\InboxController;
 use App\Http\Controllers\API\MsPrefixController;
 use App\Http\Controllers\API\NetworkingController;
 use App\Http\Controllers\API\ProfileController;
@@ -93,3 +94,6 @@ Route::post('/profile/contactus', [ProfileController::class, 'contactUs']);
 //Networking
 Route::post('/networking', [NetworkingController::class, 'index']);
 Route::post('/networking/detail', [NetworkingController::class, 'detail']);
+
+Route::post('/inbox', [InboxController::class, 'index']);
+Route::post('/inbox/v2', [InboxController::class, 'index2']);
