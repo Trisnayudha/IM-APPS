@@ -19,7 +19,7 @@ class NetworkingService implements NetworkingRepositoryInterface
                 'users.name as users_name',
                 'users.job_title as users_job_title',
                 'users.company_name as users_company_name',
-                'users.image_users_crop as users_image',
+                'users.image_users_crop as image_users',
                 'users.logo_company_cropping as users_logo_company'
             )
             ->leftJoin('users', function ($join) {
