@@ -10,4 +10,6 @@ interface EmailServiceInterface
     public function sendSuggestMeet($name, $users_name, $category_name, $message, $email);
     public function sendOtpVerify($user, $otp, $wording, $subject, $email);
     public function sendContactUs($user, $category, $subject, $message);
+    public function sendBenefit($type, $find);
+    public function receiveBenefit($type, $find);
 }

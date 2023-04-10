@@ -54,7 +54,8 @@ Route::post('/mdCategorySuggest', [MsPrefixController::class, 'showMdCategorySug
 //API route Home
 Route::post('/home/banner', [HomeController::class, 'banner']);
 Route::post('/home/sponsors', [HomeController::class, 'sponsors']);
-
+Route::post('/home/benefit', [HomeController::class, 'benefit']);
+Route::post('/home/benefit/request', [HomeController::class, 'sendRequest']);
 Route::post('/home/check/event', [HomeController::class, 'checkEvent']);
 
 //API get detail sponsors

@@ -2,10 +2,12 @@
 
 namespace App\Services\Email;
 
+use App\Mail\BenefitMail;
 use App\Mail\ContactMail;
 use App\Mail\OtpForgotMail;
 use App\Mail\OtpMail;
 use App\Mail\OtpRegisterMail;
+use App\Mail\ReceiveMail;
 use App\Mail\SuggestMeetMail;
 use App\Mail\verifMail;
 use App\Repositories\EmailServiceInterface;
@@ -48,5 +50,17 @@ class EmailService implements EmailServiceInterface
     {
         $mail = new ContactMail($user, $category, $subject, $message);
         Mail::to('yudha@indonesiaminer.com')->send($mail);
+    }
+
+    public function sendBenefit($type, $find)
+    {
+        $mail = new BenefitMail($type, $find);
+        Mail::to('yudha@indonesiaminer.com')->send($mail);
+    }
+
+    public function receiveBenefit($type, $find)
+    {
+        $mail = new ReceiveMail($type, $find);
+        Mail::to($find->email)->send($mail);
     }
 }

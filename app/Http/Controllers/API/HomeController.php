@@ -4,9 +4,11 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Services\Company\CompanyService;
+use App\Services\Email\EmailService;
 use App\Services\Events\EventService;
 use App\Services\MsPrefix\MsService;
 use App\Services\Sponsors\SponsorsService;
+use App\Services\Users\UserService;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -15,12 +17,22 @@ class HomeController extends Controller
     protected $sponsorsService;
     protected $companyService;
     protected $eventService;
-    public function __construct(MsService $msService, SponsorsService $sponsorsService, CompanyService $companyService, EventService $eventService)
-    {
+    protected $userService;
+    protected $emailService;
+    public function __construct(
+        MsService $msService,
+        SponsorsService $sponsorsService,
+        CompanyService $companyService,
+        EventService $eventService,
+        UserService $userService,
+        EmailService $emailService
+    ) {
         $this->msService = $msService;
         $this->sponsorsService = $sponsorsService;
         $this->companyService = $companyService;
         $this->eventService = $eventService;
+        $this->userService = $userService;
+        $this->emailService = $emailService;
     }
 
     public function banner()
@@ -136,6 +148,58 @@ class HomeController extends Controller
             $response['status'] = 200;
             $response['message'] = 'Successfully check data users to event';
             $response['payload'] = $data;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
+
+    public function benefit()
+    {
+        $array = collect([ // membuat array of object
+            [
+                'type' => 'Platinum',
+                'name' => 'Delegate',
+                'benefit' => [
+                    '3 day delegate and exhibition access (Including Luncheon, Coffee Break and Networking Function)',
+                    '40+ Live speeches, panels & Q&As',
+                    'Access to presentation materials',
+                    'Identified as a company',
+                    'Company name, logo and job title on Indonesia Miner platform profile',
+                    'Live chat with attendees via the Indonesia Miner platform'
+                ]
+            ],
+            [
+                'type' => 'Silver',
+                'name' => 'Visitor',
+                'benefit' => [
+                    '3 day delegate and exhibition access',
+                    'Live chat with attendees via the Indonesia Miner platform',
+                ]
+            ],
+        ])->map(function ($item) { // menambahkan objek ke array
+            return (object) $item;
+        });
+        $response['status'] = 200;
+        $response['message'] = 'Successfully';
+        $response['payload'] = $array;
+        return response()->json($response);
+    }
+
+    public function sendRequest(Request $request)
+    {
+        $id =  auth('sanctum')->user()->id ?? null;
+        $type = $request->type;
+        $find = $this->userService->getUserById($id);
+        $type = $type == 'Platinum' ? 'Delegate' : 'Visitor';
+        if ($id) {
+            $send = $this->emailService->sendBenefit($type, $find);
+            $receive = $this->emailService->receiveBenefit($type, $find);
+            $response['status'] = 200;
+            $response['message'] = 'Successfully send request event';
+            $response['payload'] = $send;
         } else {
             $response['status'] = 401;
             $response['message'] = 'Unauthorized';
