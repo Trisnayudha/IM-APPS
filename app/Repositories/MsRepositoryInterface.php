@@ -8,4 +8,5 @@ interface MsRepositoryInterface
     public function getMsPrefixPhoneDetail($code);
     public function getBannerHome();
     public function getMdCategorySuggest();
+    public function getMsCompanyCategory();
 }
