@@ -25,10 +25,16 @@ class ExhibitionController extends Controller
         $events_id = $this->eventService->getLastEvent();
         $special_tags = $request->special_tags;
         $filter = $request->filter;
-        $data = $this->exhibitionService->listAll($events_id->id, $search, $category, $special_tags, $filter, $id);
-        $response['status'] = 200;
-        $response['message'] = 'Successfully show data';
-        $response['payload'] = $data;
+        if ($id) {
+            $data = $this->exhibitionService->listAll($events_id->id, $search, $category, $special_tags, $filter, $id);
+            $response['status'] = 200;
+            $response['message'] = 'Successfully show data';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
         return response()->json($response);
     }
 }

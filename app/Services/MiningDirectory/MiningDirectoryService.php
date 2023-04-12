@@ -8,24 +8,24 @@ use Illuminate\Support\Facades\DB;
 
 class MiningDirectoryService implements MiningDirectoryRepositoryInterface
 {
-    public function getListAllTimeline($type, $category, $search, $tags, $filter, $events_id)
+    public function getListAllTimeline($type, $category, $search, $tags, $filter, $events_id, $users_id)
     {
         if ($type == 'Company') {
-            return $this->companyList($type, $category, $search, $tags, $filter, $events_id);
+            return $this->companyList($type, $category, $search, $tags, $filter, $events_id, $users_id);
         } elseif ($type == 'Product') {
-            return $this->productList($type, $category, $search, $tags, $filter, $events_id);
+            return $this->productList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id);
         } elseif ($type == 'Media') {
-            return $this->mediaList($type, $category, $search, $tags, $filter, $events_id);
+            return $this->mediaList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id);
         } elseif ($type == 'Project') {
-            return $this->projectList($type, $category, $search, $tags, $filter, $events_id);
+            return $this->projectList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id);
         } elseif ($type == 'News') {
-            return $this->newsList($type, $category, $search, $tags, $filter, $events_id);
+            return $this->newsList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id);
         } elseif ($type == 'Videos') {
-            return $this->videoList($type, $category, $search, $tags, $filter, $events_id);
+            return $this->videoList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id);
         }
     }
 
-    private function companyList($type, $category, $search, $tags, $filter, $events_id)
+    private function companyList($type, $category, $search, $tags, $filter, $events_id, $users_id)
     {
         $column_filter = "company.id";
         $type_filter = "desc";
@@ -43,8 +43,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             $column_filter = "events_company.created_at";
             $type_filter = "desc";
         }
-
-        return DB::table('events_company')
+        $db = DB::table('events_company')
             ->select(
                 'company.id',
                 'company.name as title',
@@ -86,12 +85,21 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             })
             ->orderby($column_filter, $type_filter)
             ->paginate(10);
+        foreach ($db as $item) {
+            $check_book = DB::table('company_bookmark')
+                ->where('company_id', '=', $item->id)
+                ->where('users_id', '=', $users_id)
+                ->first();
+            $item->bookmark = $check_book ? 1 : 0;
+        }
+        return $db;
     }
-    private function productList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true)
+    private function productList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id)
     {
         $arr = EventsCompany::where('events_id', $events_id)
             ->pluck('company_id')
             ->toArray();
+        // dd($users_id);
         $column_filter = "product.id";
         $type_filter = "desc";
 
@@ -123,16 +131,16 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 $join->on('company.id', '=', 'product.company_id');
                 $join->whereNotNull('product.company_id');
             })
-            ->leftJoin('product_categories', function ($join) use ($category) {
-                $join->on('product_categories.product_id', '=', 'product.id');
-                if (!empty($category)) {
-                    $join->where('product_categories.product_category_id', $category);
-                }
-            })
-            ->leftJoin('product_tags_list', function ($join) {
-                $join->on('product_tags_list.product_id', '=', 'product.id');
-                $join->whereNotNull('product_tags_list.product_id');
-            })
+            // ->leftJoin('product_categories', function ($join) use ($category) {
+            //     $join->on('product_categories.product_id', '=', 'product.id');
+            //     if (!empty($category)) {
+            //         $join->where('product_categories.product_category_id', $category);
+            //     }
+            // })
+            // ->leftJoin('product_tags_list', function ($join) {
+            //     $join->on('product_tags_list.product_id', '=', 'product.id');
+            //     $join->whereNotNull('product_tags_list.product_id');
+            // })
             ->leftJoin('events_company', function ($join) use ($events_id) {
                 $join->on('events_company.company_id', '=', 'product.company_id');
                 $join->where('events_company.events_id', $events_id);
@@ -149,18 +157,22 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 //    123                $q->whereIn('product.product_category_id', $category);
                 //                }
             })
-            ->where(function ($q) {
-                //                $q->whereNotNull('product_categories.product_id');
-            })
             // ->groupBy('product.id')
             ->orderby($column_filter, $type_filter);
         if ($is_mining_directory) {
             $query->join('product_events', 'product_events.product_id', '=', 'product.id');
         }
         $query = $query->paginate(10);
+        foreach ($query as $item) {
+            $check_book = DB::table('product_bookmark')
+                ->where('product_id', '=', $item->id)
+                ->where('users_id', '=', $users_id)
+                ->first();
+            $item->bookmark = $check_book ? 1 : 0;
+        }
         return $query;
     }
-    private function mediaList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true)
+    private function mediaList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id)
     {
         $column_filter = "media_resource.id";
         $type_filter = "desc";
@@ -199,16 +211,16 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 $join->on('company.id', '=', 'media_resource.company_id');
                 $join->whereNotNull('company.id');
             })
-            ->leftJoin('media_category_list', function ($join) use ($category) {
-                $join->on('media_category_list.media_resource_id', '=', 'media_resource.id');
-                if (!empty($category)) {
-                    $join->where('media_category_list.media_category_id', $category);
-                }
-            })
-            ->leftJoin('media_tags_list', function ($join) {
-                $join->on('media_tags_list.media_resource_id', '=', 'media_resource.id');
-                $join->whereNotNull('media_tags_list.media_tags_id');
-            })
+            // ->leftJoin('media_category_list', function ($join) use ($category) {
+            //     $join->on('media_category_list.media_resource_id', '=', 'media_resource.id');
+            //     if (!empty($category)) {
+            //         $join->where('media_category_list.media_category_id', $category);
+            //     }
+            // })
+            // ->leftJoin('media_tags_list', function ($join) {
+            //     $join->on('media_tags_list.media_resource_id', '=', 'media_resource.id');
+            //     $join->whereNotNull('media_tags_list.media_tags_id');
+            // })
             ->leftJoin('events_company', function ($join) use ($events_id) {
                 $join->on('events_company.company_id', '=', 'media_resource.company_id');
                 $join->where('events_company.events_id', $events_id);
@@ -235,10 +247,16 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             $query->join('media_resource_events', 'media_resource_events.media_resource_id', '=', 'media_resource.id');
         }
         $query = $query->paginate(10);
-
+        foreach ($query as $item) {
+            $check_book = DB::table('media_bookmark')
+                ->where('media_resource_id', '=', $item->id)
+                ->where('users_id', '=', $users_id)
+                ->first();
+            $item->bookmark = $check_book ? 1 : 0;
+        }
         return $query;
     }
-    private function projectList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true)
+    private function projectList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id)
     {
         $column_filter = "project.id";
         $type_filter = "desc";
@@ -275,16 +293,16 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 $join->on('company.id', '=', 'project.company_id');
                 $join->whereNotNull('project.company_id');
             })
-            ->leftJoin('project_category_list', function ($join) use ($category) {
-                $join->on('project_category_list.project_id', '=', 'project.id');
-                if (!empty($category)) {
-                    $join->where('project_category_list.project_category_id', $category);
-                }
-            })
-            ->leftJoin('project_tags_list', function ($join) {
-                $join->on('project_tags_list.project_id', '=', 'project.id');
-                $join->whereNotNull('project_tags_list.project_tags_id');
-            })
+            // ->leftJoin('project_category_list', function ($join) use ($category) {
+            //     $join->on('project_category_list.project_id', '=', 'project.id');
+            //     if (!empty($category)) {
+            //         $join->where('project_category_list.project_category_id', $category);
+            //     }
+            // })
+            // ->leftJoin('project_tags_list', function ($join) {
+            //     $join->on('project_tags_list.project_id', '=', 'project.id');
+            //     $join->whereNotNull('project_tags_list.project_tags_id');
+            // })
             ->leftJoin('events_company', function ($join) use ($events_id) {
                 $join->on('events_company.company_id', '=', 'project.company_id');
                 $join->where('events_company.events_id', $events_id);
@@ -311,10 +329,16 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             $query->join('project_events', 'project_events.project_id', '=', 'project.id');
         }
         $query = $query->paginate(10);
-
+        foreach ($query as $item) {
+            $check_book = DB::table('project_bookmark')
+                ->where('project_id', '=', $item->id)
+                ->where('users_id', '=', $users_id)
+                ->first();
+            $item->bookmark = $check_book ? 1 : 0;
+        }
         return $query;
     }
-    private function newsList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true)
+    private function newsList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id)
     {
         $column_filter = "news.id";
         $type_filter = "desc";
@@ -348,21 +372,21 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 'news.desc',
                 'company.name as company_name'
             )
-            // ->whereIn('news.company_id', $arr)
+            ->whereIn('news.company_id', $arr)
             ->leftJoin("company", function ($join) {
                 $join->on('company.id', '=', 'news.company_id');
                 $join->whereNotNull('news.company_id');
             })
-            ->leftJoin('news_category_list', function ($join) use ($category) {
-                $join->on('news_category_list.news_id', '=', 'news.id');
-                if (!empty($category)) {
-                    $join->where('news_category_list.news_category_id', $category);
-                }
-            })
-            ->leftJoin('news_tag_list', function ($join) {
-                $join->on('news_tag_list.news_id', '=', 'news.id');
-                $join->orWhereNotNull('news_tag_list.news_tag_id');
-            })
+            // ->leftJoin('news_category_list', function ($join) use ($category) {
+            //     $join->on('news_category_list.news_id', '=', 'news.id');
+            //     if (!empty($category)) {
+            //         $join->where('news_category_list.news_category_id', $category);
+            //     }
+            // })
+            // ->leftJoin('news_tag_list', function ($join) {
+            //     $join->on('news_tag_list.news_id', '=', 'news.id');
+            //     $join->orWhereNotNull('news_tag_list.news_tag_id');
+            // })
             ->leftJoin('events_company', function ($join) use ($events_id) {
                 $join->on('events_company.company_id', '=', 'news.company_id');
                 $join->where('events_company.events_id', $events_id);
@@ -392,9 +416,16 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             $query->join('news_events', 'news_events.news_id', '=', 'news.id');
         }
         $query = $query->paginate(10);
+        foreach ($query as $item) {
+            $check_book = DB::table('news_bookmark')
+                ->where('news_id', '=', $item->id)
+                ->where('users_id', '=', $users_id)
+                ->first();
+            $item->bookmark = $check_book ? 1 : 0;
+        }
         return $query;
     }
-    private function videoList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true)
+    private function videoList($type, $category, $search, $tags, $filter, $events_id, $is_mining_directory = true, $users_id)
     {
         $column_filter = "company_video.id";
         $type_filter = "desc";
@@ -430,12 +461,12 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 $join->on('company.id', '=', 'company_video.company_id');
                 $join->whereNotNull('company.id');
             })
-            ->leftJoin('media_category_list', function ($join) use ($category) {
-                $join->on('media_category_list.media_resource_id', '=', 'company_video.id');
-                if (!empty($category)) {
-                    $join->where('media_category_list.media_category_id', $category);
-                }
-            })
+            // ->leftJoin('media_category_list', function ($join) use ($category) {
+            //     $join->on('media_category_list.media_resource_id', '=', 'company_video.id');
+            //     if (!empty($category)) {
+            //         $join->where('media_category_list.media_category_id', $category);
+            //     }
+            // })
             ->leftJoin('events_company', function ($join) use ($events_id) {
                 $join->on('events_company.company_id', '=', 'company_video.company_id');
                 $join->where('events_company.events_id', $events_id);
@@ -461,6 +492,13 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             $query->join('company_video_events', 'company_video_events.company_video_id', '=', 'company_video.id');
         }
         $query = $query->paginate(10);
+        foreach ($query as $item) {
+            $check_book = DB::table('company_video_bookmark')
+                ->where('company_video_id', '=', $item->id)
+                ->where('users_id', '=', $users_id)
+                ->first();
+            $item->bookmark = $check_book ? 1 : 0;
+        }
         return $query;
     }
 }
