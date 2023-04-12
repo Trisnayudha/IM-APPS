@@ -19,12 +19,13 @@ class ExhibitionController extends Controller
 
     public function index(Request $request)
     {
+        $id =  auth('sanctum')->user()->id ?? null;
         $search = $request->search;
         $category = $request->category;
         $events_id = $this->eventService->getLastEvent();
         $special_tags = $request->special_tags;
         $filter = $request->filter;
-        $data = $this->exhibitionService->listAll($events_id->id, $search, $category, $special_tags, $filter);
+        $data = $this->exhibitionService->listAll($events_id->id, $search, $category, $special_tags, $filter, $id);
         $response['status'] = 200;
         $response['message'] = 'Successfully show data';
         $response['payload'] = $data;

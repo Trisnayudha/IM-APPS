@@ -5,6 +5,7 @@ use App\Http\Controllers\API\DirectoryController;
 use App\Http\Controllers\API\ExhibitionController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\InboxController;
+use App\Http\Controllers\API\MiningDirectoryController;
 use App\Http\Controllers\API\MsPrefixController;
 use App\Http\Controllers\API\NetworkingController;
 use App\Http\Controllers\API\ProfileController;
@@ -101,4 +102,7 @@ Route::post('/networking/detail', [NetworkingController::class, 'detail']);
 Route::post('/inbox', [InboxController::class, 'index']);
 Route::post('/inbox/v2', [InboxController::class, 'index2']);
 
+//Exhibition
 Route::post('/exhibition', [ExhibitionController::class, 'index']);
+
+Route::post('/mining/directory', [MiningDirectoryController::class, 'index']);

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class ExhibitionService implements ExhibitionRepositoryController
 {
-    public function listAll($events_id, $search, $category, $special_tags, $filter = null)
+    public function listAll($events_id, $search, $category, $special_tags, $filter = null, $users_id)
     {
         $column_filter = "company.id";
         $type_filter = "desc";
@@ -25,7 +25,7 @@ class ExhibitionService implements ExhibitionRepositoryController
             $column_filter = "events_company.created_at";
             $type_filter = "desc";
         }
-        return DB::table('events_company')
+        $db = DB::table('events_company')
             ->select(
                 'company.id',
                 'company.name as title',
@@ -67,5 +67,13 @@ class ExhibitionService implements ExhibitionRepositoryController
             })
             ->orderby($column_filter, $type_filter)
             ->paginate(10);
+        foreach ($db as $item) {
+            $check_book = DB::table('company_bookmark')
+                ->where('company_id', '=', $item->id)
+                ->where('users_id', '=', $users_id)
+                ->first();
+            $item->bookmark = $check_book ? 1 : 0;
+        }
+        return $db;
     }
 }
