@@ -14,7 +14,9 @@ class CompanyService implements CompanyRepositoryInterface
 
     public function getCompanyBySlug($slug)
     {
-        return DB::table('company')->where('slug', '=', $slug)->first();
+        return DB::table('company')
+            ->leftJoin('company_video', 'company_video.company_id', 'company.id')
+            ->where('slug', '=', $slug)->first();
     }
 
     public function getListContactById($id)
