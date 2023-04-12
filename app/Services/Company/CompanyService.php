@@ -16,6 +16,7 @@ class CompanyService implements CompanyRepositoryInterface
     {
         return DB::table('company')
             ->leftJoin('company_video', 'company_video.company_id', 'company.id')
+            ->select('company.*', 'company_video.url')
             ->where('slug', '=', $slug)->first();
     }
 
