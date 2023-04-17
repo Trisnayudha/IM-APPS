@@ -735,21 +735,20 @@ class CompanyService implements CompanyRepositoryInterface
             $check_book = DB::table('company_bookmark')
                 ->where('company_id', '=', $bookmark_id)
                 ->where('users_id', '=', $users_id)
-                ->where('events_id', '=', $events_id)
                 ->first();
 
             if ($check_book) {
                 DB::table('company_bookmark')
                     ->where('company_id', '=', $bookmark_id)
                     ->where('users_id', '=', $users_id)
-                    ->where('events_id', '=', $events_id)
+
                     ->delete();
                 $message = "Bookmark successfully removed";
             } else {
                 DB::table('company_bookmark')->insert([
                     'company_id' => $bookmark_id,
                     'users_id' => $users_id,
-                    'events_id' => $events_id
+
                 ]);
                 $message = "Bookmark successfully added";
             }
