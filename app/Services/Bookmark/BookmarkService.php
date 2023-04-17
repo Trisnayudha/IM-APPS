@@ -33,7 +33,7 @@ class BookmarkService implements BookmarkRepositoryInterface
             return DB::table('product_bookmark')
                 ->join('product', 'product.id', 'product_bookmark.product_id')
                 ->where('product_bookmark.users_id', $users_id)
-                ->where('product_bookmark.events_id', $events_id)->orderby('product_bookmark.d', 'desc')->paginate($limit);
+                ->where('product_bookmark.events_id', $events_id)->orderby('product_bookmark.id', 'desc')->paginate($limit);
         } elseif ($type == 'news') {
             return DB::table('news_bookmark')
                 ->join('news', 'news.id', 'news_bookmark.news_id')
