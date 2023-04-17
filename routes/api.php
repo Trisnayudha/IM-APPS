@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\BookmarkController;
 use App\Http\Controllers\API\DirectoryController;
 use App\Http\Controllers\API\ExhibitionController;
 use App\Http\Controllers\API\HomeController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\API\MiningDirectoryController;
 use App\Http\Controllers\API\MsPrefixController;
 use App\Http\Controllers\API\NetworkingController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\ScheduleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -106,3 +108,9 @@ Route::post('/inbox/v2', [InboxController::class, 'index2']);
 Route::post('/exhibition', [ExhibitionController::class, 'index']);
 
 Route::post('/mining/directory', [MiningDirectoryController::class, 'index']);
+
+Route::get('schedule', [ScheduleController::class, 'index']);
+
+//Bookmark
+Route::post('bookmark', [BookmarkController::class, 'index']);
+Route::post('bookmark/all', [BookmarkController::class, 'listAll']);
