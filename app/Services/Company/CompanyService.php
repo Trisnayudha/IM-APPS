@@ -641,24 +641,27 @@ class CompanyService implements CompanyRepositoryInterface
         return $query;
     }
 
-    public function postBookmark($users_id, $bookmark_id, $type)
+    public function postBookmark($users_id, $bookmark_id, $type, $events_id)
     {
         if ($type == 'Project') {
             $check_book = DB::table('project_bookmark')
                 ->where('project_id', '=', $bookmark_id)
                 ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
                 ->first();
 
             if ($check_book) {
                 DB::table('project_bookmark')
                     ->where('project_id', '=', $bookmark_id)
                     ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
                     ->delete();
                 $message = "Bookmark successfully removed";
             } else {
                 DB::table('project_bookmark')->insert([
                     'project_id' => $bookmark_id,
-                    'users_id' => $users_id
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
                 ]);
                 $message = "Bookmark successfully added";
             }
@@ -666,18 +669,21 @@ class CompanyService implements CompanyRepositoryInterface
             $check_book = DB::table('product_bookmark')
                 ->where('product_id', '=', $bookmark_id)
                 ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
                 ->first();
 
             if ($check_book) {
                 DB::table('product_bookmark')
                     ->where('product_id', '=', $bookmark_id)
                     ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
                     ->delete();
                 $message = "Bookmark successfully removed";
             } else {
                 DB::table('product_bookmark')->insert([
                     'product_id' => $bookmark_id,
-                    'users_id' => $users_id
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
                 ]);
                 $message = "Bookmark successfully added";
             }
@@ -685,18 +691,21 @@ class CompanyService implements CompanyRepositoryInterface
             $check_book = DB::table('media_bookmark')
                 ->where('media_resource_id', '=', $bookmark_id)
                 ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
                 ->first();
 
             if ($check_book) {
                 DB::table('media_bookmark')
                     ->where('media_resource_id', '=', $bookmark_id)
                     ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
                     ->delete();
                 $message = "Bookmark successfully removed";
             } else {
                 DB::table('media_bookmark')->insert([
                     'media_resource_id' => $bookmark_id,
-                    'users_id' => $users_id
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
                 ]);
                 $message = "Bookmark successfully added";
             }
@@ -704,18 +713,21 @@ class CompanyService implements CompanyRepositoryInterface
             $check_book = DB::table('news_bookmark')
                 ->where('news_id', '=', $bookmark_id)
                 ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
                 ->first();
 
             if ($check_book) {
                 DB::table('news_bookmark')
                     ->where('news_id', '=', $bookmark_id)
                     ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
                     ->delete();
                 $message = "Bookmark successfully removed";
             } else {
                 DB::table('news_bookmark')->insert([
                     'news_id' => $bookmark_id,
-                    'users_id' => $users_id
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
                 ]);
                 $message = "Bookmark successfully added";
             }
@@ -723,18 +735,21 @@ class CompanyService implements CompanyRepositoryInterface
             $check_book = DB::table('company_bookmark')
                 ->where('company_id', '=', $bookmark_id)
                 ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
                 ->first();
 
             if ($check_book) {
                 DB::table('company_bookmark')
                     ->where('company_id', '=', $bookmark_id)
                     ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
                     ->delete();
                 $message = "Bookmark successfully removed";
             } else {
                 DB::table('company_bookmark')->insert([
                     'company_id' => $bookmark_id,
-                    'users_id' => $users_id
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
                 ]);
                 $message = "Bookmark successfully added";
             }

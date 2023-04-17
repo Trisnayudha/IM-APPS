@@ -8,6 +8,7 @@ use App\Models\Company\CompanyRepresentative;
 use App\Models\Company\CompanySuggestMeet;
 use App\Services\Company\CompanyService;
 use App\Services\Email\EmailService;
+use App\Services\Events\EventService;
 use App\Traits\Directory;
 use Illuminate\Http\Request;
 
@@ -17,10 +18,12 @@ class DirectoryController extends Controller
 
     protected $companyService;
     protected $emailService;
-    public function __construct(CompanyService $companyService, EmailService $emailService)
+    protected $eventService;
+    public function __construct(CompanyService $companyService, EmailService $emailService, EventService $eventService)
     {
         $this->companyService = $companyService;
         $this->emailService = $emailService;
+        $this->eventService = $eventService;
     }
 
     public function getContactDetail(Request $request)
@@ -197,8 +200,9 @@ class DirectoryController extends Controller
         $id =  auth('sanctum')->user()->id ?? null;
         $type = $request->type;
         $bookmark_id = $request->bookmark_id;
+        $events_id = $this->eventService->getLastEvent();
         if ($id) {
-            $data = $this->companyService->postBookmark($id, $bookmark_id, $type);
+            $data = $this->companyService->postBookmark($id, $bookmark_id, $type, $events_id->id);
             $response['status'] = 200;
             $response['message'] = $data;
             $response['payload'] = null;
