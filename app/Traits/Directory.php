@@ -15,6 +15,7 @@ use App\Models\Log\ProductLog;
 use App\Models\Log\ProjectLog;
 use App\Models\Log\UsersLog;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 
 trait Directory
 {
@@ -304,33 +305,31 @@ trait Directory
         return false;
     }
 
-    // public static function isBookmark($type, $id, $events_id = null)
-    // {
-    //     $users_id =  auth('sanctum')->user()->id ?? null;
-    //     if ($type == 'Company') {
-    //         $find = \App\Repositories\CompanyBookmark::findBy(['company_id' => $id, 'users_id' => $users_id]);
-    //     } else if ($type == 'Media Directory') {
-    //         $find = \App\Repositories\MediaBookmark::findBy(['media_resource_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     } else if ($type == 'Project') {
-    //         $find = \App\Repositories\ProjectBookmark::findBy(['project_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     } else if ($type == 'Product') {
-    //         $find = \App\Repositories\ProductBookmark::findBy(['product_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     } else if ($type == 'News') {
-    //         $find = \App\Repositories\NewsBookmark::findBy(['news_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     } else if ($type == 'Networking') {
-    //         $find = \App\Repositories\NetworkingBookmark::findBy(['users_delegate_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     } else if ($type == 'Conference') {
-    //         $find = \App\Repositories\ConferenceBookmark::findBy(['events_conferen_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     } else if ($type == 'Conference Agenda') {
-    //         $find = \App\Repositories\ConferenceAgendaBookmark::findBy(['events_schedule_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     } else if ($type == 'Video') {
-    //         $find = \App\Repositories\CompanyVideoBookmark::findBy(['company_video_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id]);
-    //     }
+    public static function isBookmark($type, $id, $events_id = null)
+    {
+        $users_id =  auth('sanctum')->user()->id ?? null;
+        if ($type == 'Company') {
+            $find = DB::table('company_bookmark')->where(['company_id' => $id, 'users_id' => $users_id])->first();
+        } else if ($type == 'Media Directory') {
+            $find = DB::table('media_bookmark')->where(['media_resource_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id])->first();
+        } else if ($type == 'Project') {
+            $find = DB::table('project_bookmark')->where(['project_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id])->first();
+        } else if ($type == 'Product') {
+            $find = DB::table('product_bookmark')->where(['product_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id])->first();
+        } else if ($type == 'News') {
+            $find = DB::table('news_bookmark')->where(['news_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id])->first();
+        } else if ($type == 'Networking') {
+            $find = DB::table('networking_bookmark')->where(['users_delegate_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id])->first();
+        } else if ($type == 'Conference') {
+            $find = DB::table('conference_bookmark')->where(['events_conferen_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id])->first();
+        } else if ($type == 'Conference Agenda') {
+            $find = DB::table('conference_agenda_bookmark')->where(['events_schedule_id' => $id, 'users_id' => $users_id, 'events_id' => $events_id])->first();
+        }
 
-    //     if (!empty($find->id))
-    //         return true;
-    //     return false;
-    // }
+        if (!empty($find->id))
+            return 1;
+        return 0;
+    }
 
     /**
      * check before destroy cookie

@@ -3,10 +3,12 @@
 namespace App\Services\Events;
 
 use Illuminate\Support\Facades\DB;
+use App\Traits\Directory;
 
 class EventsScheduleService
 {
-    public static function detailForm($id)
+    use Directory;
+    public function detailForm($id)
     {
         return new static(DB::table('events_schedule')
             ->select(
@@ -31,7 +33,7 @@ class EventsScheduleService
             ->first());
     }
 
-    public static function listSchedule($id)
+    public function listSchedule($id)
     {
         return DB::table('events_schedule')
             ->select(
@@ -48,7 +50,7 @@ class EventsScheduleService
             ->pluck('date')
             ->toArray();
     }
-    public static function listWorkshop($id)
+    public function listWorkshop($id)
     {
         return DB::table('events_schedule')
             ->select(
@@ -66,15 +68,15 @@ class EventsScheduleService
             ->toArray();
     }
 
-    public static function listScheduleByDate($id, $date, $events_id = null)
+    public function listScheduleByDate($date, $events_id = null, $type)
     {
-        return DB::table('events_schedule')
+        $data = DB::table('events_schedule')
             ->select(
                 'events_schedule.id',
                 'events_schedule.name',
                 'events_schedule.time_start',
                 'events_schedule.time_end',
-                'events_schedule.timezone',
+                'events_schedule.timezone as status',
                 'events_schedule.location',
                 'md_sponsor.image as sponsor_image',
                 'events_schedule.desc'
@@ -82,10 +84,7 @@ class EventsScheduleService
             ->leftJoin('md_sponsor', function ($join) {
                 $join->on('md_sponsor.id', '=', 'events_schedule.md_sponsor_id');
             })
-            ->where(function ($q) use ($id, $date, $events_id) {
-                if (!empty($id)) {
-                    $q->where('events_schedule.events_id', $id);
-                }
+            ->where(function ($q) use ($date, $events_id) {
                 if (!empty($date)) {
                     $q->whereDate('events_schedule.date_events', $date);
                 }
@@ -93,41 +92,17 @@ class EventsScheduleService
                     $q->where('events_schedule.events_id', $events_id);
                 }
             })
-            ->where('events_schedule.status', '=', 'schedule')
+            ->where('events_schedule.status', '=', $type)
             ->orderby('events_schedule.time_start', 'asc')
-            ->groupBy('events_schedule.id')
             ->get();
-    }
-    public static function listWorkshopByDate($id, $date, $events_id = null)
-    {
-        return DB::table('events_schedule')
-            ->select(
-                'events_schedule.id',
-                'events_schedule.name',
-                'events_schedule.time_start',
-                'events_schedule.time_end',
-                'events_schedule.timezone',
-                'events_schedule.location',
-                'md_sponsor.image as sponsor_image',
-                'events_schedule.desc'
-            )
-            ->leftJoin('md_sponsor', function ($join) {
-                $join->on('md_sponsor.id', '=', 'events_schedule.md_sponsor_id');
-            })
-            ->where(function ($q) use ($id, $date, $events_id) {
-                if (!empty($id)) {
-                    $q->where('events_schedule.events_id', $id);
-                }
-                if (!empty($date)) {
-                    $q->whereDate('events_schedule.date_events', $date);
-                }
-                if (!empty($events_id)) {
-                    $q->where('events_schedule.events_id', $events_id);
-                }
-            })
-            ->where('events_schedule.status', '=', 'workshop')
-            ->orderby('events_schedule.time_start', 'asc')
-            ->groupBy('events_schedule.id')
-            ->get();
+
+        foreach ($data as $x => $row) {
+            $row->sponsor_image = (!empty($row->sponsor_image) ? asset($row->sponsor_image) : '');
+            $row->time_start = (!empty($row->time_start) ? date('H:i A', strtotime($row->time_start)) : '');
+            $row->time_end = (!empty($row->time_end) ? date('H:i A', strtotime($row->time_end)) : '');
+            $row->isBookmark = self::isBookmark('Conference Agenda', $row->id, $events_id);
+            $row->speaker = EventsSpeakerService::listSpeakerSchedule($row->id);
+        }
+        return $data;
     }
 }

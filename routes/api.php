@@ -109,7 +109,8 @@ Route::post('/exhibition', [ExhibitionController::class, 'index']);
 
 Route::post('/mining/directory', [MiningDirectoryController::class, 'index']);
 
-Route::get('schedule', [ScheduleController::class, 'index']);
+//Schedule
+Route::post('schedule', [ScheduleController::class, 'showList']);
 
 //Bookmark
 Route::post('bookmark', [BookmarkController::class, 'index']);

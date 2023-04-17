@@ -46,4 +46,16 @@ class ScheduleController extends Controller
 
         return $list;
     }
+
+    public function showList(Request $request)
+    {
+        $date = $request->date;
+        $type = $request->type;
+        $events_id = $this->eventService->getLastEvent();
+        $data = EventsScheduleService::listScheduleByDate($date, $events_id->id, $type);
+        $response['status'] = 200;
+        $response['message'] = 'Show data ' . $type;
+        $response['payload'] = $data;
+        return response()->json($response);
+    }
 }
