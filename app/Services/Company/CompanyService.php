@@ -741,7 +741,6 @@ class CompanyService implements CompanyRepositoryInterface
                 DB::table('company_bookmark')
                     ->where('company_id', '=', $bookmark_id)
                     ->where('users_id', '=', $users_id)
-
                     ->delete();
                 $message = "Bookmark successfully removed";
             } else {
@@ -749,6 +748,72 @@ class CompanyService implements CompanyRepositoryInterface
                     'company_id' => $bookmark_id,
                     'users_id' => $users_id,
 
+                ]);
+                $message = "Bookmark successfully added";
+            }
+        } elseif ($type == 'Networking') {
+            $check_book = DB::table('networking_bookmark')
+                ->where('users_delegate_id', '=', $bookmark_id)
+                ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
+                ->first();
+
+            if ($check_book) {
+                DB::table('networking_bookmark')
+                    ->where('users_delegate_id', '=', $bookmark_id)
+                    ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
+                    ->delete();
+                $message = "Bookmark successfully removed";
+            } else {
+                DB::table('networking_bookmark')->insert([
+                    'users_delegate_id' => $bookmark_id,
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
+                ]);
+                $message = "Bookmark successfully added";
+            }
+        } elseif ($type == 'Conference') {
+            $check_book = DB::table('conference_bookmark')
+                ->where('events_conferen_id', '=', $bookmark_id)
+                ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
+                ->first();
+
+            if ($check_book) {
+                DB::table('conference_bookmark')
+                    ->where('events_conferen_id', '=', $bookmark_id)
+                    ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
+                    ->delete();
+                $message = "Bookmark successfully removed";
+            } else {
+                DB::table('conference_bookmark')->insert([
+                    'events_conferen_id' => $bookmark_id,
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
+                ]);
+                $message = "Bookmark successfully added";
+            }
+        } elseif ($type == 'Conference Agenda') {
+            $check_book = DB::table('conference_agenda_bookmark')
+                ->where('events_schedule_id', '=', $bookmark_id)
+                ->where('users_id', '=', $users_id)
+                ->where('events_id', '=', $events_id)
+                ->first();
+
+            if ($check_book) {
+                DB::table('conference_agenda_bookmark')
+                    ->where('events_schedule_id', '=', $bookmark_id)
+                    ->where('users_id', '=', $users_id)
+                    ->where('events_id', '=', $events_id)
+                    ->delete();
+                $message = "Bookmark successfully removed";
+            } else {
+                DB::table('conference_agenda_bookmark')->insert([
+                    'events_schedule_id' => $bookmark_id,
+                    'users_id' => $users_id,
+                    'events_id' => $events_id
                 ]);
                 $message = "Bookmark successfully added";
             }
