@@ -4,10 +4,12 @@ namespace App\Services\Networking;
 
 use App\Models\Auth\User;
 use App\Repositories\NetworkingRepositoryInterface;
+use App\Traits\Directory;
 use Illuminate\Support\Facades\DB;
 
 class NetworkingService implements NetworkingRepositoryInterface
 {
+    use Directory;
     public function listAll($search, $limit, $users_id, $events_id)
     {
         //
@@ -50,6 +52,9 @@ class NetworkingService implements NetworkingRepositoryInterface
 
     public function detailDelegate($users_id)
     {
-        return User::where('id', $users_id)->first();
+        $data = User::where('id', $users_id)->first();
+        $events_id = DB::table('events')->orderBy('id', 'desc')->first();
+        $data->isBookmark = self::isBookmark('Networking', $data->id, $events_id->id);
+        return $data;
     }
 }
