@@ -3,17 +3,43 @@
 namespace App\Services\Bookmark;
 
 use App\Repositories\BookmarkRepositoryInterface;
+use App\Services\Events\EventsSpeakerService;
+use App\Traits\Directory;
 use Illuminate\Support\Facades\DB;
 
 class BookmarkService implements BookmarkRepositoryInterface
 {
+    use Directory;
     public function listAll($limit = 3, $type, $users_id, $events_id)
     {
         if ($type == 'schedule') {
-            return DB::table('conference_agenda_bookmark')
+            $data = DB::table('conference_agenda_bookmark')
                 ->join('events_schedule', 'events_schedule.id', 'conference_agenda_bookmark.events_schedule_id')
+                ->leftJoin('md_sponsor', function ($join) {
+                    $join->on('md_sponsor.id', '=', 'events_schedule.md_sponsor_id');
+                })
                 ->where('conference_agenda_bookmark.users_id', $users_id)
-                ->where('conference_agenda_bookmark.events_id', $events_id)->orderby('conference_agenda_bookmark.id', 'desc')->paginate($limit);
+                ->where('conference_agenda_bookmark.events_id', $events_id)
+                ->select(
+                    'events_schedule.id',
+                    'events_schedule.name',
+                    'events_schedule.time_start',
+                    'events_schedule.time_end',
+                    'events_schedule.timezone as status',
+                    'events_schedule.location',
+                    'md_sponsor.image as sponsor_image',
+                    'events_schedule.desc',
+                    'events_schedule.date_events'
+                )
+                ->orderby('conference_agenda_bookmark.id', 'desc')->paginate($limit);
+            foreach ($data as $x => $row) {
+                $row->sponsor_image = (!empty($row->sponsor_image) ? $row->sponsor_image : '');
+                $row->time_start = (!empty($row->time_start) ? date('H:i A', strtotime($row->time_start)) : '');
+                $row->time_end = (!empty($row->time_end) ? date('H:i A', strtotime($row->time_end)) : '');
+                $row->isBookmark = self::isBookmark('Conference Agenda', $row->id, $events_id);
+                $row->speaker = EventsSpeakerService::listSpeakerSchedule($row->id);
+            }
+            return $data;
         } elseif ($type == 'program') {
             return DB::table('conference_bookmark')
                 ->join('events_conferen', 'events_conferen.id', 'conference_bookmark.events_conferen_id')

@@ -97,7 +97,7 @@ class EventsScheduleService
             ->get();
 
         foreach ($data as $x => $row) {
-            $row->sponsor_image = (!empty($row->sponsor_image) ? asset($row->sponsor_image) : '');
+            $row->sponsor_image = (!empty($row->sponsor_image) ? $row->sponsor_image : '');
             $row->time_start = (!empty($row->time_start) ? date('H:i A', strtotime($row->time_start)) : '');
             $row->time_end = (!empty($row->time_end) ? date('H:i A', strtotime($row->time_end)) : '');
             $row->isBookmark = self::isBookmark('Conference Agenda', $row->id, $events_id);
