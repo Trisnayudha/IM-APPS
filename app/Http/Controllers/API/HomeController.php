@@ -7,6 +7,7 @@ use App\Services\Company\CompanyService;
 use App\Services\Email\EmailService;
 use App\Services\Events\EventService;
 use App\Services\MsPrefix\MsService;
+use App\Services\Networking\NetworkingService;
 use App\Services\Sponsors\SponsorsService;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
@@ -19,13 +20,15 @@ class HomeController extends Controller
     protected $eventService;
     protected $userService;
     protected $emailService;
+    protected $networkingService;
     public function __construct(
         MsService $msService,
         SponsorsService $sponsorsService,
         CompanyService $companyService,
         EventService $eventService,
         UserService $userService,
-        EmailService $emailService
+        EmailService $emailService,
+        NetworkingService $networkingService
     ) {
         $this->msService = $msService;
         $this->sponsorsService = $sponsorsService;
@@ -33,6 +36,7 @@ class HomeController extends Controller
         $this->eventService = $eventService;
         $this->userService = $userService;
         $this->emailService = $emailService;
+        $this->networkingService = $networkingService;
     }
 
     public function banner()
@@ -200,6 +204,24 @@ class HomeController extends Controller
             $response['status'] = 200;
             $response['message'] = 'Successfully send request event';
             $response['payload'] = $send;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
+    }
+
+    public function scan(Request $request)
+    {
+        $id =  auth('sanctum')->user()->id ?? null;
+        $codePayment = $request->codePayment;
+
+        if ($id) {
+            $scan = $this->networkingService->scanUsers($codePayment);
+            $response['status'] = 200;
+            $response['message'] = 'Successfully show data';
+            $response['payload'] = $scan;
         } else {
             $response['status'] = 401;
             $response['message'] = 'Unauthorized';

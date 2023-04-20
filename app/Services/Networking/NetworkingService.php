@@ -57,4 +57,22 @@ class NetworkingService implements NetworkingRepositoryInterface
         $data->isBookmark = self::isBookmark('Networking', $data->id, $events_id->id);
         return $data;
     }
+
+    public function scanUsers($codePayment)
+    {
+        return  DB::table('payment')
+            ->join('users', 'users.id', 'payment.users_id')
+            ->join('users_delegate', 'users_delegate.users_id', 'users.id')
+            ->where('code_payment', $codePayment)
+            ->select(
+                'users_delegate.id',
+                'users_delegate.users_id',
+                'users_delegate.events_id',
+                'users.name as users_name',
+                'users.job_title as users_job_title',
+                'users.company_name as users_company_name',
+                'users.image_users as image_users',
+                'users.email'
+            )->first();
+    }
 }

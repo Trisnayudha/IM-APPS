@@ -62,6 +62,7 @@ Route::post('/home/sponsors', [HomeController::class, 'sponsors']);
 Route::post('/home/benefit', [HomeController::class, 'benefit']);
 Route::post('/home/benefit/request', [HomeController::class, 'sendRequest']);
 Route::post('/home/check/event', [HomeController::class, 'checkEvent']);
+Route::post('/home/scan', [HomeController::class, 'scan']);
 
 //API get detail sponsors
 Route::post('/sponsors/free/detail', [HomeController::class, 'detail_free']);
