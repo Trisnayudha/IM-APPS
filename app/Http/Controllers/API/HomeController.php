@@ -219,9 +219,16 @@ class HomeController extends Controller
 
         if ($id) {
             $scan = $this->networkingService->scanUsers($codePayment);
-            $response['status'] = 200;
-            $response['message'] = 'Successfully show data';
-            $response['payload'] = $scan;
+            if ($scan) {
+
+                $response['status'] = 200;
+                $response['message'] = 'Successfully show data';
+                $response['payload'] = $scan;
+            } else {
+                $response['status'] = 200;
+                $response['message'] = 'Successfully show data';
+                $response['payload'] = null;
+            }
         } else {
             $response['status'] = 401;
             $response['message'] = 'Unauthorized';
