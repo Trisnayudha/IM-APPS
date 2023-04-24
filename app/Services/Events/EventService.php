@@ -2,6 +2,7 @@
 
 namespace App\Services\Events;
 
+use App\Models\Payment\Payment;
 use App\Repositories\EventRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -51,5 +52,18 @@ class EventService implements EventRepositoryInterface
             ->where('events_conferen.status', $status)
             ->orderBy('events_conferen.id', 'asc')
             ->paginate($limit);
+    }
+    public function saveData($find, $events_id, $type)
+    {
+        $findPayment = Payment::where('id', $find->id)->first();
+        if ($findPayment) {
+            $findPayment = new Payment();
+        }
+        $findPayment->users_id = $find->id;
+        $findPayment->events_id = $events_id;
+        $findPayment->package = $type;
+        $findPayment->status = 'Waiting';
+        $findPayment->aproval_quota_users = 0;
+        $findPayment->save();
     }
 }

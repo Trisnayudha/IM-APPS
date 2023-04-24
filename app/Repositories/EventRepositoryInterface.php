@@ -12,4 +12,6 @@ interface EventRepositoryInterface
     public function getCheckPayment($users_id, $events_id);
 
     public function listAll($events_id, $date, $limit, $status);
+
+    public function saveData($find, $events_id, $type);
 }

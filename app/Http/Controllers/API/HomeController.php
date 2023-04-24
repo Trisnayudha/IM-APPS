@@ -199,6 +199,8 @@ class HomeController extends Controller
         $find = $this->userService->getUserById($id);
         $type = $type == 'Platinum' ? 'Delegate' : 'Visitor';
         if ($id) {
+            $events_id = $this->eventService->getLastEvent();
+            $save = $this->eventService->saveData($find, $events_id->id, $request->type);
             $send = $this->emailService->sendBenefit($type, $find);
             $receive = $this->emailService->receiveBenefit($type, $find);
             $response['status'] = 200;
