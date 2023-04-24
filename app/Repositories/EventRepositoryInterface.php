@@ -10,4 +10,6 @@ interface EventRepositoryInterface
     public function getLastEvent();
 
     public function getCheckPayment($users_id, $events_id);
+
+    public function listAll($events_id, $date, $limit, $status);
 }

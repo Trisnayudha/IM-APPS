@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookmarkController;
 use App\Http\Controllers\API\DirectoryController;
+use App\Http\Controllers\API\EventsController;
 use App\Http\Controllers\API\ExhibitionController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\InboxController;
@@ -116,3 +117,7 @@ Route::post('schedule', [ScheduleController::class, 'showList']);
 //Bookmark
 Route::post('bookmark', [BookmarkController::class, 'index']);
 Route::post('bookmark/all', [BookmarkController::class, 'listAll']);
+
+//Events Replay
+Route::post('events/replay', [EventsController::class, 'index']);
+Route::post('events/replay/all', [EventsController::class, 'listAll']);
