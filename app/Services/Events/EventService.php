@@ -55,7 +55,7 @@ class EventService implements EventRepositoryInterface
     }
     public function saveData($find, $events_id, $type)
     {
-        $findPayment = Payment::where('id', $find->id)->first();
+        $findPayment = Payment::where('users_id', $find->id)->first();
         if ($findPayment) {
             $findPayment = new Payment();
         }
