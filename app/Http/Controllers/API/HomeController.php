@@ -225,8 +225,8 @@ class HomeController extends Controller
                 $response['message'] = 'Successfully show data';
                 $response['payload'] = $scan;
             } else {
-                $response['status'] = 200;
-                $response['message'] = 'Successfully show data';
+                $response['status'] = 404;
+                $response['message'] = 'Failed show data';
                 $response['payload'] = null;
             }
         } else {
