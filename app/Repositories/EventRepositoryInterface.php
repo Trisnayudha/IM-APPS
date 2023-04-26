@@ -14,4 +14,5 @@ interface EventRepositoryInterface
     public function listAll($events_id, $date, $limit, $status);
 
     public function saveData($find, $events_id, $type);
+    public function detailEvent($slug);
 }

@@ -121,3 +121,4 @@ Route::post('bookmark/all', [BookmarkController::class, 'listAll']);
 //Events Replay
 Route::post('events/replay', [EventsController::class, 'index']);
 Route::post('events/replay/all', [EventsController::class, 'listAll']);
+Route::post('/events/detail', [EventsController::class, 'detail']);

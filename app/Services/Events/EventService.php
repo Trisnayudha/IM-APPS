@@ -2,6 +2,7 @@
 
 namespace App\Services\Events;
 
+use App\Models\Events\EventsConferen;
 use App\Models\Payment\Payment;
 use App\Repositories\EventRepositoryInterface;
 use Illuminate\Support\Facades\DB;
@@ -65,5 +66,47 @@ class EventService implements EventRepositoryInterface
         $findPayment->status = 'Waiting';
         $findPayment->aproval_quota_users = 0;
         $findPayment->save();
+    }
+
+    public function detailEvent($slug)
+    {
+
+        $find = EventsConferen::where('slug', $slug)->first();
+
+        if ($find) {
+
+            $find->speakers = DB::table('events_conferen_speaker')
+                ->select(
+                    'events_conferen_speaker.id as table_id',
+                    'events_conferen_speaker.events_speaker_id as id',
+                    'events_speaker.name as name',
+                    'events_speaker.position as position',
+                    'events_speaker.company_name as company_name',
+                    'events_speaker.image as image',
+                    'events_speaker.bio_desc as bio_desc'
+                )
+                ->leftjoin('events_speaker', function ($join) {
+                    $join->on('events_conferen_speaker.events_speaker_id', '=', 'events_speaker.id');
+                })
+                ->where('events_conferen_speaker.events_conferen_id', $find->id)
+                ->where(function ($q) {
+                    $q->orWhereNotNull('events_speaker.id');
+                })
+                ->orderby('events_speaker.id', 'asc')
+                ->get();
+
+            $find->file = DB::table('events_conferen_file')
+                ->select(
+                    'events_conferen_file.id as table_id',
+                    'events_conferen_file.file as file',
+                    'events_conferen_file.namefile as namefile',
+                    'events_conferen_file.extension as extension'
+                )
+                ->where('events_conferen_file.events_conferen_id', $find->id)
+                ->orderby('events_conferen_file.id', 'asc')
+                ->get();
+        }
+
+        return $find;
     }
 }
