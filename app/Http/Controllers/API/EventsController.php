@@ -49,8 +49,9 @@ class EventsController extends Controller
 
     public function detail(Request $request)
     {
+        $id =  auth('sanctum')->user()->id ?? null;
         $slug = $request->s;
-        $find = $this->eventService->detailEvent($slug);
+        $find = $this->eventService->detailEvent($slug, $id);
         if ($find) {
 
             $response['status'] = 200;
