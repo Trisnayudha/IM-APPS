@@ -77,7 +77,7 @@ class EventService implements EventRepositoryInterface
             $bookmark = DB::table('conference_bookmark')
                 ->join('events_conferen', 'events_conferen.id', 'conference_bookmark.events_conferen_id')
                 ->where('conference_bookmark.users_id', $id)
-                ->where('conference_bookmark.events_id', $find->events_id)->first();
+                ->where('conference_bookmark.id', $find->id)->first();
             $find->isBookmark = $bookmark ? 1 : 0;
             $find->speakers = DB::table('events_conferen_speaker')
                 ->select(
