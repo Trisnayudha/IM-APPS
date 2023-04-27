@@ -241,7 +241,7 @@ class HomeController extends Controller
 
     public function eventBooklet()
     {
-        $link = 'https://issuu.com/indonesiaminer/docs/nickel_summit_2022_event_booklet_644eb051be9dca';
+        $link = 'https://indonesiaminer.com/event-booklet';
         $response['status'] = 200;
         $response['message'] = 'Successfully show data';
         $response['payload'] = $link;
