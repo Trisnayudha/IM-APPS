@@ -99,7 +99,7 @@ class DirectoryController extends Controller
         if ($save->id) {
             $notif = new Notification();
             $notif->id = $users_id;
-            $notif->message = 'Your meeting has been send';
+            $notif->message = 'Meeting request has been sent';
             $notif->NotifApp();
             $response['status'] = 200;
             $response['message'] = 'Suggest Meet Successfully';
