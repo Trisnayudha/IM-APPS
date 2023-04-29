@@ -10,6 +10,7 @@ use App\Http\Controllers\API\InboxController;
 use App\Http\Controllers\API\MiningDirectoryController;
 use App\Http\Controllers\API\MsPrefixController;
 use App\Http\Controllers\API\NetworkingController;
+use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\ScheduleController;
 use Illuminate\Http\Request;
@@ -123,3 +124,6 @@ Route::post('bookmark/all', [BookmarkController::class, 'listAll']);
 Route::post('events/replay', [EventsController::class, 'index']);
 Route::post('events/replay/all', [EventsController::class, 'listAll']);
 Route::post('/events/detail', [EventsController::class, 'detail']);
+
+//Notification
+Route::post('/notification', [NotificationController::class, 'index']);
