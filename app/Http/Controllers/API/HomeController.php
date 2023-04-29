@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\Notification;
 use App\Http\Controllers\Controller;
 use App\Services\Company\CompanyService;
 use App\Services\Email\EmailService;
@@ -201,6 +202,10 @@ class HomeController extends Controller
         if ($id) {
             $events_id = $this->eventService->getLastEvent();
             // $save = $this->eventService->saveData($find, $events_id->id, $request->type);
+            $notif = new Notification();
+            $notif->id = $id;
+            $notif->message = 'Thank you for request access this event';
+            $notif->NotifApp();
             $send = $this->emailService->sendBenefit($type, $find);
             $receive = $this->emailService->receiveBenefit($type, $find);
             $response['status'] = 200;
