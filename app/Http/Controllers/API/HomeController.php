@@ -210,7 +210,7 @@ class HomeController extends Controller
             $receive = $this->emailService->receiveBenefit($type, $find);
             $response['status'] = 200;
             $response['message'] = 'Successfully send request event';
-            $response['payload'] = $send;
+            $response['payload'] = $notif;
         } else {
             $response['status'] = 401;
             $response['message'] = 'Unauthorized';

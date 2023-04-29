@@ -17,8 +17,9 @@ class Notification
             $message = $this->message;
             $fields['include_external_user_ids'] = ['external_user_id_' . $id];
 
-            OneSignal::sendPush($fields, $message);
-            return 'success';
+            $notif = OneSignal::sendPush($fields, $message);
+
+            return $notif;
         } catch (\Exception $th) {
             return $this->res = $th->getMessage();
         }
