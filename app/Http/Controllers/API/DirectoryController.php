@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\Notification;
 use App\Http\Controllers\Controller;
 use App\Models\Auth\User;
 use App\Models\Company\CompanyRepresentative;
@@ -96,6 +97,10 @@ class DirectoryController extends Controller
             $this->emailService->sendSuggestMeet($name, $users_name, $category_name, $message, $email);
         }
         if ($save->id) {
+            $notif = new Notification();
+            $notif->id = $users_id;
+            $notif->message = 'Your meeting has been send';
+            $notif->NotifApp();
             $response['status'] = 200;
             $response['message'] = 'Suggest Meet Successfully';
             $response['payload'] = null;
@@ -236,6 +241,10 @@ class DirectoryController extends Controller
     public function postSendCard(Request $request)
     {
         $id =  auth('sanctum')->user()->id ?? null;
+        $notif = new Notification();
+        $notif->id = $id;
+        $notif->message = 'Your business card has been sent';
+        $notif->NotifApp();
         $company_id = $request->company_id;
         $data  = $this->companyService->postSendCard($company_id, $id);
         self::usersActivity('Send Business Card to Company', (self::isInEvents() ? 'In' : 'Out') . ' Events', self::getIdEvents(), null);
