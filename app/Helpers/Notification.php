@@ -19,7 +19,7 @@ class Notification
 
             $notif = OneSignal::sendPush($fields, $message);
 
-            return $notif;
+            return $this->res = $notif;
         } catch (\Exception $th) {
             return $this->res = $th->getMessage();
         }
