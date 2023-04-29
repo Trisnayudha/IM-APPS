@@ -103,7 +103,7 @@ class DirectoryController extends Controller
             $notif->NotifApp();
             $response['status'] = 200;
             $response['message'] = 'Suggest Meet Successfully';
-            $response['payload'] = null;
+            $response['payload'] = $notif;
         } else {
             $response['status'] = 404;
             $response['message'] = 'Oops, something went wrong';
@@ -250,7 +250,7 @@ class DirectoryController extends Controller
         self::usersActivity('Send Business Card to Company', (self::isInEvents() ? 'In' : 'Out') . ' Events', self::getIdEvents(), null);
         $response['status'] = 200;
         $response['message'] = 'Success send card';
-        $response['payload'] = null;
+        $response['payload'] = $notif;
 
         return response()->json($response, 200);
     }
