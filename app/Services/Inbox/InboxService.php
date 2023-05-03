@@ -16,7 +16,10 @@ class InboxService implements InboxRepositoryInterface
                 'users_chat_users.users_chat_id',
                 'users.id as users_id',
                 'users.name as users_name',
-                'users_chat.last_messages as message'
+                'users_chat.last_messages as message',
+                'users.job_title',
+                'users.company_name',
+                'users.image_users'
             )
             ->join('users_chat_users', function ($join) use ($users_id) {
                 $join->on('users_chat.id', '=', 'users_chat_users.users_chat_id');

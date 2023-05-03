@@ -106,7 +106,7 @@ Route::post('/networking', [NetworkingController::class, 'index']);
 Route::post('/networking/detail', [NetworkingController::class, 'detail']);
 
 Route::post('/inbox', [InboxController::class, 'index']);
-Route::post('/inbox/v2', [InboxController::class, 'index2']);
+// Route::post('/inbox/v2', [InboxController::class, 'index2']);
 Route::post('/inbox/v3', [InboxController::class, 'test']);
 Route::post('/inbox/detail', [InboxController::class, 'showChatRoom']);
 Route::post('/inbox/send', [InboxController::class, 'sendChat']);

@@ -22,9 +22,9 @@ class InboxController extends Controller
         $id =  auth('sanctum')->user()->id ?? null;
         // dd($id);
         $data = $this->inboxService->getAll($id);
-        foreach ($data as $x => $row) {
-            $row->date_chat = (!empty($row->date_chat) ? date('d M Y', strtotime($row->date_chat)) : '');
-        }
+        // foreach ($data as $x => $row) {
+        //     $row->date_chat = (!empty($row->date_chat) ? date('d M Y', strtotime($row->date_chat)) : '');
+        // }
 
         $response['status'] = 200;
         $response['message'] = 'Show data inbox successfully';
@@ -62,9 +62,6 @@ class InboxController extends Controller
         return $list;
         return response()->json($list);
     }
-    public static function showMessage($date, $chat_id, $users_id)
-    {
-    }
 
     public function test()
     {
@@ -98,26 +95,13 @@ class InboxController extends Controller
     {
         $chat_id = $request->chat_id;
         $user_id = auth('sanctum')->user()->id ?? null;
-
-        // Mendapatkan informasi penerima
-        $receiver = DB::table('users_chat_users AS ucu')
-            ->join('users AS target', 'ucu.target_id', '=', 'target.id')
-            ->select(
-                'target.id AS id',
-                'target.name AS name',
-                'target.job_title AS job_title',
-                'target.company_name AS company_name'
-            )
-            ->where('ucu.users_chat_id', $chat_id)
-            ->where('ucu.users_id', $user_id)
-            ->first();
-
-        $messages = DB::table('users_chat_msg AS ucm')
+        $limit = (int) $request->limit ?? 5;
+        $paginator = DB::table('users_chat_msg AS ucm')
             ->join('users_chat_users AS ucu', 'ucu.users_chat_id', '=', 'ucm.users_chat_id')
             ->join('users AS u', 'ucm.users_id', '=', 'u.id')
             ->select(
                 'ucm.id AS message_id',
-                'ucm.date AS message_date',
+                'ucm.created_at',
                 'ucm.messages AS message_content',
                 'u.id AS sender_id',
                 'u.name AS sender_name',
@@ -127,13 +111,15 @@ class InboxController extends Controller
             )
             ->where('ucu.users_chat_id', $chat_id)
             ->where('ucu.users_id', $user_id)
-            ->orderBy('ucm.date', 'asc')
-            ->get();
+            ->orderBy('ucm.created_at', 'asc')
+            ->paginate($limit);
 
-        $messages = $messages->map(function ($message) use ($user_id) {
+        $messages = $paginator->items();
+
+        $formattedMessages = collect($messages)->map(function ($message) use ($user_id) {
             return [
                 'message_id' => $message->message_id,
-                'message_date' => $message->message_date,
+                'created_at' => $message->created_at,
                 'message_content' => $message->message_content,
                 'sender' => [
                     'id' => $message->sender_id,
@@ -145,11 +131,57 @@ class InboxController extends Controller
             ];
         });
 
+        $firstPageUrl = $paginator->url(1);
+        $from = $paginator->firstItem();
+        $lastPage = $paginator->lastPage();
+        $lastPageUrl = $paginator->url($lastPage);
+        $nextPageUrl = $paginator->nextPageUrl();
+        $path = $paginator->url($paginator->currentPage());
+        $perPage = $paginator->perPage();
+        $prevPageUrl = $paginator->previousPageUrl();
+        $to = $paginator->lastItem();
+        $total = $paginator->total();
+
+        $links = collect([
+            [
+                'url' => $prevPageUrl,
+                'label' => '&laquo; Previous',
+                'active' => $paginator->currentPage() > 1
+            ],
+            [
+                'url' => $nextPageUrl,
+                'label' => 'Next &raquo;',
+                'active' => $paginator->hasMorePages()
+            ]
+        ]);
+
+        $pages = collect(range(1, $lastPage))->map(function ($page) use ($paginator) {
+            return [
+                'url' => $paginator->url($page),
+                'label' => $page,
+                'active' => $paginator->currentPage() === $page
+            ];
+        });
+
+        $links = $links->merge($pages)->toArray();
+
         $response['status'] = 200;
         $response['message'] = 'Show data inbox successfully';
         $response['payload'] = [
-            'receiver' => $receiver,
-            'messages' => $messages
+            'data' => $formattedMessages,
+            'pagination' => [
+                'first_page_url' => $firstPageUrl,
+                'from' => $from,
+                'last_page' => $lastPage,
+                'last_page_url' => $lastPageUrl,
+                'links' => $links,
+                'next_page_url' => $nextPageUrl,
+                'path' => $path,
+                'per_page' => $perPage,
+                'prev_page_url' => $prevPageUrl,
+                'to' => $to,
+                'total' => $total
+            ]
         ];
         return response()->json($response);
     }
@@ -188,6 +220,7 @@ class InboxController extends Controller
         // Menyimpan pesan baru
         $messageId = DB::table('users_chat_msg')->insertGetId([
             'date' => Carbon::now(),
+            'created_at' => Carbon::now(),
             'users_chat_id' => $request->chat_id,
             'users_id' => $user_id,
             'messages' => $request->message
