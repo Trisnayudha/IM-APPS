@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\Events\EventService;
 use App\Services\Networking\NetworkingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class NetworkingController extends Controller
 {
@@ -59,5 +61,34 @@ class NetworkingController extends Controller
         }
         return response()->json($response);
         //
+    }
+
+    public function createRoom(Request $request)
+    {
+        $target_id = $request->target_id;
+        $id =  auth('sanctum')->user()->id ?? null;
+        // dd($id);
+        $room = DB::table('users_chat_users')->where('target_id', $target_id)->where('users_id', $id)->first();
+        $users_chat_id = $room ? $room->users_chat_id : null;
+        $create_id = null;
+        if ($users_chat_id) {
+            $room = 'Already Created';
+        } else {
+            $room = 'Room Created';
+
+            $create_id = DB::table('users_chat')->insertGetId([
+                'created_at' => Carbon::now(),
+            ]);
+
+            DB::table('users_chat_users')->insert([
+                'users_chat_id' => $create_id,
+                'users_id' => $id,
+                'target_id' => $target_id,
+            ]);
+        }
+        $response['status'] = 200;
+        $response['message'] = $room;
+        $response['payload'] = $create_id ? $create_id : $users_chat_id;
+        return response()->json($response);
     }
 }

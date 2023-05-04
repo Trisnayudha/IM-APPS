@@ -32,65 +32,6 @@ class InboxController extends Controller
         return response()->json($response);
     }
 
-    public function index2(Request $request)
-    {
-        $id =  auth('sanctum')->user()->id ?? null;
-        $chat_id = $request->chat_id;
-        $date = $this->inboxService->arrayDate($chat_id);
-        $list = [];
-        $no = 0;
-        foreach ($date as $row) {
-            $dateToday = (new \DateTime(date('Y-m-d')));
-            $dateEvents = (new \DateTime(date('Y-m-d', strtotime($row))));
-            if ($dateToday >= $dateEvents) {
-                $isToday = false;
-            } else {
-                $isToday = true;
-            }
-
-            $list_row['id'] = $no++;
-            $list_row['isToday'] = $isToday;
-            $list_row['date'] = date('d M Y', strtotime($row));
-            $chat = $this->inboxService->getMessage($date, $chat_id);
-            foreach ($chat as $x  => $row) {
-                $row->date = (!empty($row->date) ? date('H:i', strtotime($row->date)) : '');
-                $row->align = ($row->users_id == $id ? 'left' : 'right');
-            }
-            $list_row['message'] = $chat;
-            $list[] = $list_row;
-        }
-        return $list;
-        return response()->json($list);
-    }
-
-    public function test()
-    {
-        $id =  auth('sanctum')->user()->id ?? null;
-        $inbox = DB::table('users_chat_users AS ucu')
-            ->join('users_chat AS uc', 'ucu.users_chat_id', '=', 'uc.id')
-            ->join('users AS u', 'ucu.users_id', '=', 'u.id')
-            ->join('users AS target', 'ucu.target_id', '=', 'target.id')
-            ->select(
-                'uc.id AS chat_id',
-                'u.id AS user_id',
-                'u.name AS user_name',
-                'u.job_title AS user_job_title',
-                'u.company_name AS user_company',
-                'target.id AS target_id',
-                'target.name AS target_name',
-                'target.job_title AS target_job_title',
-                'target.company_name AS target_company',
-                'uc.last_messages AS last_message'
-            )
-            ->where('ucu.users_id', $id)
-            ->orderBy('uc.id', 'desc')
-            ->get();
-        $response['status'] = 200;
-        $response['message'] = 'Show data inbox successfully';
-        $response['payload'] = $inbox;
-        return response()->json($response);
-    }
-
     public function showChatRoom(Request $request)
     {
         $chat_id = $request->chat_id;
