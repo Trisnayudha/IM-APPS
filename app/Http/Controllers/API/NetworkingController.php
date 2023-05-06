@@ -81,6 +81,7 @@ class NetworkingController extends Controller
             ]);
 
             DB::table('users_chat_users')->insert([
+                'created_at' => Carbon::now(),
                 'users_chat_id' => $create_id,
                 'users_id' => $id,
                 'target_id' => $target_id,

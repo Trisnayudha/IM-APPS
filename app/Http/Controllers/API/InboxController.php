@@ -52,7 +52,7 @@ class InboxController extends Controller
             )
             ->where('ucu.users_chat_id', $chat_id)
             ->where('ucu.users_id', $user_id)
-            ->orderBy('ucm.created_at', 'asc')
+            ->orderBy('ucm.created_at', 'desc')
             ->paginate($limit);
 
         $messages = $paginator->items();
