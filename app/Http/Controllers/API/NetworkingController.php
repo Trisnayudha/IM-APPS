@@ -78,6 +78,7 @@ class NetworkingController extends Controller
 
             $create_id = DB::table('users_chat')->insertGetId([
                 'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ]);
 
             DB::table('users_chat_users')->insert([

@@ -20,15 +20,17 @@ class InboxController extends Controller
     public function index()
     {
         $id =  auth('sanctum')->user()->id ?? null;
-        // dd($id);
-        $data = $this->inboxService->getAll($id);
-        // foreach ($data as $x => $row) {
-        //     $row->date_chat = (!empty($row->date_chat) ? date('d M Y', strtotime($row->date_chat)) : '');
-        // }
+        if ($id) {
 
-        $response['status'] = 200;
-        $response['message'] = 'Show data inbox successfully';
-        $response['payload'] = $data;
+            $data = $this->inboxService->getAll($id);
+            $response['status'] = 200;
+            $response['message'] = 'Show data inbox successfully';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = null;
+        }
         return response()->json($response);
     }
 
@@ -170,7 +172,10 @@ class InboxController extends Controller
         // Memperbarui last_messages pada users_chat
         DB::table('users_chat')
             ->where('id', $request->chat_id)
-            ->update(['last_messages' => $request->message]);
+            ->update([
+                'last_messages' => $request->message,
+                'updated_at' => Carbon::now()
+            ]);
 
 
         $response['status'] = 200;

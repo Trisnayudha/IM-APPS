@@ -24,14 +24,21 @@ class InboxService implements InboxRepositoryInterface
             ->join('users_chat_users', function ($join) use ($users_id) {
                 $join->on('users_chat.id', '=', 'users_chat_users.users_chat_id');
                 if ($users_id) {
-                    $join->where('users_chat_users.users_id', $users_id);
+                    $join->where(function ($query) use ($users_id) {
+                        $query->where('users_chat_users.users_id', $users_id)
+                            ->orWhere('users_chat_users.target_id', $users_id);
+                    });
                 }
             })
             ->join('users', function ($join) {
                 $join->on('users.id', '=', 'users_chat_users.target_id');
             })
+            ->whereNotNull('users_chat.last_messages') // filter data dengan last_messages yang tidak kosong
             ->get();
     }
+
+
+
 
     public function detailUsers($chat_id, $users_id)
     {
