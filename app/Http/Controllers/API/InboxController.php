@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\Notification;
 use App\Http\Controllers\Controller;
 use App\Services\Inbox\InboxService;
 use Carbon\Carbon;
@@ -183,7 +184,12 @@ class InboxController extends Controller
                 'last_messages' => $request->message,
                 'updated_at' => Carbon::now()
             ]);
-
+        $notif = new Notification();
+        $notif->id = $chatUser->target_id;
+        $message = 'You have new notification: ' . $request->message;
+        $short_message = substr($message, 0, 100); // Memotong teks menjadi 100 huruf
+        $notif->message = $short_message;
+        $notif->NotifApp();
 
         $response['status'] = 200;
         $response['message'] = 'send message inbox successfully';
