@@ -185,7 +185,7 @@ class InboxController extends Controller
                 'updated_at' => Carbon::now()
             ]);
         $notif = new Notification();
-        $notif->id = $chatUser->target_id;
+        $notif->id = $chatUser->users_id;
         $message = 'You have new notification: ' . $request->message;
         $short_message = substr($message, 0, 100); // Memotong teks menjadi 100 huruf
         $notif->message = $short_message;
