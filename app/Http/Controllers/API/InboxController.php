@@ -53,7 +53,6 @@ class InboxController extends Controller
                 'ucu.target_id'
             )
             ->where('ucu.users_chat_id', $chat_id)
-            ->where('ucu.users_id', $user_id)
             ->orderBy('ucm.created_at', 'desc')
             ->paginate($limit);
 
@@ -150,7 +149,8 @@ class InboxController extends Controller
         // Mengecek apakah pengguna merupakan bagian dari chat room
         $chatUser = DB::table('users_chat_users')
             ->where('users_chat_id', $request->chat_id)
-            ->where('users_id', $user_id)
+            ->where('users_chat_users.users_id', $user_id)
+            ->orWhere('users_chat_users.target_id', $user_id)
             ->first();
 
         if (!$chatUser) {
