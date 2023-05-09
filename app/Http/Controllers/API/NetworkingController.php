@@ -87,6 +87,12 @@ class NetworkingController extends Controller
                 'users_id' => $id,
                 'target_id' => $target_id,
             ]);
+            DB::table('users_chat_users')->insert([
+                'created_at' => Carbon::now(),
+                'users_chat_id' => $create_id,
+                'users_id' => $target_id,
+                'target_id' => $id,
+            ]);
         }
         $response['status'] = 200;
         $response['message'] = $room;
