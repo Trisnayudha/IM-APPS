@@ -40,6 +40,7 @@ class InboxController extends Controller
         $user_id = auth('sanctum')->user()->id ?? null;
         $limit = (int) $request->limit ?? 5;
         $paginator = DB::table('users_chat_msg AS ucm')
+            ->distinct()
             ->join('users_chat_users AS ucu', 'ucu.users_chat_id', '=', 'ucm.users_chat_id')
             ->join('users AS u', 'ucm.users_id', '=', 'u.id')
             ->select(
