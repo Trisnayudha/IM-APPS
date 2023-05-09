@@ -33,7 +33,7 @@ class InboxService implements InboxRepositoryInterface
                 $join->on('users.id', '=', 'users_chat_users.target_id');
             })
             ->whereNotNull('users_chat.last_messages') // filter data dengan last_messages yang tidak kosong
-            ->orderBy('users_chat.id', 'desc')
+            ->orderBy('users_chat.updated_at', 'desc')
             ->get();
     }
 
