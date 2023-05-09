@@ -40,9 +40,15 @@ class InboxController extends Controller
         $user_id = auth('sanctum')->user()->id ?? null;
         $limit = (int) $request->limit ?? 5;
         $paginator = DB::table('users_chat_msg AS ucm')
-            ->distinct()
-            ->join('users_chat_users AS ucu', 'ucu.users_chat_id', '=', 'ucm.users_chat_id')
             ->join('users AS u', 'ucm.users_id', '=', 'u.id')
+            ->joinSub(function ($query) use ($chat_id) {
+                $query->from('users_chat_users AS ucu')
+                    ->select('ucu.users_chat_id', 'ucu.users_id', 'ucu.target_id')
+                    ->where('ucu.users_chat_id', $chat_id);
+            }, 'ucu', function ($join) {
+                $join->on('ucu.users_chat_id', '=', 'ucm.users_chat_id')
+                    ->whereColumn('ucu.users_id', 'ucm.users_id');
+            })
             ->select(
                 'ucm.id AS message_id',
                 'ucm.created_at',
@@ -53,9 +59,9 @@ class InboxController extends Controller
                 'u.company_name AS sender_company',
                 'ucu.target_id'
             )
-            ->where('ucu.users_chat_id', $chat_id)
             ->orderBy('ucm.created_at', 'desc')
             ->paginate($limit);
+
 
         $messages = $paginator->items();
 
