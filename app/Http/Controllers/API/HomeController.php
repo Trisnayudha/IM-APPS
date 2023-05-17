@@ -149,6 +149,7 @@ class HomeController extends Controller
                 'show_restriction' => $event->status_event == 'on' ? true : false,
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
                 'networking' => true,
+                'inbox' => true,
                 'floor_plan' => true,
                 'schedule' => true,
                 'exhibition' => true,
