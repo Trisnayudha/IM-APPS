@@ -147,7 +147,15 @@ class HomeController extends Controller
             $data = [
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
                 'show_restriction' => $event->status_event == 'on' ? true : false,
-                'qr_code' => $checkPayment ? $checkPayment->qr_code : null
+                'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
+                'networking' => true,
+                'floor_plan' => true,
+                'schedule' => true,
+                'exhibition' => true,
+                'event_booklet' => true,
+                'replay' => true,
+                'mining_directory' => true,
+                'bookmark' => true,
 
             ];
             $response['status'] = 200;
