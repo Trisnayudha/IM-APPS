@@ -19,6 +19,7 @@ class SponsorsService implements SponsorRepositoryInterface
 
             )
             ->where('md_sponsor.type', $type)
+            ->where('md_sponsor.status', 'show')
             ->orderby('md_sponsor.sort', 'asc')
             ->get();
 
@@ -38,6 +39,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_landyark.image',
                 'md_landyark.link'
             )
+            ->where('status', 'show')
             ->orderBy('md_landyark.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -57,6 +59,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_media_partner.image',
                 'md_media_partner.link'
             )
+            ->where('status', 'show')
             ->orderBy('md_media_partner.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -76,6 +79,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_association.image',
                 'md_association.link'
             )
+            ->where('status', 'show')
             ->orderBy('md_association.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
