@@ -39,7 +39,6 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_landyark.image',
                 'md_landyark.link'
             )
-            ->where('status', 'show')
             ->orderBy('md_landyark.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
