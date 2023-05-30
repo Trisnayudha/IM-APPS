@@ -55,7 +55,7 @@ class EmailService implements EmailServiceInterface
     public function sendBenefit($type, $find)
     {
         $mail = new BenefitMail($type, $find);
-        Mail::to('yudha@indonesiaminer.com')->send($mail);
+        Mail::to('damun@indonesiaminer.com')->send($mail);
     }
 
     public function receiveBenefit($type, $find)
