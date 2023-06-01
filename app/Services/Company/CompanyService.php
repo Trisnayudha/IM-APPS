@@ -585,6 +585,8 @@ class CompanyService implements CompanyRepositoryInterface
             //            ->simplePaginate(1);
             ->paginate(5);
         foreach ($query as $x => $row) {
+            $pathParts = explode('/', $row->path_link);
+            $lastPathPart = end($pathParts);
             if ($row->flag == "Product") {
                 $row->title = (strlen($row->product_title) > 100 ? substr($row->product_title, 0,  100) . '...' : $row->product_title);
                 $row->date_timeline = (!empty($row->product_date) ? date('d M Y, H:i A', strtotime($row->product_date)) : '');
@@ -592,6 +594,7 @@ class CompanyService implements CompanyRepositoryInterface
                 $row->download = 0;
                 $row->slug = $row->product_slug;
                 $row->desc = (strlen(strip_tags($row->product_desc)) > 300 ? substr(strip_tags($row->product_desc), 0,  300) . '...' : strip_tags($row->product_desc));
+                $row->path_link = str_replace($lastPathPart, $row->product_slug, $row->path_link);
             } else if ($row->flag == "Project") {
                 $row->title = (strlen($row->project_title) > 100 ? substr($row->project_title, 0,  100) . '...' : $row->project_title);
                 $row->date_timeline = (!empty($row->project_date) ? date('d M Y, H:i A', strtotime($row->project_date)) : '');
@@ -599,6 +602,7 @@ class CompanyService implements CompanyRepositoryInterface
                 $row->slug = $row->project_slug;
                 $row->download = (!empty($row->project_download) ? $row->project_download : 0);
                 $row->desc = (strlen(strip_tags($row->project_desc)) > 300 ? substr(strip_tags($row->project_desc), 0,  300) . '...' : strip_tags($row->project_desc));
+                $row->path_link = str_replace($lastPathPart, $row->project_slug, $row->path_link);
             } else if ($row->flag == "Media Resource") {
                 $row->title = (strlen($row->media_title) > 100 ? substr($row->media_title, 0,  100) . '...' : $row->media_title);
                 $row->date_timeline = (!empty($row->media_date) ? date('d M Y, H:i A', strtotime($row->media_date)) : '');
@@ -606,6 +610,7 @@ class CompanyService implements CompanyRepositoryInterface
                 $row->slug = $row->media_slug;
                 $row->download = (!empty($row->media_download) ? $row->media_download : 0);
                 $row->desc = (strlen(strip_tags($row->media_desc)) > 300 ? substr(strip_tags($row->media_desc), 0,  300) . '...' : strip_tags($row->media_desc));
+                $row->path_link = str_replace($lastPathPart, $row->media_slug, $row->path_link);
             } else if ($row->flag == "News") {
                 $row->title = (strlen($row->news_title) > 100 ? substr($row->news_title, 0,  100) . '...' : $row->news_title);
                 $row->date_timeline = (!empty($row->news_date) ? date('d M Y, H:i A', strtotime($row->news_date)) : '');
@@ -613,12 +618,14 @@ class CompanyService implements CompanyRepositoryInterface
                 $row->views = (!empty($row->news_views) ? $row->news_views : 0);
                 $row->download = 0;
                 $row->desc = (strlen(strip_tags($row->news_desc)) > 300 ? substr(strip_tags($row->news_desc), 0,  300) . '...' : strip_tags($row->news_desc));
+                $row->path_link = str_replace($lastPathPart, $row->news_slug, $row->path_link);
             } else {
                 $row->title = (strlen($row->title) > 100 ? substr($row->title, 0,  100) . '...' : $row->title);
                 $row->date_timeline = (!empty($row->date_timeline) ? date('d M Y, H:i A', strtotime($row->date_timeline)) : '');
                 $row->views = (!empty($row->views) ? $row->views : 0);
                 $row->download = (!empty($row->download) ? $row->download : 0);
                 $row->desc = (strlen(strip_tags($row->desc)) > 300 ? substr(strip_tags($row->desc), 0,  300) . '...' : strip_tags($row->desc));
+                $row->path_link = str_replace($lastPathPart, $row->news_slug, $row->path_link);
             }
 
             foreach ($query[$x] as $key => $value) {
