@@ -12,8 +12,7 @@ class UserService implements UserRepositoryInterface
     {
         return User::leftjoin('ms_phone_code', 'ms_phone_code.ms_country_id', 'users.ms_prefix_call_id')
             ->select('users.*', 'ms_phone_code.code')
-            ->where('users.id', $id)
-            ->where('is_register', '1')->first();
+            ->where('users.id', $id)->first();
     }
 
     public function getUserByEmail($email)
