@@ -9,8 +9,8 @@ class ExhibitionService implements ExhibitionRepositoryController
 {
     public function listAll($events_id, $search, $category, $special_tags, $filter = null, $users_id)
     {
-        $column_filter = "company.id";
-        $type_filter = "desc";
+        $column_filter = "events_company.sort";
+        $type_filter = "asc";
 
         if ($filter == "sort-name-ascend") {
             $column_filter = "company.name";
