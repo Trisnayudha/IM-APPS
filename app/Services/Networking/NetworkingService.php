@@ -35,7 +35,7 @@ class NetworkingService implements NetworkingRepositoryInterface
             ->where(function ($q) use ($events_id, $search, $users_id) {
                 if ($search) {
                     $q->where('users.name', "LIKE", "%" . $search . "%");
-                    // ->orWhere('users.job_title', "LIKE", "%" . $search . "%");
+                    $q->orWhere('users.job_title', "LIKE", "%" . $search . "%");
                 }
                 if ($users_id) {
                     $q->where('users_delegate.users_id', '<>', $users_id);
