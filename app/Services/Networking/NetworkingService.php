@@ -33,8 +33,10 @@ class NetworkingService implements NetworkingRepositoryInterface
             })
             ->where(function ($q) use ($events_id, $search, $users_id) {
                 if ($search) {
-                    $q->where('users.name', 'LIKE', '%' . $search . '%');
-                    // ->orWhere('users.company_name', 'LIKE', '%' . $search . '%'); // Menambahkan pencarian untuk 'company_name'
+                    $q->where(function ($subQ) use ($search) {
+                        $subQ->where('users.name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('users.company_name', 'LIKE', '%' . $search . '%');
+                    });
                 }
                 if ($users_id) {
                     $q->where('users_delegate.users_id', '<>', $users_id);
@@ -48,6 +50,7 @@ class NetworkingService implements NetworkingRepositoryInterface
             ->orderBy('users.id', 'asc')
             ->paginate($limit);
     }
+
 
 
     public function detailDelegate($users_id)
