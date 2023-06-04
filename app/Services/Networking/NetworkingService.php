@@ -33,8 +33,8 @@ class NetworkingService implements NetworkingRepositoryInterface
             })
             ->where(function ($q) use ($events_id, $search, $users_id) {
                 if ($search) {
-                    $q->where('users.name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('users.company_name', 'LIKE', '%' . $search . '%'); // Menambahkan pencarian untuk 'company_name'
+                    $q->where('users.name', 'LIKE', '%' . $search . '%');
+                    // ->orWhere('users.company_name', 'LIKE', '%' . $search . '%'); // Menambahkan pencarian untuk 'company_name'
                 }
                 if ($users_id) {
                     $q->where('users_delegate.users_id', '<>', $users_id);
