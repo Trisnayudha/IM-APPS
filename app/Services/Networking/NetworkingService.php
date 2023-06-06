@@ -41,7 +41,7 @@ class NetworkingService implements NetworkingRepositoryInterface
                 if ($users_id) {
                     $q->where('users_delegate.users_id', '<>', $users_id);
                 }
-                $q->whereIn('users_delegate.payment_status', ['Free', 'Paid Off']);
+                // $q->whereIn('users_delegate.payment_status', ['Free', 'Paid Off']);
                 if ($events_id) {
                     $q->where('users_delegate.events_id', $events_id);
                 }
