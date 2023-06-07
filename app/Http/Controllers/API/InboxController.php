@@ -193,7 +193,7 @@ class InboxController extends Controller
 
         $response['status'] = 200;
         $response['message'] = 'send message inbox successfully';
-        $response['payload'] = $messageId;
+        $response['payload'] = $chatUser;
         return response()->json($response);
     }
 }
