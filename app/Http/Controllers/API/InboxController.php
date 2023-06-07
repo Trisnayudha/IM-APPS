@@ -161,6 +161,17 @@ class InboxController extends Controller
             // ->orWhere('users_chat_users.target_id', $user_id)
             ->first();
 
+        $tampung = [
+            'users_id' => $chatUser->users_id,
+            'target_id' => $chatUser->target_id
+        ];
+        $target_fix_id = null; // Inisialisasi variabel target_fix_id
+        if ($tampung['users_id'] == $user_id) {
+            $target_fix_id = $tampung['target_id'];
+        } else {
+            $target_fix_id = $tampung['users_id'];
+        }
+
         if (!$chatUser) {
             return response()->json([
                 'status' => 403,
@@ -186,7 +197,7 @@ class InboxController extends Controller
             ]);
         $notif = new Notification();
         $notif->id = $chatUser->target_id;
-        $message = 'You have new notification: ' . $request->message;
+        $message = 'You have new notification: ' . $target_fix_id;
         $short_message = substr($message, 0, 100); // Memotong teks menjadi 100 huruf
         $notif->message = $short_message;
         $notif->NotifApp();
