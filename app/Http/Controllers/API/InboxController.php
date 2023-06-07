@@ -157,8 +157,8 @@ class InboxController extends Controller
         // Mengecek apakah pengguna merupakan bagian dari chat room
         $chatUser = DB::table('users_chat_users')
             ->where('users_chat_id', $request->chat_id)
-            ->where('users_chat_users.users_id', $user_id)
-            ->orWhere('users_chat_users.target_id', $user_id)
+            // ->where('users_chat_users.users_id', $user_id)
+            // ->orWhere('users_chat_users.target_id', $user_id)
             ->first();
 
         if (!$chatUser) {
@@ -185,7 +185,7 @@ class InboxController extends Controller
                 'updated_at' => Carbon::now()
             ]);
         $notif = new Notification();
-        $notif->id = $chatUser->users_id;
+        $notif->id = $chatUser->target_id;
         $message = 'You have new notification: ' . $request->message;
         $short_message = substr($message, 0, 100); // Memotong teks menjadi 100 huruf
         $notif->message = $short_message;
