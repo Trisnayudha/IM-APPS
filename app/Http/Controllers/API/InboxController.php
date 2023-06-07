@@ -165,7 +165,7 @@ class InboxController extends Controller
             'users_id' => $chatUser->users_id,
             'target_id' => $chatUser->target_id
         ];
-        $target_fix_id = null; // Inisialisasi variabel target_fix_id
+
         if ($tampung['users_id'] == $user_id) {
             $target_fix_id = $tampung['target_id'];
         } else {
@@ -196,15 +196,15 @@ class InboxController extends Controller
                 'updated_at' => Carbon::now()
             ]);
         $notif = new Notification();
-        $notif->id = $chatUser->target_id;
-        $message = 'You have new notification: ' . $target_fix_id;
+        $notif->id = $target_fix_id;
+        $message = 'You have new notification: ' . $request->message;
         $short_message = substr($message, 0, 100); // Memotong teks menjadi 100 huruf
         $notif->message = $short_message;
         $notif->NotifApp();
 
         $response['status'] = 200;
         $response['message'] = 'send message inbox successfully';
-        $response['payload'] = $chatUser;
+        $response['payload'] = $target_fix_id;
         return response()->json($response);
     }
 }
