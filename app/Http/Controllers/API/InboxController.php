@@ -204,7 +204,7 @@ class InboxController extends Controller
 
         $response['status'] = 200;
         $response['message'] = 'send message inbox successfully';
-        $response['payload'] = $target_fix_id;
+        $response['payload'] = $messageId;
         return response()->json($response);
     }
 }
