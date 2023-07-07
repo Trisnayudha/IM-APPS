@@ -6,9 +6,11 @@ use App\Models\Events\EventsConferen;
 use App\Models\Payment\Payment;
 use App\Repositories\EventRepositoryInterface;
 use Illuminate\Support\Facades\DB;
+use App\Traits\Events;
 
 class EventService implements EventRepositoryInterface
 {
+    use Events;
     public function getEventId($id)
     {
         //
@@ -72,7 +74,8 @@ class EventService implements EventRepositoryInterface
     {
 
         $find = EventsConferen::where('slug', $slug)->first();
-
+        //masukin log event conference
+        self::countVisitConference($find->events_id, $id, $find->id);
         if ($find) {
             $bookmark = DB::table('conference_bookmark')
                 ->join('events_conferen', 'events_conferen.id', 'conference_bookmark.events_conferen_id')

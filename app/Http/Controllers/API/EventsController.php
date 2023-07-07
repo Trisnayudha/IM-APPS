@@ -7,8 +7,10 @@ use App\Models\Events\EventsConferen;
 use App\Services\Events\EventService;
 use Illuminate\Http\Request;
 
+
 class EventsController extends Controller
 {
+
     protected $eventService;
     public function __construct(EventService $eventService)
     {

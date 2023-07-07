@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Repositories\EventsConferenLog;
+use App\Models\Log\EventsConferenLog;
 use App\Repositories\EventsLog;
 use App\Repositories\UsersLog;
 use Illuminate\Support\Facades\Cookie;
@@ -93,8 +93,8 @@ trait Events
         $events_dollar_curs = \crocodicstudio\crudbooster\helpers\CRUDBooster::getSetting('setting_dollar_curs');
         $findEvents = \App\Repositories\Events::findById($events_id);
         if (!empty($findEvents->id) && $findEvents->isUpdateCurs == 1) {
-            $findEvents->platinum_price_rupiah = (float) $findEvents->platinum_price_dollar*(float) $events_dollar_curs;
-            $findEvents->gold_price_rupiah = (float) $findEvents->gold_price_dollar*(float) $events_dollar_curs;
+            $findEvents->platinum_price_rupiah = (float) $findEvents->platinum_price_dollar * (float) $events_dollar_curs;
+            $findEvents->gold_price_rupiah = (float) $findEvents->gold_price_dollar * (float) $events_dollar_curs;
             $findEvents->isUpdateCurs = 0;
             $findEvents->save();
 
@@ -179,13 +179,13 @@ trait Events
      * @param $events_id
      * @return string
      */
-    public static function checkPackageUsers($events_id) : String
+    public static function checkPackageUsers($events_id): String
     {
         $users_id = getSessionDelegate('login_id');
         if (!empty($users_id)) {
             $findPaidPayment = \App\Repositories\UsersDelegate::findPaidPayment($users_id, $events_id);
             if (!empty($findPaidPayment->id) && in_array(!empty($findPaidPayment->status), ['Paid Off', 'Free'])) {
-                return (!empty($findPaidPayment->package_name)?$findPaidPayment->package_name:'');
+                return (!empty($findPaidPayment->package_name) ? $findPaidPayment->package_name : '');
             }
         }
         return "";
@@ -216,10 +216,9 @@ trait Events
         return true;
     }
 
-    public static function countVisitConference($events_id, $id)
+    public static function countVisitConference($events_id, $id, $conferen_id)
     {
         date_default_timezone_set('Asia/Jakarta');
-        $users_id = getSessionDelegate('login_id');
 
         $save = new EventsConferenLog();
         $save->created_at = date('Y-m-d H:i:s');
@@ -227,14 +226,13 @@ trait Events
         $save->month = date('m');
         $save->year = date('Y');
         $save->events_id = $events_id;
-        $save->events_conferen_id = $id;
-        $save->users_id = $users_id;
+        $save->events_conferen_id = $conferen_id;
+        $save->users_id = $id;
         $save->ip = request()->ip();
         $save->user_agent = request()->userAgent();
         $save->save();
 
         return true;
-
     }
 
     public static function isTextPayment($package_name, $events_id)
@@ -248,5 +246,4 @@ trait Events
         }
         return "";
     }
-
 }
