@@ -55,6 +55,7 @@ trait Directory
     public static function countVisitPage($page, $visit = "Out Events", $id, $company_id = null, $events_id = null, $users_id)
     {
         date_default_timezone_set('Asia/Jakarta');
+        $users_id =  auth('sanctum')->user()->id ?? null;
         if ($page == 'Media') {
             $save = new MediaResourceLog();
             $save->flag = 'Visit';
