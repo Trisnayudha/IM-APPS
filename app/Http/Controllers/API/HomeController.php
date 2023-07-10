@@ -12,9 +12,11 @@ use App\Services\Networking\NetworkingService;
 use App\Services\Sponsors\SponsorsService;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
+use App\Traits\Directory;
 
 class HomeController extends Controller
 {
+    use Directory;
     protected $msService;
     protected $sponsorsService;
     protected $companyService;
@@ -117,10 +119,11 @@ class HomeController extends Controller
     public function detail_premium(Request $request)
     {
         $slug = $request->slug;
-
+        $id =  auth('sanctum')->user()->id ?? null;
         $findCompany = $this->companyService->getCompanyBySlug($slug);
         if ($findCompany) {
             $findContact = $this->companyService->getListContactById($findCompany->id);
+            self::countVisitPage('Company', 'In Apps', null, $findCompany->id, 11, $id);
             $data = [
                 'company' => $findCompany,
                 'contact' => $findContact
