@@ -151,7 +151,7 @@ trait Directory
             $save->month = date('m');
             $save->year = date('Y');
             $save->events_id = $events_id;
-            $save->company_id = $id;
+            $save->company_id = $company_id;
             $save->users_id = $users_id;
             $save->ip = request()->ip();
             $save->user_agent = request()->userAgent();

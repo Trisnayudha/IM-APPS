@@ -151,7 +151,7 @@ class HomeController extends Controller
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
                 'show_restriction' => $event->status_event == 'on' ? true : false,
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
-                'networking' => true,
+                'networking' => false,
                 'inbox' => true,
                 'floor_plan' => true,
                 'schedule' => true,
