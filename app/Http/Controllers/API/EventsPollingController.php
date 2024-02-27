@@ -53,7 +53,7 @@ class EventsPollingController extends Controller
                 $vote = new EventsPollsVote();
                 $vote->users_id = auth('sanctum')->user()->id ?? null; // Atau cara lain untuk mendapatkan user ID
                 $vote->rating = $value; // Nilai rating yang diberikan
-                $vote->events_polls_option_id = $value; // ID opsi yang dipilih
+                // $vote->events_polls_option_id = $value; // ID opsi yang dipilih
                 $vote->save();
             }
         }
