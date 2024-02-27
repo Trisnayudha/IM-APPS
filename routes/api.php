@@ -4,6 +4,8 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookmarkController;
 use App\Http\Controllers\API\DirectoryController;
 use App\Http\Controllers\API\EventsController;
+use App\Http\Controllers\API\EventsPollingController;
+use App\Http\Controllers\API\EventsQuestionController;
 use App\Http\Controllers\API\ExhibitionController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\InboxController;
@@ -132,3 +134,13 @@ Route::post('/events/detail', [EventsController::class, 'detail']);
 
 //Notification
 Route::post('/notification', [NotificationController::class, 'index']);
+
+//Scan
+
+// Group Question
+Route::post('scan/question', [EventsQuestionController::class, 'index']);
+Route::post('scan/post/question', [EventsQuestionController::class, 'store']);
+
+//Group Polling
+Route::post('scan/polling', [EventsPollingController::class, 'index']);
+Route::post('scan/post/polling', [EventsPollingController::class, 'store']);
