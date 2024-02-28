@@ -122,6 +122,7 @@ Route::post('/mining/directory', [MiningDirectoryController::class, 'index']);
 
 //Schedule
 Route::post('schedule', [ScheduleController::class, 'showList']);
+Route::post('schedule/reserve', [ScheduleController::class, 'reserve']);
 
 //Bookmark
 Route::post('bookmark', [BookmarkController::class, 'index']);

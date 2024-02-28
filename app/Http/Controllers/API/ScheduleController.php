@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Events\EventsSchedule;
+use App\Models\Events\EventsScheduleReserve;
 use App\Services\Events\EventService;
 use App\Services\Events\EventsScheduleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class ScheduleController extends Controller
 {
@@ -56,6 +59,45 @@ class ScheduleController extends Controller
         $response['status'] = 200;
         $response['message'] = 'Show data ' . $type;
         $response['payload'] = $data;
+        return response()->json($response);
+    }
+
+    public function reserve(Request $request)
+    {
+        $schedule_id = $request->schedule_id;
+        $id =  auth('sanctum')->user()->id ?? null;
+
+        $findSchedule = EventsSchedule::where('id', $schedule_id)->first();
+        if ($findSchedule) {
+            // Menyiapkan data untuk tautan Google Calendar
+            $name_schedule = $findSchedule->name . ' - Indonesia Miner 2024';
+            $date_schedule = $findSchedule->date;
+            $location_schedule = $findSchedule->location;
+            $time_start = $findSchedule->time_start;
+            $time_end = $findSchedule->time_end;
+
+            // Format tanggal sesuai dengan aturan Google Calendar (YYYYMMDDTHHMMSS)
+            $startDateTime = Carbon::parse($date_schedule . ' ' . $time_start)->format('Ymd\THis');
+            $endDateTime = Carbon::parse($date_schedule . ' ' . $time_end)->format('Ymd\THis');
+
+            // Membuat tautan Google Calendar dengan parameter yang sesuai
+            $link = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+            $link .= '&text=' . urlencode($name_schedule);
+            $link .= '&dates=' . $startDateTime . '/' . $endDateTime;
+            $link .= '&location=' . urlencode($location_schedule);
+
+            $data = [
+                'google_calendar' => $link
+            ];
+
+            $response['status'] = 200;
+            $response['message'] = 'Reserve Successfully';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 404;
+            $response['message'] = 'Schedule Not Found';
+            $response['payload'] = null;
+        }
         return response()->json($response);
     }
 }
