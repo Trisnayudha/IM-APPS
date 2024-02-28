@@ -89,7 +89,10 @@ class ScheduleController extends Controller
             $data = [
                 'google_calendar' => $link
             ];
-
+            $save = new EventsScheduleReserve();
+            $save->users_id = $id;
+            $save->events_schedule_id = $schedule_id;
+            $save->save();
             $response['status'] = 200;
             $response['message'] = 'Reserve Successfully';
             $response['payload'] = $data;
