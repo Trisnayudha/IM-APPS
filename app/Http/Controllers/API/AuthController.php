@@ -13,6 +13,7 @@ use App\Http\Requests\VerifyRegisterOtpRequest;
 use App\Models\Auth\User;
 use App\Repositories\EmailServiceInterface;
 use App\Repositories\UserRepositoryInterface;
+use App\Services\Events\EventService;
 use App\Services\MsPrefix\MsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,12 +26,14 @@ class AuthController extends Controller
     protected $userRepository;
     protected $emailService;
     protected $msService;
+    protected $eventService;
 
-    public function __construct(UserRepositoryInterface $userRepository, EmailServiceInterface $emailService, MsService $msService)
+    public function __construct(UserRepositoryInterface $userRepository, EmailServiceInterface $emailService, MsService $msService, EventService $eventService)
     {
         $this->userRepository = $userRepository;
         $this->emailService = $emailService;
         $this->msService = $msService;
+        $this->eventService  = $eventService;
     }
 
     public function registerOtp(RegisterOtpRequest $request)
@@ -88,6 +91,28 @@ class AuthController extends Controller
             $response['payload'] = null;
             return response()->json($response);
         }
+    }
+
+    public function loginQrCode(Request $request)
+    {
+        $qrCode = $request->qrCode;
+        $find = $this->eventService->findUser($qrCode);
+        if ($find) {
+            $data = [
+                'id' => $find->id,
+                'name' => $find->name,
+                'email' => $find->email,
+                'token' => $find->createToken('token-name')->plainTextToken,
+            ];
+            $response['status'] = 200;
+            $response['message'] = 'Success Scan Qr';
+            $response['payload'] = $data;
+        } else {
+            $response['status'] = 404;
+            $response['message'] = 'Code Qr not Found';
+            $response['payload'] = null;
+        }
+        return response()->json($response);
     }
 
     public function verifyRegisterOtp(VerifyRegisterOtpRequest $request)

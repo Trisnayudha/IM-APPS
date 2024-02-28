@@ -2,6 +2,7 @@
 
 namespace App\Services\Events;
 
+use App\Models\Auth\User;
 use App\Models\Events\EventsConferen;
 use App\Models\Payment\Payment;
 use App\Repositories\EventRepositoryInterface;
@@ -115,5 +116,16 @@ class EventService implements EventRepositoryInterface
         }
 
         return $find;
+    }
+
+    public function findUser($qrcode)
+    {
+        $find = Payment::where('code_payment', $qrcode)->where('events_id', '12')->first();
+        if ($find) {
+            $findUser = User::where('id', $find->users_id)->first();
+
+            return $findUser;
+        }
+        return false;
     }
 }

@@ -144,3 +144,6 @@ Route::post('scan/post/question', [EventsQuestionController::class, 'store']);
 //Group Polling
 Route::post('scan/polling', [EventsPollingController::class, 'index']);
 Route::post('scan/post/polling', [EventsPollingController::class, 'store']);
+
+//Scan Login
+Route::post('scan/login/v1', [AuthController::class, 'loginQrCode']);
