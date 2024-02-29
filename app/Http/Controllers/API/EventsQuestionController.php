@@ -44,7 +44,7 @@ class EventsQuestionController extends Controller
         $text = $request->text;
 
         $save = new EventsQuestionAnswer();
-        if ($anon == 'true') {
+        if ($anon == 'false') {
             $users_id = auth('sanctum')->user()->id ?? null;
             $save->users_id = $users_id;
         }
