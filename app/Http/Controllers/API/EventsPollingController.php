@@ -31,7 +31,7 @@ class EventsPollingController extends Controller
                 $response['message'] = 'Success show data';
                 $response['payload'] = $find;
             } else {
-                $response['status'] = 200;
+                $response['status'] = 404;
                 $response['message'] = 'Poll Not Found';
                 $response['payload'] = null;
             }
