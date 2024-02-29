@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Events\EventsQuestion;
 use App\Models\Events\EventsQuestionAnswer;
 use App\Services\Events\EventQuestionService;
 use App\Services\Events\EventService;
@@ -39,7 +40,7 @@ class EventsQuestionController extends Controller
     public function store(Request $request)
     {
         $anon = $request->anon;
-        $events_question_id = $request->events_question_id;
+        $unique_id = $request->unique_id;
         $text = $request->text;
 
         $save = new EventsQuestionAnswer();
@@ -47,7 +48,8 @@ class EventsQuestionController extends Controller
             $users_id = auth('sanctum')->user()->id ?? null;
             $save->users_id = $users_id;
         }
-        $save->events_question_id = $events_question_id;
+        $find = EventsQuestion::where('unique_id', $unique_id)->first();
+        $save->events_question_id = $find->events_schedule_id;
         $save->text = $text;
         $save->save();
         $response['status'] = 200;
