@@ -19,7 +19,6 @@ class EventPollingService implements EventPollingInterface
         $eventPoll = EventsPolls::where('unique_id', $uniqueId)->first();
 
         if ($eventPoll) {
-
             // Mengambil semua EventPollQuestion yang terkait dengan EventPoll, termasuk options
             $pollQuestions = EventsPollsQuestion::with(['options'])
                 ->where('events_poll_id', $eventPoll->id)
@@ -35,7 +34,9 @@ class EventPollingService implements EventPollingInterface
                     ];
                 });
 
-            return $pollQuestions;
+            $response['status'] = 200;
+            $response['message'] = 'Success show data';
+            $response['payload'] = $pollQuestions;
         } else {
             $response['status'] = 404;
             $response['message'] = 'Poll not Found';

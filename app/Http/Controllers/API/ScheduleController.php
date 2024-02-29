@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\Notification;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendEventReminder;
 use App\Models\Events\EventsSchedule;
 use App\Models\Events\EventsScheduleReserve;
 use App\Services\Events\EventService;
@@ -93,6 +95,10 @@ class ScheduleController extends Controller
             $save->users_id = $id;
             $save->events_schedule_id = $schedule_id;
             $save->save();
+
+            $dateTime = Carbon::parse($date_schedule . ' ' . $time_start);
+
+            SendEventReminder::dispatch($findSchedule->id, $id)->delay($dateTime);
             $response['status'] = 200;
             $response['message'] = 'Reserve Successfully';
             $response['payload'] = $data;
