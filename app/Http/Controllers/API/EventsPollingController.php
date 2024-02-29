@@ -65,7 +65,9 @@ class EventsPollingController extends Controller
                 $vote->save();
             }
         }
-
-        return response()->json(['message' => 'Votes berhasil disimpan'], 200);
+        $response['status'] = 200;
+        $response['message'] = 'Success Input Vote';
+        $response['payload'] = null;
+        return response()->json($response, 200);
     }
 }
