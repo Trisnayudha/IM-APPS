@@ -34,15 +34,9 @@ class EventPollingService implements EventPollingInterface
                     ];
                 });
 
-            $response['status'] = 200;
-            $response['message'] = 'Success show data';
-            $response['payload'] = $pollQuestions;
-            return response()->json($response, 200);
+            return $pollQuestions;
         } else {
-            $response['status'] = 404;
-            $response['message'] = 'Poll not Found';
-            $response['payload'] = null;
-            return response()->json($response, 200);
+            return false;
         }
     }
 }
