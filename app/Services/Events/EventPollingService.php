@@ -37,6 +37,7 @@ class EventPollingService implements EventPollingInterface
             $response['status'] = 200;
             $response['message'] = 'Success show data';
             $response['payload'] = $pollQuestions;
+            return response()->json($response, 200);
         } else {
             $response['status'] = 404;
             $response['message'] = 'Poll not Found';

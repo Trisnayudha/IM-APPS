@@ -24,16 +24,13 @@ class EventsPollingController extends Controller
         $qrCode = $request->unique_id;
         $check = self::checkIsPolling($qrCode);
         if ($check) {
-            $find = $this->eventPolingService->detail($qrCode);
-            $response['status'] = 200;
-            $response['message'] = 'Success show data';
-            $response['payload'] = $find;
+            $this->eventPolingService->detail($qrCode);
         } else {
             $response['status'] = 404;
             $response['message'] = 'Qr Code Not Found';
             $response['payload'] = null;
+            return response()->json($response, 200);
         }
-        return response()->json($response, 200);
     }
 
     public function store(Request $request)
