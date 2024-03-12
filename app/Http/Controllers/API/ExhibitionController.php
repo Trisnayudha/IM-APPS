@@ -46,30 +46,36 @@ class ExhibitionController extends Controller
         $events_id = $this->eventService->getLastEvent();
         $special_tags = $request->special_tags;
         $filter = $request->filter;
+        $page = $request->page ?? 1; // untuk paginasi
+        $perPage = $request->per_page ?? 10; // jumlah entri per halaman
+        $sponsor_types = ['Platinum', 'Gold', 'Silver'];
+
         if ($id) {
-            $data = $this->exhibitionService->listAll($events_id->id, $search, $category, $special_tags, $filter, $id);
-
-            // Pengelompokan data berdasarkan sponsor_type
-            $groupedData = [
-                'Platinum' => [],
-                'Gold' => [],
-                'Silver' => []
-            ];
-            foreach ($data as $item) {
-                if (array_key_exists($item['sponsor_type'], $groupedData)) {
-                    $groupedData[$item['sponsor_type']][] = $item;
-                }
-            }
-
             $response['status'] = 200;
             $response['message'] = 'Successfully show data';
-            // Menetapkan data yang sudah dikelompokkan ke dalam payload
-            $response['payload'] = $groupedData;
+            $response['payload'] = [];
+
+            foreach ($sponsor_types as $type) {
+                // Mendapatkan jumlah total perusahaan untuk tipe sponsor saat ini
+                $total = $this->exhibitionService->getTotalByType($events_id->id, $type, $search, $category, $special_tags);
+
+                // Mendapatkan data perusahaan terpaginasi untuk tipe sponsor saat ini
+                $companies = $this->exhibitionService->listAllByType($events_id->id, $search, $category, $special_tags, $filter, $id, $type, $perPage, $page);
+
+                $response['payload'][$type] = [
+                    'total' => $total,
+                    'companies' => $companies,
+                    'current_page' => $page,
+                    'per_page' => $perPage,
+                    'last_page' => ceil($total / $perPage), // Menentukan halaman terakhir berdasarkan jumlah total
+                ];
+            }
         } else {
             $response['status'] = 401;
             $response['message'] = 'Unauthorized';
             $response['payload'] = null;
         }
+
         return response()->json($response);
     }
 }
