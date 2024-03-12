@@ -117,6 +117,7 @@ Route::post('/inbox/send', [InboxController::class, 'sendChat']);
 
 //Exhibition
 Route::post('/exhibition', [ExhibitionController::class, 'index']);
+Route::post('/exhibition/v2', [ExhibitionController::class, 'indexV2']);
 
 Route::post('/mining/directory', [MiningDirectoryController::class, 'index']);
 
