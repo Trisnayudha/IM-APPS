@@ -45,8 +45,10 @@ class ExhibitionController extends Controller
         $category = $request->category;
         $events_id = $this->eventService->getLastEvent();
         $special_tags = $request->special_tags;
+        $sponsorType = $request->sponsorsType; // All, Platinum, Gold, Silver
+        $sorts = $request->sorts; // Default , A-Z
         $filter = $request->filter;
-        $page = $request->page ?? 1; // untuk paginasi
+        $page = $request->page ?? 1000; // untuk paginasi
         $perPage = $request->per_page ?? 10; // jumlah entri per halaman
         $sponsor_types = ['Platinum', 'Gold', 'Silver'];
 
@@ -60,15 +62,17 @@ class ExhibitionController extends Controller
                 $total = $this->exhibitionService->getTotalByType($events_id->id, $type, $search, $category, $special_tags);
 
                 // Mendapatkan data perusahaan terpaginasi untuk tipe sponsor saat ini
-                $companies = $this->exhibitionService->listAllByType($events_id->id, $search, $category, $special_tags, $filter, $id, $type, $perPage, $page);
+                $companies = $this->exhibitionService->listAllByType($events_id->id, $search, $category, $special_tags, $filter, $id, $type, $perPage, $page, $sponsorType, $sorts);
 
-                $response['payload'][$type] = [
-                    'total' => $total,
-                    'companies' => $companies,
-                    'current_page' => $page,
-                    'per_page' => $perPage,
-                    'last_page' => ceil($total / $perPage), // Menentukan halaman terakhir berdasarkan jumlah total
-                ];
+                if ($sponsorType === 'All' || $sponsorType === $type) {
+                    $response['payload'][$type] = [
+                        'total' => $total,
+                        'companies' => $companies,
+                        'current_page' => $page,
+                        'per_page' => $perPage,
+                        'last_page' => ceil($total / $perPage), // Menentukan halaman terakhir berdasarkan jumlah total
+                    ];
+                }
             }
         } else {
             $response['status'] = 401;

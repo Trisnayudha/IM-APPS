@@ -77,7 +77,7 @@ class ExhibitionService implements ExhibitionRepositoryController
         return $db;
     }
 
-    public function listAllByType($events_id, $search, $category, $special_tags, $filter = null, $users_id, $sponsor_type, $limit = 10)
+    public function listAllByType($events_id, $search, $category, $special_tags, $filter = null, $users_id, $sponsor_type, $perPage, $limit = 10, $sponsorType, $sorts)
     {
         $column_filter = "events_company.sort";
         $type_filter = "asc";
@@ -95,7 +95,7 @@ class ExhibitionService implements ExhibitionRepositoryController
             $column_filter = "events_company.created_at";
             $type_filter = "desc";
         }
-
+        // dd($sponsor_type);
         // Mulai query
         $query = DB::table('events_company')
             ->select(
@@ -120,9 +120,13 @@ class ExhibitionService implements ExhibitionRepositoryController
                 $join->on('company_video.company_id', '=', 'company.id')
                     ->where('company_video.is_main', '=', 1);
             })
-            ->where('events_company.events_id', '=', $events_id)
-            ->where('events_company.type', '=', $sponsor_type)
-            ->where('events_company.status', '=', 'Active');
+            ->where('events_company.events_id', '=', $events_id);
+        if ($sponsorType == 'all') {
+            $query->where('events_company.type', '=', $sponsor_type);
+        } else {
+            $query->where('events_company.type', '=', $sponsor_type);
+        }
+        $query->where('events_company.status', '=', 'Active');
 
         if (!empty($search)) {
             $query->where('company.name', 'LIKE', "%$search%");
@@ -134,7 +138,10 @@ class ExhibitionService implements ExhibitionRepositoryController
             // Pastikan logic untuk filter ini sesuai dengan struktur database Anda
             $query->whereIn('company_tags_list.company_tags_id', $special_tags);
         }
-
+        if ($sorts == "A-Z") {
+            $column_filter = "company.name";
+            $type_filter = "asc";
+        }
         $query->orderBy($column_filter, $type_filter);
 
         // Terapkan limit
