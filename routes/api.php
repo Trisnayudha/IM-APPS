@@ -101,6 +101,7 @@ Route::post('/profile/deleteAccount', [ProfileController::class, 'deleteAccount'
 Route::post('/profile/updateCompany', [ProfileController::class, 'updateCompany']);
 Route::post('/profile/faq', [ProfileController::class, 'faq']);
 Route::post('/profile/contactus', [ProfileController::class, 'contactUs']);
+Route::post('/profile/uploadCompanyLogo', [ProfileController::class, 'uploadCompanyProfile']);
 
 
 //Networking

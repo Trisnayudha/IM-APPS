@@ -81,6 +81,40 @@ class ProfileController extends Controller
         return response()->json($response, 200);
     }
 
+    public function uploadCompanyProfile(Request $request)
+    {
+        $id = auth('sanctum')->user()->id ?? null;
+        $find = $this->userService->getUserById($id);
+        if ($find) {
+            $file = $request->image;
+            if (!empty($file)) {
+                $imageName = time() . '.' . $request->image->extension();
+                $db = 'storage/company-logo/' . $imageName;
+                $save_folder = $request->image->storeAs('public/company-logo', $imageName);
+                // Create a new Intervention Image instance from the uploaded file
+                $compressedImage = Image::make(storage_path('app/' . $save_folder));
+                // Resize the image while maintaining aspect ratio and avoiding upscaling
+                $compressedImage->resize(800, null, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+                // Save the resized image
+                $compressedImage->save(storage_path('app/public/company-logo/' . $imageName));
+                $find->company_logo = $db;
+            }
+            $find->save();
+
+            $response['status'] = 200;
+            $response['message'] = 'Successfully update data';
+            $response['payload'] = asset($db);
+        } else {
+            $response['status'] = 401;
+            $response['message'] = 'User Not Found';
+            $response['payload'] = null;
+        }
+        return response()->json($response, 200);
+    }
+
     public function changePassword(ChangePasswordRequest $request)
     {
         $id = auth('sanctum')->user()->id ?? null;
