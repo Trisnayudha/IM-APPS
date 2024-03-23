@@ -147,19 +147,30 @@ class HomeController extends Controller
             //ada id
             $event = $this->eventService->getLastEvent();
             $checkPayment = $this->eventService->getCheckPayment($id, $event->id);
+            if (!empty($checkPayment)) {
+                if ($event->status_event == 'on') {
+                    $accesSpecial = $checkPayment->package == 'Platinum' || $checkPayment->package == 'Delegate Speaker' || $checkPayment->package == 'Speaker' ? true : false;
+                    $access = true;
+                } else {
+                    $accesSpecial = false;
+                    $access = false;
+                }
+            } else {
+                $access = false;
+            }
             $data = [
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
                 'show_restriction' => $event->status_event == 'on' ? true : false,
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
-                'networking' => true,
-                'inbox' => true,
-                'floor_plan' => true,
-                'schedule' => true,
-                'exhibition' => true,
-                'event_booklet' => true,
-                'replay' => true,
-                'mining_directory' => true,
-                'bookmark' => true,
+                'networking' => $access,
+                'inbox' => $access,
+                'floor_plan' => $access,
+                'schedule' => $access,
+                'exhibition' => $access,
+                'event_booklet' => $access,
+                'replay' => $accesSpecial,
+                'mining_directory' => $access,
+                'bookmark' => $access,
 
             ];
             $response['status'] = 200;

@@ -100,13 +100,13 @@ class ProfileController extends Controller
                 });
                 // Save the resized image
                 $compressedImage->save(storage_path('app/public/company-logo/' . $imageName));
-                $find->company_logo = $db;
+                // $find->company_logo = $db;
             }
             $find->save();
 
             $response['status'] = 200;
             $response['message'] = 'Successfully update data';
-            $response['payload'] = asset($db);
+            $response['payload'] = $db;
         } else {
             $response['status'] = 401;
             $response['message'] = 'User Not Found';
@@ -280,6 +280,7 @@ class ProfileController extends Controller
         $origin_manufacturer_name = $request->origin_manufacturer_name;
         $msPhonePrefix = $this->msService->getMsPrefixPhoneDetail($code_phone);
         $msPhoneId = $msPhonePrefix->id ?? 102;
+        $company_logo = $request->company_logo;
         if ($id) {
             $save = $this->userService->getUserById($id);
             if ($save) {
@@ -301,6 +302,9 @@ class ProfileController extends Controller
                 $save->commod_company_mining_other = $commodities_mining_name;
                 $save->origin_manufactur_company_other = $origin_manufacturer_name;
                 $save->ms_company_project_type_id = $ms_company_project_type_id;
+                if ($company_logo) {
+                    $save->company_logo = $company_logo;
+                }
                 $save->save();
                 $response['status'] = 200;
                 $response['message'] = 'Update Company Success';
