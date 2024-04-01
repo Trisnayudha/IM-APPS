@@ -180,7 +180,7 @@ class SponsorsService implements SponsorRepositoryInterface
         } elseif ($type == 'charging') {
             $find = DB::table('md_charging')->where('id', '=', $id)->first();
         } elseif ($type == 'knowledge') {
-            $find = DB::table('md_knowledge')->where('id', '=', $id)->first();
+            $find = DB::table('md_knowledge_partner')->where('id', '=', $id)->first();
         } else {
             $find = 'Type Not Found';
         }
