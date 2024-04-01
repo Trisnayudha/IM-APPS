@@ -130,7 +130,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_media_partner.image',
                 'md_media_partner.link'
             )
-            ->where('status', 'show')
+            ->where('status2', 'show')
             ->orderBy('md_media_partner.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -150,7 +150,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_association.image',
                 'md_association.link'
             )
-            ->where('status', 'show')
+            ->where('status2', 'show')
             ->orderBy('md_association.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
