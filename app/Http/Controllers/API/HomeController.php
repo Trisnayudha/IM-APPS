@@ -100,6 +100,11 @@ class HomeController extends Controller
                     'type' => 'charging',
                     'data' => $charging
                 ],
+                [
+                    'name' => 'KNOWLEDGE PARTNER',
+                    'type' => 'knowledge',
+                    'data' => $knowledge
+                ],
             ];
         } else {
             $supporting = $this->sponsorsService->getSupporting();
