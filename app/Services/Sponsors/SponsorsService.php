@@ -18,8 +18,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_sponsor.slug'
 
             )
-            ->where('md_sponsor.type', $type)
-            ->where('md_sponsor.status', 'show')
+            ->where('md_sponsor.type2', $type)
+            ->where('md_sponsor.status2', 'show')
             ->orderby('md_sponsor.sort', 'asc')
             ->get();
 
@@ -43,6 +43,78 @@ class SponsorsService implements SponsorRepositoryInterface
             ->get();
         foreach ($sponsor as $x => $row) {
             $row->name = 'Landyard Sponsors';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
+    }
+    public function getCharging()
+    {
+        $sponsor =  DB::table('md_charging')
+            ->select(
+                'md_charging.id',
+                'md_charging.image',
+                'md_charging.link'
+            )
+            ->orderBy('md_charging.sort', 'asc')
+            ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Charging Station Sponsors';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
+    }
+    public function getKnowledge()
+    {
+        $sponsor =  DB::table('md_knowledge_partner')
+            ->select(
+                'md_knowledge_partner.id',
+                'md_knowledge_partner.image',
+                'md_knowledge_partner.link'
+            )
+            ->orderBy('md_knowledge_partner.sort', 'asc')
+            ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Knowledge Partner';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
+    }
+    public function getRegistration()
+    {
+        $sponsor =  DB::table('md_registration')
+            ->select(
+                'md_registration.id',
+                'md_registration.image',
+                'md_registration.link'
+            )
+            ->orderBy('md_registration.sort', 'asc')
+            ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Registration Sponsors';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
+    }
+    public function getLunch()
+    {
+        $sponsor =  DB::table('md_lunch')
+            ->select(
+                'md_lunch.id',
+                'md_lunch.image',
+                'md_lunch.link'
+            )
+            ->orderBy('md_lunch.sort', 'asc')
+            ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Registration Sponsors';
             $row->type = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }

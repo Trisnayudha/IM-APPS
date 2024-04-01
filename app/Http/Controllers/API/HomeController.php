@@ -60,6 +60,10 @@ class HomeController extends Controller
             $gold = $this->sponsorsService->getSponsorsType('Gold');
             $silver = $this->sponsorsService->getSponsorsType('silver');
             $landyark = $this->sponsorsService->getLandyark();
+            $registration = $this->sponsorsService->getRegistration();
+            $lunch = $this->sponsorsService->getLunch();
+            $charging = $this->sponsorsService->getCharging();
+            $knowledge = $this->sponsorsService->getKnowledge();
             $data = [
                 [
                     'name' => 'PLATINUM SPONSORS',
@@ -77,10 +81,25 @@ class HomeController extends Controller
                     'data' => $silver,
                 ],
                 [
+                    'name' => 'REGISTRATION SPONSOR',
+                    'type' => 'registration',
+                    'data' => $registration,
+                ],
+                [
                     'name' => 'LANDYARD & BADGES SPONSOR',
                     'type' => 'landyard',
                     'data' => $landyark
-                ]
+                ],
+                [
+                    'name' => 'LUNCH SPONSOR',
+                    'type' => 'lunch',
+                    'data' => $lunch
+                ],
+                [
+                    'name' => 'CHARGING STATION SPONSOR',
+                    'type' => 'charging',
+                    'data' => $charging
+                ],
             ];
         } else {
             $supporting = $this->sponsorsService->getSupporting();
