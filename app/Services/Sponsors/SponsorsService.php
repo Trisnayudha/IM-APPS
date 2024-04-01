@@ -173,8 +173,14 @@ class SponsorsService implements SponsorRepositoryInterface
             $find = DB::table('md_association')->where('id', '=', $id)->first();
         } elseif ($type == 'Landyard') {
             $find = DB::table('md_landyark')->where('id', '=', $id)->first();
-        } elseif ($type == 'Badges') {
-            $find = DB::table('md_landyark')->where('id', '=', $id)->first();
+        } elseif ($type == 'registration') {
+            $find = DB::table('md_registration')->where('id', '=', $id)->first();
+        } elseif ($type == 'lunch') {
+            $find = DB::table('md_lunch')->where('id', '=', $id)->first();
+        } elseif ($type == 'charging') {
+            $find = DB::table('md_charging')->where('id', '=', $id)->first();
+        } elseif ($type == 'knowledge') {
+            $find = DB::table('md_knowledge')->where('id', '=', $id)->first();
         } else {
             $find = 'Type Not Found';
         }
