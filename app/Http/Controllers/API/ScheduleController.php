@@ -73,7 +73,7 @@ class ScheduleController extends Controller
         if ($findSchedule) {
             // Menyiapkan data untuk tautan Google Calendar
             $name_schedule = $findSchedule->name . ' - Indonesia Miner 2024';
-            $date_schedule = $findSchedule->date;
+            $date_schedule = $findSchedule->date_events;
             $location_schedule = $findSchedule->location;
             $time_start = $findSchedule->time_start;
             $time_end = $findSchedule->time_end;
