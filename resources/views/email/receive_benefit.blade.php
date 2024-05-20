@@ -101,8 +101,8 @@
 
     <div class="body">
         <div class="header-email">
-            <img src="{{ asset('/vendor/front/images/img_indonesia_miner_logo_login.png') }}" alt="Image"
-                class="img-logo">
+            {{-- <img src="{{ asset('/vendor/front/images/img_indonesia_miner_logo_login.png') }}" alt="Image"
+                class="img-logo"> --}}
         </div>
         <div class="body-email">
             <p>Dear {{ $name }},</p>
