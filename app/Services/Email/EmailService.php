@@ -49,13 +49,13 @@ class EmailService implements EmailServiceInterface
     public function sendContactUs($user, $category, $subject, $message)
     {
         $mail = new ContactMail($user, $category, $subject, $message);
-        Mail::to('yudha@indonesiaminer.com')->send($mail);
+        Mail::to('callula@indonesiaminer.com')->send($mail);
     }
 
     public function sendBenefit($type, $find)
     {
         $mail = new BenefitMail($type, $find);
-        Mail::to('damun@indonesiaminer.com')->send($mail);
+        Mail::to('callula@indonesiaminer.com')->send($mail);
     }
 
     public function receiveBenefit($type, $find)

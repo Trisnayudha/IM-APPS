@@ -213,7 +213,7 @@ class HomeController extends Controller
     {
         $array = collect([ // membuat array of object
             [
-                'type' => 'Platinum',
+                'type' => 'Delegate Pass',
                 'name' => 'Delegate',
                 'benefit' => [
                     '3 day delegate and exhibition access (Including Luncheon, Coffee Break and Networking Function)',
@@ -225,8 +225,8 @@ class HomeController extends Controller
                 ]
             ],
             [
-                'type' => 'Silver',
-                'name' => 'Visitor',
+                'type' => 'Mining Pass',
+                'name' => 'Mining Pass',
                 'benefit' => [
                     '3 day delegate and exhibition access',
                     'Live chat with attendees via the Indonesia Miner platform',
@@ -246,7 +246,7 @@ class HomeController extends Controller
         $id =  auth('sanctum')->user()->id ?? null;
         $type = $request->type;
         $find = $this->userService->getUserById($id);
-        $type = $type == 'Platinum' ? 'Delegate' : 'Visitor';
+        $type = $type == 'Delegate Pass' ? 'Delegate Pass' : 'Mining Pass';
         if ($id) {
             $events_id = $this->eventService->getLastEvent();
             // $save = $this->eventService->saveData($find, $events_id->id, $request->type);
