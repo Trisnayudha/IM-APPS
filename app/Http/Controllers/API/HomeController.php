@@ -180,6 +180,7 @@ class HomeController extends Controller
                     $access = false;
                 }
             } else {
+                $accesSpecial = false;
                 $access = false;
             }
             $data = [
