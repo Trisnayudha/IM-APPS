@@ -161,6 +161,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             ->orderby($column_filter, $type_filter);
         if ($is_mining_directory) {
             $query->join('product_events', 'product_events.product_id', '=', 'product.id');
+            $query->where('product_events.events_id', $events_id);
         }
         $query = $query->paginate(10);
         foreach ($query as $item) {
@@ -245,6 +246,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             ->orderby($column_filter, $type_filter);
         if ($is_mining_directory) {
             $query->join('media_resource_events', 'media_resource_events.media_resource_id', '=', 'media_resource.id');
+            $query->where('media_resource_events.events_id', $events_id);
         }
         $query = $query->paginate(10);
         foreach ($query as $item) {
@@ -327,6 +329,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             ->orderby($column_filter, $type_filter);
         if ($is_mining_directory) {
             $query->join('project_events', 'project_events.project_id', '=', 'project.id');
+            $query->where('project_events.events_id', $events_id);
         }
         $query = $query->paginate(10);
         foreach ($query as $item) {
@@ -414,6 +417,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             ->orderby($column_filter, $type_filter);
         if ($is_mining_directory) {
             $query->join('news_events', 'news_events.news_id', '=', 'news.id');
+            $query->where('news_events.events_id', $events_id);
         }
         $query = $query->paginate(10);
         foreach ($query as $item) {
@@ -490,6 +494,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
             ->orderby($column_filter, $type_filter);
         if ($is_mining_directory) {
             $query->join('company_video_events', 'company_video_events.company_video_id', '=', 'company_video.id');
+            $query->where('company_video_events.events_id', $events_id);
         }
         $query = $query->paginate(10);
         foreach ($query as $item) {
