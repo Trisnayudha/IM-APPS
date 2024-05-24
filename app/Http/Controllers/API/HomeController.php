@@ -109,7 +109,7 @@ class HomeController extends Controller
         } else {
             $supporting = $this->sponsorsService->getSupporting();
             $media = $this->sponsorsService->getMedia();
-
+            $medical = $this->sponsorsService->getMedical();
             $data = [
                 [
                     'name' => 'SUPPORTING ASSOCIATIONS',
@@ -120,6 +120,11 @@ class HomeController extends Controller
                     'name' => 'MEDIA PARTNERS',
                     'type' => 'media',
                     'data' => $media
+                ],
+                [
+                    'name' => 'MEDICAL PARTNER',
+                    'type' => 'medical',
+                    'data' => $medical
                 ]
             ];
         }

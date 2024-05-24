@@ -142,6 +142,26 @@ class SponsorsService implements SponsorRepositoryInterface
         return $sponsor;
     }
 
+    public function getMedical()
+    {
+        $sponsor = DB::table('md_medical')
+            ->select(
+                'md_medical.id',
+                'md_medical.image',
+                'md_medical.link'
+            )
+            ->where('status2', 'show')
+            ->orderBy('md_medical.sort', 'asc')
+            ->get();
+        foreach ($sponsor as $x => $row) {
+            $row->name = 'Media PARTNERS';
+            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+
+        return $sponsor;
+    }
+
     public function getSupporting()
     {
         $sponsor = DB::table('md_association')
