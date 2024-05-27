@@ -36,6 +36,17 @@ class SendEventReminder implements ShouldQueue
         $message = 'Reminder Session : ' . $event->name . ' - Indonesia Miner 2024';
         $short_message = substr($message, 0, 100);
         $notif->message = $short_message;
-        $notif->NotifApp();
+        // Gabungkan date_events dan time_start
+        $dateTimeString = $event->date_events . ' ' . $event->time_start;
+
+        // Buat objek DateTime dan atur timezone ke GMT
+        $dateTime = new \DateTime($dateTimeString, new \DateTimeZone('Asia/Jakarta')); // Sesuaikan timezone jika diperlukan
+        $dateTime->setTimezone(new \DateTimeZone('GMT'));
+
+        // Format tanggal sesuai dengan format yang diinginkan
+        $formattedDate = $dateTime->format('Y-m-d H:i:s \G\M\T');
+
+        $notif->date = $formattedDate;
+        $notif->NotifAppTimer();
     }
 }
