@@ -28,7 +28,7 @@ class EventsSpeakerService
             ->where(function ($q) {
                 $q->orWhereNotNull('events_speaker.id');
             })
-            ->orderby('events_speaker.sort', 'asc')
+            ->orderby('events_schedule_speaker.sort', 'asc')
             ->get();
     }
 }
