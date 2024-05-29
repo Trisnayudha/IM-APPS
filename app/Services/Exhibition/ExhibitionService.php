@@ -11,20 +11,6 @@ class ExhibitionService implements ExhibitionRepositoryController
     {
         $column_filter = "events_company.sort";
         $type_filter = "asc";
-
-        if ($filter == "sort-name-ascend") {
-            $column_filter = "company.name";
-            $type_filter = "asc";
-        } else if ($filter == "sort-name-descend") {
-            $column_filter = "company.name";
-            $type_filter = "desc";
-        } elseif ($filter == "sort-date-ascend") {
-            $column_filter = "events_company.created_at";
-            $type_filter = "asc";
-        } elseif ($filter == "sort-date-descend") {
-            $column_filter = "events_company.created_at";
-            $type_filter = "desc";
-        }
         $db = DB::table('events_company')
             ->select(
                 'company.id',
@@ -81,22 +67,6 @@ class ExhibitionService implements ExhibitionRepositoryController
     {
         $column_filter = "events_company.sort";
         $type_filter = "asc";
-
-        if ($filter == "sort-name-ascend") {
-            $column_filter = "company.name";
-            $type_filter = "asc";
-        } else if ($filter == "sort-name-descend") {
-            $column_filter = "company.name";
-            $type_filter = "desc";
-        } elseif ($filter == "sort-date-ascend") {
-            $column_filter = "events_company.created_at";
-            $type_filter = "asc";
-        } elseif ($filter == "sort-date-descend") {
-            $column_filter = "events_company.created_at";
-            $type_filter = "desc";
-        }
-        // dd($sponsor_type);
-        // Mulai query
         $query = DB::table('events_company')
             ->select(
                 'company.id',
@@ -137,10 +107,6 @@ class ExhibitionService implements ExhibitionRepositoryController
         if (!empty($special_tags)) {
             // Pastikan logic untuk filter ini sesuai dengan struktur database Anda
             $query->whereIn('company_tags_list.company_tags_id', $special_tags);
-        }
-        if ($sorts == "A-Z") {
-            $column_filter = "company.name";
-            $type_filter = "asc";
         }
         $query->orderBy($column_filter, $type_filter);
 
