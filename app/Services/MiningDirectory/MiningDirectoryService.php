@@ -27,8 +27,8 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
 
     private function companyList($type, $category, $search, $tags, $filter, $events_id, $users_id)
     {
-        $column_filter = "company.id";
-        $type_filter = "desc";
+        $column_filter = "events_company.sort";
+        $type_filter = "asc";
 
         if ($filter == "sort-name-ascend") {
             $column_filter = "company.name";
