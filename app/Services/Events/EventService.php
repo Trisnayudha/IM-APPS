@@ -31,7 +31,9 @@ class EventService implements EventRepositoryInterface
     }
     public function getCheckPayment($users_id, $events_id)
     {
-        return DB::table('payment')->where('users_id', $users_id)->where('events_id', $events_id)->where('aproval_quota_users', 1)->first();
+        return DB::table('payment')->join('events_tickets', 'events_tickets.id', 'payment.package_id')
+            ->where('users_id', $users_id)->where('events_id', $events_id)
+            ->where('aproval_quota_users', 1)->select('payment.qr_code', 'events_tickets.type as package')->first();
     }
 
     public function listAll($events_id, $date, $limit = 3, $status)
