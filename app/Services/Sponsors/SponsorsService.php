@@ -38,7 +38,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_landyark.id',
                 'md_landyark.image',
                 'md_landyark.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_landyark.id')
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_landyark.id')
             ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_landyark.sort', 'asc')
             ->get();
@@ -57,7 +57,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_charging.id',
                 'md_charging.image',
                 'md_charging.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_charging.id')
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_charging.id')
             ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_charging.sort', 'asc')
             ->get();
@@ -76,7 +76,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_knowledge_partner.id',
                 'md_knowledge_partner.image',
                 'md_knowledge_partner.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_knowledge_partner.id')
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_knowledge_partner.id')
             ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_knowledge_partner.sort', 'asc')
             ->get();
@@ -95,7 +95,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_registration.id',
                 'md_registration.image',
                 'md_registration.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_registration.id')
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_registration.id')
             ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_registration.sort', 'asc')
             ->get();
@@ -114,7 +114,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_lunch.id',
                 'md_lunch.image',
                 'md_lunch.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_lunch.id')
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_lunch.id')
             ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_lunch.sort', 'asc')
             ->get();
