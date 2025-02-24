@@ -33,99 +33,95 @@ class SponsorsService implements SponsorRepositoryInterface
 
     public function getLandyark()
     {
-        $sponsor =  DB::table('md_landyark')
-            ->select(
-                'md_landyark.id',
-                'md_landyark.image',
-                'md_landyark.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_landyark.id')
-            ->where('events_sponsors_temporary.events_id', '=', '13')
-            ->orderBy('md_landyark.sort', 'asc')
+        $sponsor = DB::table('events_sponsors_temporary as est')
+            ->join('md_landyark as ml', 'ml.id', '=', 'est.md_sponsor_id')
+            ->select('ml.id', 'ml.name', 'ml.image', 'ml.link', 'ml.desc')
+            ->where('est.events_id', 13)
+            ->where('est.type', 'landyard')
+            ->orderBy('ml.sort', 'asc')
             ->get();
-        foreach ($sponsor as $x => $row) {
-            $row->name = 'Landyard Sponsors';
-            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+
+        foreach ($sponsor as $row) {
+            // Jika field slug diperlukan, pastikan sudah di-select (misal: 'ml.slug')
+            $row->name  = 'Landyark Sponsors';
+            $row->type  = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }
-
         return $sponsor;
     }
+
     public function getCharging()
     {
-        $sponsor =  DB::table('md_charging')
-            ->select(
-                'md_charging.id',
-                'md_charging.image',
-                'md_charging.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_charging.id')
-            ->where('events_sponsors_temporary.events_id', '=', '13')
-            ->orderBy('md_charging.sort', 'asc')
+        $sponsor = DB::table('events_sponsors_temporary as est')
+            ->join('md_charging as mc', 'mc.id', '=', 'est.md_sponsor_id')
+            ->select('mc.id', 'mc.name', 'mc.image', 'mc.link', 'mc.desc')
+            ->where('est.events_id', 13)
+            ->where('est.type', 'charging')
+            ->orderBy('mc.sort', 'asc')
             ->get();
-        foreach ($sponsor as $x => $row) {
-            $row->name = 'Charging Station Sponsors';
-            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+
+        foreach ($sponsor as $row) {
+            $row->name  = 'Charging Station Sponsors';
+            $row->type  = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }
-
         return $sponsor;
     }
+
     public function getKnowledge()
     {
-        $sponsor =  DB::table('md_knowledge_partner')
-            ->select(
-                'md_knowledge_partner.id',
-                'md_knowledge_partner.image',
-                'md_knowledge_partner.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_knowledge_partner.id')
-            ->where('events_sponsors_temporary.events_id', '=', '13')
-            ->orderBy('md_knowledge_partner.sort', 'asc')
+        $sponsor = DB::table('events_sponsors_temporary as est')
+            ->join('md_knowledge_partner as mkp', 'mkp.id', '=', 'est.md_sponsor_id')
+            ->select('mkp.id', 'mkp.name', 'mkp.image', 'mkp.link', 'mkp.desc')
+            ->where('est.events_id', 13)
+            ->where('est.type', 'knowledge')
+            ->orderBy('mkp.sort', 'asc')
             ->get();
-        foreach ($sponsor as $x => $row) {
-            $row->name = 'Knowledge Partner';
-            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+
+        foreach ($sponsor as $row) {
+            $row->name  = 'Knowledge Partner';
+            $row->type  = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }
-
         return $sponsor;
     }
+
     public function getRegistration()
     {
-        $sponsor =  DB::table('md_registration')
-            ->select(
-                'md_registration.id',
-                'md_registration.image',
-                'md_registration.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_registration.id')
-            ->where('events_sponsors_temporary.events_id', '=', '13')
-            ->orderBy('md_registration.sort', 'asc')
+        $sponsor = DB::table('events_sponsors_temporary as est')
+            ->join('md_registration as mr', 'mr.id', '=', 'est.md_sponsor_id')
+            ->select('mr.id', 'mr.name', 'mr.image', 'mr.link', 'mr.desc')
+            ->where('est.events_id', 13)
+            ->where('est.type', 'registration')
+            ->orderBy('mr.sort', 'asc')
             ->get();
-        foreach ($sponsor as $x => $row) {
-            $row->name = 'Registration Sponsors';
-            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+
+        foreach ($sponsor as $row) {
+            $row->name  = 'Registration Sponsors';
+            $row->type  = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }
-
         return $sponsor;
     }
+
     public function getLunch()
     {
-        $sponsor =  DB::table('md_lunch')
-            ->select(
-                'md_lunch.id',
-                'md_lunch.image',
-                'md_lunch.link'
-            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', '=', 'md_lunch.id')
-            ->where('events_sponsors_temporary.events_id', '=', '13')
-            ->orderBy('md_lunch.sort', 'asc')
+        $sponsor = DB::table('events_sponsors_temporary as est')
+            ->join('md_lunch as ml', 'ml.id', '=', 'est.md_sponsor_id')
+            ->select('ml.id', 'ml.name', 'ml.image', 'ml.link', 'ml.desc')
+            ->where('est.events_id', 13)
+            ->where('est.type', 'lunch')
+            ->orderBy('ml.sort', 'asc')
             ->get();
-        foreach ($sponsor as $x => $row) {
-            $row->name = 'Registration Sponsors';
-            $row->type = (!empty($row->slug) ? 'premium' : 'free');
+
+        foreach ($sponsor as $row) {
+            $row->name  = 'Lunch Sponsors';
+            $row->type  = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }
-
         return $sponsor;
     }
+
 
     public function getMedia()
     {
