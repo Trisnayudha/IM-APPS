@@ -18,8 +18,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_sponsor.slug'
 
             )
-            ->where('md_sponsor.type2', $type)
-            ->where('md_sponsor.status2', 'show')
+            ->where('md_sponsor.type', $type)
+            ->where('md_sponsor.status', 'show')
             ->orderby('md_sponsor.sort', 'asc')
             ->get();
 
@@ -38,7 +38,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_landyark.id',
                 'md_landyark.image',
                 'md_landyark.link'
-            )
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_landyark.id')
+            ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_landyark.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -56,7 +57,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_charging.id',
                 'md_charging.image',
                 'md_charging.link'
-            )
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_charging.id')
+            ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_charging.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -74,7 +76,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_knowledge_partner.id',
                 'md_knowledge_partner.image',
                 'md_knowledge_partner.link'
-            )
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_knowledge_partner.id')
+            ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_knowledge_partner.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -92,7 +95,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_registration.id',
                 'md_registration.image',
                 'md_registration.link'
-            )
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_registration.id')
+            ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_registration.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -110,7 +114,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_lunch.id',
                 'md_lunch.image',
                 'md_lunch.link'
-            )
+            )->join('events_sponsors_temporary', 'events_sponsors_temporary.md_sponsor_id', 'md_lunch.id')
+            ->where('events_sponsors_temporary.events_id', '=', '13')
             ->orderBy('md_lunch.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -130,7 +135,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_media_partner.image',
                 'md_media_partner.link'
             )
-            ->where('status2', 'show')
+            ->where('status', 'show')
             ->orderBy('md_media_partner.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -150,7 +155,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_medical.image',
                 'md_medical.link'
             )
-            ->where('status2', 'show')
+            ->where('status', 'show')
             ->orderBy('md_medical.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
@@ -170,7 +175,7 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_association.image',
                 'md_association.link'
             )
-            ->where('status2', 'show')
+            ->where('status', 'show')
             ->orderBy('md_association.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
