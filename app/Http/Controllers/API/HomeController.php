@@ -60,6 +60,7 @@ class HomeController extends Controller
             $gold = $this->sponsorsService->getSponsorsType('Gold');
             $silver = $this->sponsorsService->getSponsorsType('silver');
             $landyark = $this->sponsorsService->getLandyark();
+            $mobile = $this->sponsorsService->getMobile();
             $registration = $this->sponsorsService->getRegistration();
             $lunch = $this->sponsorsService->getLunch();
             $charging = $this->sponsorsService->getCharging();
@@ -89,6 +90,11 @@ class HomeController extends Controller
                     'name' => 'LANDYARD & BADGES SPONSOR',
                     'type' => 'landyard',
                     'data' => $landyark
+                ],
+                [
+                    'name' => 'IM MOBILE APP SPONSOR',
+                    'type' => 'landyard',
+                    'data' => $mobile
                 ],
                 [
                     'name' => 'LUNCH SPONSOR',

@@ -50,6 +50,26 @@ class SponsorsService implements SponsorRepositoryInterface
         return $sponsor;
     }
 
+    public function getMobile()
+    {
+        $sponsor = DB::table('events_sponsors_temporary as est')
+            ->join('md_mobile as ml', 'ml.id', '=', 'est.md_sponsor_id')
+            ->select('ml.id', 'ml.name', 'ml.image', 'ml.link', 'ml.desc')
+            ->where('est.events_id', 13)
+            ->where('est.type', 'mobile')
+            ->orderBy('ml.sort', 'asc')
+            ->get();
+
+        foreach ($sponsor as $row) {
+            // Jika field slug diperlukan, pastikan sudah di-select (misal: 'ml.slug')
+            $row->name  = 'IM Mobile App Sponsors';
+            $row->type  = (!empty($row->slug) ? 'premium' : 'free');
+            $row->image = (!empty($row->image) ? $row->image : '');
+        }
+        return $sponsor;
+    }
+
+
     public function getCharging()
     {
         $sponsor = DB::table('events_sponsors_temporary as est')
