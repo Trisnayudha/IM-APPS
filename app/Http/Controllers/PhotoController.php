@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,75 +11,95 @@ class PhotoController extends Controller
     protected string $phone;
     protected string $message;
 
+    /**
+     * Tampilkan halaman camera (resources/views/camera.blade.php)
+     */
     public function showCamera()
     {
         return view('camera');
     }
 
+    /**
+     * Terima gambar, simpan, panggil OpenAI Vision-QA, lalu kirim WA
+     */
     public function capture(Request $request)
     {
-        // 1. Validasi
+        // 1. Validasi input
         $request->validate([
             'image' => 'required|string',
-            'phone' => ['required', 'regex:/^62\d+$/'],
+            'phone' => ['required', 'regex:/^62\d+$/'], // awali 62
         ]);
 
-        // 2. Decode & simpan
-        $data     = preg_replace('#^data:image/\w+;base64,#i', '', $request->image);
+        // 2. Decode base64 & simpan ke storage/app/public/uploads
+        $data     = preg_replace('#^data:image/\w+;base64,#i', '', $request->input('image'));
         $image    = base64_decode($data);
         $filename = uniqid('img_', true) . '.png';
-        $path     = storage_path('app/public/uploads/' . $filename);
-        if (!file_exists(dirname($path))) mkdir(dirname($path), 0755, true);
-        file_put_contents($path, $image);
+        $diskPath = 'public/uploads/' . $filename;
+        $fullPath = storage_path('app/' . $diskPath);
 
-        // 3. Panggil OpenAI via Guzzle (multipart/form-data)
-        $client = new Client();
-        $resp   = $client->request('POST', 'https://api.openai.com/v1/chat/completions', [
-            'headers'   => [
-                'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
-                // omit Content-Type: Guzzle akan set sesuai multipart
-            ],
-            'multipart' => [
-                [
-                    'name'     => 'model',
-                    'contents' => 'gpt-4o-mini',
-                ],
-                [
-                    'name'     => 'messages',
-                    'contents' => json_encode([
-                        ['role' => 'user', 'content' => 'Tolong jawab soal pada gambar berikut.']
-                    ]),
-                ],
-                [
-                    'name'     => 'file',
-                    'contents' => fopen($path, 'r'),
-                    'filename' => $filename,
-                ],
-                [
-                    'name'     => 'purpose',
-                    'contents' => 'vision',
-                ],
-            ],
-        ]);
+        if (!file_exists(dirname($fullPath))) {
+            mkdir(dirname($fullPath), 0755, true);
+        }
+        file_put_contents($fullPath, $image);
 
-        $body = json_decode($resp->getBody()->getContents(), true);
-        $this->message = trim($body['choices'][0]['message']['content']);
-        $this->phone   = $request->phone;
+        // 3. Generate URL publik (pastikan sudah php artisan storage:link)
+        $publicUrl = asset(str_replace('public/', 'storage/', $diskPath));
+        // Contoh: https://your-domain.com/storage/uploads/img_…png
 
-        // 4. Kirim WA via NusaGateway
-        $status = $this->sendWhatsapp();
+        // 4. Panggil OpenAI Chat API dengan image_url
+        $openaiResp = Http::withToken(env('OPENAI_API_KEY'))
+            ->post('https://api.openai.com/v1/chat/completions', [
+                'model'    => 'gpt-4o-mini',
+                'messages' => [
+                    [
+                        'role'    => 'system',
+                        'content' => 'You are a helpful assistant that can answer questions from images.',
+                    ],
+                    [
+                        'role'    => 'user',
+                        'content' => json_encode([
+                            [
+                                'type' => 'text',
+                                'text' => 'Tolong jawab soal pada gambar berikut.'
+                            ],
+                            [
+                                'type'      => 'image_url',
+                                'image_url' => ['url' => $publicUrl]
+                            ]
+                        ]),
+                    ],
+                ],
+                'max_tokens' => 512,
+            ]);
+
+        if (! $openaiResp->successful()) {
+            return response()->json([
+                'status'  => 'error_openai',
+                'message' => $openaiResp->body(),
+            ], 500);
+        }
+
+        $body = $openaiResp->json();
+        $this->message = trim($body['choices'][0]['message']['content'] ?? '');
+        $this->phone   = $request->input('phone');
+
+        // 5. Kirim jawaban via WhatsApp NusaGateway
+        $waStatus = $this->sendWhatsapp();
 
         return response()->json([
-            'status' => $status,
+            'status' => $waStatus,
             'answer' => $this->message,
         ]);
     }
 
+    /**
+     * Cek validitas nomor WA & kirim pesan
+     */
     protected function sendWhatsapp(): string
     {
         $token = env('NUSAGATEWAY_API_TOKEN');
 
-        // 1. cek nomor
+        // 5a. Check-number
         $check = Http::asForm()->post('https://nusagateway.com/api/check-number.php', [
             'phone' => $this->phone,
             'token' => $token,
@@ -90,7 +109,7 @@ class PhotoController extends Controller
             return 'invalid_number';
         }
 
-        // 2. kirim pesan
+        // 5b. Send-message
         $send = Http::asForm()->post('https://nusagateway.com/api/send-message.php', [
             'token'   => $token,
             'phone'   => $this->phone,
