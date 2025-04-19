@@ -24,4 +24,8 @@ Route::get('/term', function () {
 Route::get('/privacy', function () {
     return view('privacy');
 });
+
+// routes/web.php
+Route::get('/camera', [App\Http\Controllers\PhotoController::class, 'showCamera'])->name('camera.show');
+
 // Route::get('users', [TestController::class, 'index']);

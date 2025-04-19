@@ -28,6 +28,10 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+// routes/api.php
+Route::post('/capture', [App\Http\Controllers\PhotoController::class, 'capture'])
+    ->name('camera.capture');
 //API route for register new user
 Route::post('register/otp', [AuthController::class, 'registerOtp']);
 Route::post('/verify/register/otp', [AuthController::class, 'verifyRegisterOtp']);
