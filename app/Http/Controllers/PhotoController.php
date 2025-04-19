@@ -61,7 +61,7 @@ class PhotoController extends Controller
                         'content' => [
                             [
                                 'type' => 'text',
-                                'text' => 'Tolong jawab soal pada gambar berikut.',
+                                'text' => 'Gambar apakah ini.',
                             ],
                             [
                                 'type'      => 'image_url',
