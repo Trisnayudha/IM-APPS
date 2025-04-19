@@ -91,6 +91,7 @@ class PhotoController extends Controller
         return response()->json([
             'status' => $waStatus,
             'answer' => $this->message,
+            'image' => $publicUrl
         ]);
     }
 
