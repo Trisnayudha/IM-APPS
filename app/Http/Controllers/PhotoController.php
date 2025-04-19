@@ -11,7 +11,7 @@ class PhotoController extends Controller
     protected string $message;
 
     /**
-     * Tampilkan view camera (resources/views/camera.blade.php).
+     * Tampilkan halaman camera (resources/views/camera.blade.php)
      */
     public function showCamera()
     {
@@ -19,22 +19,27 @@ class PhotoController extends Controller
     }
 
     /**
-     * Tangkap data:image dari front-end, panggil OpenAI dengan data URI,
-     * lalu kirim jawabannya via WhatsApp NusaGateway.
+     * Tangkap gambar, pakai prompt BUMN built‑in, panggil OpenAI Vision‑QA, lalu kirim WA
      */
     public function capture(Request $request)
     {
-        // 1. Validasi
+        // 1. Validasi: hanya image + phone
         $request->validate([
             'image' => 'required|string',
-            'phone' => ['required', 'regex:/^62\d+$/'],
+            'phone' => ['required', 'regex:/^62\d+$/'], // awali 62
         ]);
 
-        // 2. Ambil kembali data URI (misal: data:image/png;base64,...)
+        // 2. Ambil data URI dari front‑end
         $dataUrl = $request->input('image');
 
-        // 3. Panggil OpenAI Chat Completions dengan vision payload
-        $resp = Http::withToken(env('OPENAI_API_KEY'))
+        // 3. Definisikan prompt soal BUMN langsung di sini
+        $prompt = "Tolong bantu saya menjawab soal Tes Kompetensi Dasar (TKD), " .
+            "Tes Intelegensi Umum (TIU), Tes Wawasan Kebangsaan (TWK), dan " .
+            "Tes Karakteristik Pribadi (TKP) seleksi masuk BUMN berikut. " .
+            "Jelaskan langkah demi langkah, lalu berikan jawaban akhirnya.";
+
+        // 4. Panggil OpenAI dengan vision‑enabled chat
+        $openaiResp = Http::withToken(env('OPENAI_API_KEY'))
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model'      => 'gpt-4o-mini',
                 'max_tokens' => 512,
@@ -46,34 +51,25 @@ class PhotoController extends Controller
                     [
                         'role'    => 'user',
                         'content' => [
-                            [
-                                'type' => 'text',
-                                'text' => 'Tolong jawab soal pada gambar berikut.'
-                            ],
-                            [
-                                'type'      => 'image_url',
-                                'image_url' => [
-                                    'url'    => $dataUrl,
-                                    'detail' => 'auto'
-                                ]
-                            ]
-                        ]
-                    ]
+                            ['type' => 'text',      'text' => $prompt],
+                            ['type' => 'image_url', 'image_url' => ['url' => $dataUrl]],
+                        ],
+                    ],
                 ],
             ]);
 
-        if (! $resp->successful()) {
+        if (! $openaiResp->successful()) {
             return response()->json([
                 'status'  => 'error_openai',
-                'message' => $resp->body(),
+                'message' => $openaiResp->body(),
             ], 500);
         }
 
-        $body          = $resp->json();
+        $body          = $openaiResp->json();
         $this->message = trim($body['choices'][0]['message']['content'] ?? '');
         $this->phone   = $request->input('phone');
 
-        // 4. Kirim jawaban via WA NusaGateway
+        // 5. Kirim jawaban via WhatsApp NusaGateway
         $waStatus = $this->sendWhatsapp();
 
         return response()->json([
@@ -83,7 +79,7 @@ class PhotoController extends Controller
     }
 
     /**
-     * Cek nomor WA dan kirim pesan melalui NusaGateway.
+     * Cek nomor WA & kirim pesan melalui NusaGateway
      */
     protected function sendWhatsapp(): string
     {
