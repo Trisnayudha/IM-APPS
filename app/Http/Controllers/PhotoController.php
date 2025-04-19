@@ -19,7 +19,8 @@ class PhotoController extends Controller
     }
 
     /**
-     * Tangkap gambar, pakai prompt BUMN built‑in, panggil OpenAI Vision‑QA, lalu kirim WA
+     * Tangkap gambar, pakai prompt BUMN built‑in yang hanya meminta jawaban singkat,
+     * panggil OpenAI Vision‑QA, lalu kirim WA
      */
     public function capture(Request $request)
     {
@@ -32,21 +33,20 @@ class PhotoController extends Controller
         // 2. Ambil data URI dari front‑end
         $dataUrl = $request->input('image');
 
-        // 3. Definisikan prompt soal BUMN langsung di sini
-        $prompt = "Tolong bantu saya menjawab soal Tes Kompetensi Dasar (TKD), " .
-            "Tes Intelegensi Umum (TIU), Tes Wawasan Kebangsaan (TWK), dan " .
-            "Tes Karakteristik Pribadi (TKP) seleksi masuk BUMN berikut. " .
-            "Jelaskan langkah demi langkah, lalu berikan jawaban akhirnya.";
+        // 3. Prompt singkat: minta hanya jawaban final, tanpa penjelasan
+        $prompt = "Tolong jawab soal seleksi masuk BUMN (TKD/TIU/TWK/TKP) berikut ini. " .
+            "Berikan **hanya jawaban singkat** (angka atau pilihan huruf), " .
+            "tanpa penjelasan atau langkah-langkah.";
 
         // 4. Panggil OpenAI dengan vision‑enabled chat
         $openaiResp = Http::withToken(env('OPENAI_API_KEY'))
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model'      => 'gpt-4o-mini',
-                'max_tokens' => 512,
+                'max_tokens' => 128,
                 'messages'   => [
                     [
                         'role'    => 'system',
-                        'content' => 'You are a helpful assistant that can answer questions from images.'
+                        'content' => 'You are a helpful assistant that answers BUMN selection questions with short final answers only.'
                     ],
                     [
                         'role'    => 'user',
