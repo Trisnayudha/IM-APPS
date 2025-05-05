@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\AdsController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookmarkController;
 use App\Http\Controllers\API\DirectoryController;
@@ -57,6 +58,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+//API route AdsService
+Route::post('/ads-screen', [AdsController::class, 'screen']);
+Route::post('/ads-banner', [AdsController::class, 'banner']);
 //API route MsService
 Route::post('/msphone', [MsPrefixController::class, 'showMsPrefixPhoneAll']);
 Route::post('/msphone/detail', [MsPrefixController::class, 'showMsPrefixPhoneDetail']);
