@@ -10,6 +10,7 @@ use App\Http\Controllers\API\EventsQuestionController;
 use App\Http\Controllers\API\ExhibitionController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\InboxController;
+use App\Http\Controllers\API\InsightController;
 use App\Http\Controllers\API\MiningDirectoryController;
 use App\Http\Controllers\API\MsPrefixController;
 use App\Http\Controllers\API\NetworkingController;
@@ -61,6 +62,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //API route AdsService
 Route::post('/ads-screen', [AdsController::class, 'screen']);
 Route::post('/ads-banner', [AdsController::class, 'banner']);
+
+//API route Insight
+Route::post('/insight', [InsightController::class, 'insight']);
+
 //API route MsService
 Route::post('/msphone', [MsPrefixController::class, 'showMsPrefixPhoneAll']);
 Route::post('/msphone/detail', [MsPrefixController::class, 'showMsPrefixPhoneDetail']);

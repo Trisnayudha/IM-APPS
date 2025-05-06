@@ -27,7 +27,8 @@ class ExhibitionService implements ExhibitionRepositoryController
                 'company_video.url as video_url',
                 'company_video.thumbnail as video_thumbnail',
                 'company_video.title as video_title',
-                'events_company.type as sponsor_type'
+                'events_company.type as sponsor_type',
+                'events_company.no_both'
             )
             ->join('company', function ($join) {
                 $join->on('events_company.company_id', '=', 'company.id');
