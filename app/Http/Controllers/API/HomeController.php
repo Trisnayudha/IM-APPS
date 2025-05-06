@@ -186,6 +186,7 @@ class HomeController extends Controller
                 if ($event->status_event == 'on') {
                     $accesSpecial = $checkPayment->package == 'Platinum' || $checkPayment->package == 'Delegate Speaker' || $checkPayment->package == 'Speaker' ? true : false;
                     $access = true;
+                    dd('a');
                 } else {
                     $accesSpecial = false;
                     $access = false;
@@ -198,7 +199,7 @@ class HomeController extends Controller
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
                 'show_restriction' => $event->status_event == 'on' ? true : false,
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
-                'networking' => $access,
+                'networking' => $accesSpecial,
                 'inbox' => $access,
                 'floor_plan' => $access,
                 'schedule' => $access,
