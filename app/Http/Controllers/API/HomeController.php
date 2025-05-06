@@ -181,8 +181,8 @@ class HomeController extends Controller
         if ($id) {
             //ada id
             $event = $this->eventService->getLastEvent();
-            dd($event);
             $checkPayment = $this->eventService->getCheckPayment($id, $event->id);
+            dd($checkPayment);
             if (!empty($checkPayment)) {
                 if ($event->status_event == 'on') {
                     $accesSpecial = $checkPayment->package == 'Platinum' || $checkPayment->package == 'Delegate Speaker' || $checkPayment->package == 'Speaker' ? true : false;
