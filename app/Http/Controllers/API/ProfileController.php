@@ -342,4 +342,40 @@ class ProfileController extends Controller
         $response['payload'] = null;
         return response()->json($response);
     }
+
+    public function progress(Request $request)
+    {
+        $id = auth('sanctum')->user()->id ?? null;
+        $user = $this->userService->getUserById($id);
+
+        $fields = [
+            'image',
+            'bio_desc',
+            'name',
+            'job_title',
+            'country',
+            'state',
+            'city',
+            'email_alternate',
+            'company_name',
+            'company_web',
+            'ms_company_category_other'
+        ];
+
+        $filled = 0;
+
+        foreach ($fields as $field) {
+            if (!empty($user->$field)) {
+                $filled++;
+            }
+        }
+
+        $total = count($fields);
+        $progress = round(($filled / $total) * 100); // misal 8 dari 11 = 72%
+
+        $response['status'] = 200;
+        $response['message'] = 'Get Data Progress';
+        $response['payload'] = $progress;
+        return response()->json($response);
+    }
 }
