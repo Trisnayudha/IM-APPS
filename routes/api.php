@@ -17,6 +17,7 @@ use App\Http\Controllers\API\NetworkingController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\ScheduleController;
+use App\Http\Controllers\API\SpeakerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -148,6 +149,10 @@ Route::post('bookmark/all', [BookmarkController::class, 'listAll']);
 Route::post('events/replay', [EventsController::class, 'index']);
 Route::post('events/replay/all', [EventsController::class, 'listAll']);
 Route::post('/events/detail', [EventsController::class, 'detail']);
+
+//Speakers
+Route::post('speakers', [SpeakerController::class, 'index']);
+Route::post('speakers/detail', [SpeakerController::class, 'detail']);
 
 //Notification
 Route::post('/notification', [NotificationController::class, 'index']);

@@ -207,6 +207,7 @@ class HomeController extends Controller
                 'replay' => $accesSpecial,
                 'mining_directory' => $access,
                 'bookmark' => $access,
+                'speakers' => $access
 
             ];
             $response['status'] = 200;
