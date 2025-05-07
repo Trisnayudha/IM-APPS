@@ -349,7 +349,7 @@ class ProfileController extends Controller
         $user = $this->userService->getUserById($id);
 
         $fields = [
-            'image',
+            'image_users',
             'bio_desc',
             'name',
             'job_title',
