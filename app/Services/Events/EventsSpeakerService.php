@@ -128,6 +128,11 @@ class EventsSpeakerService
             ->orderBy('sched.time_start', 'asc')
             ->get();
         $data = $speaker;
+        foreach ($schedules as $x => $row) {
+            $row->sponsor_image = (!empty($row->sponsor_image) ? $row->sponsor_image : '');
+            $row->time_start = (!empty($row->time_start) ? date('H:i A', strtotime($row->time_start)) : '');
+            $row->time_end = (!empty($row->time_end) ? date('H:i A', strtotime($row->time_end)) : '');
+        }
         $data->schedules = $schedules;
         return $data;
     }
