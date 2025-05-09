@@ -58,6 +58,7 @@ class EventsSpeakerService
                 'es.name',
                 'es.position',
                 'es.company_name',
+                'es.company_image',
                 'es.image'
             );
 
