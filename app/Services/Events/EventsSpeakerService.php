@@ -126,11 +126,9 @@ class EventsSpeakerService
             ->orderBy('sched.date_events', 'asc')
             ->orderBy('sched.time_start', 'asc')
             ->get();
-
-        return [
-            'speaker' => $speaker,
-            'schedules' => $schedules
-        ];
+        $data = $speaker;
+        $data->schedules = $schedules;
+        return $data;
     }
 
     public function listSpeakerCompanies($event_id)
