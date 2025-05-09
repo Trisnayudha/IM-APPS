@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Events\EventService;
 use App\Services\Events\EventsSpeakerService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SpeakerController extends Controller
 {
@@ -31,6 +32,7 @@ class SpeakerController extends Controller
 
         $filters = [
             'company' => $request->get('company'),
+            'keyword' => $request->get('keyword'),
             'status' => $request->get('status'), // live / no_live / all
             'sorting' => $request->get('sorting'), // az / default
             'per_page' => $request->get('per_page', 10),
@@ -72,5 +74,25 @@ class SpeakerController extends Controller
             'message' => 'Speaker detail with schedules',
             'payload' => $data
         ]);
+    }
+
+    public function companies(Request $request)
+    {
+        $event = $this->eventService->getLastEvent();
+        if (! $event) {
+            return response()->json([
+                'status'  => 400,
+                'message' => 'Missing event_id',
+                'payload' => null,
+            ], 400);
+        }
+
+        $companies = $this->eventSpeakerService->listSpeakerCompanies($event->id);
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'List of speaker companies',
+            'payload' => $companies,
+        ], 200);
     }
 }

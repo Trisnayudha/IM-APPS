@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AdsController;
+use App\Http\Controllers\API\AiController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookmarkController;
 use App\Http\Controllers\API\DirectoryController;
@@ -139,6 +140,7 @@ Route::post('/mining/directory', [MiningDirectoryController::class, 'index']);
 
 //Schedule
 Route::post('schedule', [ScheduleController::class, 'showList']);
+Route::post('schedule/detail', [ScheduleController::class, 'detail']);
 Route::post('schedule/reserve', [ScheduleController::class, 'reserve']);
 
 //Bookmark
@@ -153,6 +155,7 @@ Route::post('/events/detail', [EventsController::class, 'detail']);
 //Speakers
 Route::post('speakers', [SpeakerController::class, 'index']);
 Route::post('speakers/detail', [SpeakerController::class, 'detail']);
+Route::post('speakers/company', [SpeakerController::class, 'companies']);
 
 //Notification
 Route::post('/notification', [NotificationController::class, 'index']);
@@ -169,3 +172,6 @@ Route::post('scan/post/polling', [EventsPollingController::class, 'store']);
 
 //Scan Login
 Route::post('scan/login/v1', [AuthController::class, 'loginQrCode']);
+
+//AI
+Route::post('ai/suggest-meet', [AiController::class, 'suggestMeet']);

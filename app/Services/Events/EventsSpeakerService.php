@@ -15,6 +15,7 @@ class EventsSpeakerService
                 'events_speaker.name as name',
                 'events_speaker.position as position',
                 'events_speaker.company_name as company',
+                'events_speaker.company_image as company_image',
                 'events_speaker.image as image',
                 'events_speaker.bio_desc as desc',
                 'events_speaker.linkedin',
@@ -46,6 +47,7 @@ class EventsSpeakerService
                 'es.position',
                 'es.company_name',
                 'es.image',
+                'es.company_image',
                 DB::raw("MAX(CASE
                     WHEN sched.date_events = '{$now->toDateString()}'
                          AND '{$now->toTimeString()}' BETWEEN sched.time_start AND sched.time_end
@@ -73,6 +75,14 @@ class EventsSpeakerService
             }
         }
 
+        // Tambahkan filter keyword (cari di name atau position)
+        if (!empty($filters['keyword'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('es.name', 'like', '%' . $filters['keyword'] . '%')
+                    ->orWhere('es.position', 'like', '%' . $filters['keyword'] . '%');
+            });
+        }
+
         // Sorting
         if (!empty($filters['sorting']) && $filters['sorting'] === 'az') {
             $query->orderBy('es.name', 'asc');
@@ -84,6 +94,7 @@ class EventsSpeakerService
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
     }
+
 
     public function getSpeakerDetailWithSchedules($speaker_id)
     {
@@ -120,5 +131,18 @@ class EventsSpeakerService
             'speaker' => $speaker,
             'schedules' => $schedules
         ];
+    }
+
+    public function listSpeakerCompanies($event_id)
+    {
+        return DB::table('events_speaker as es')
+            ->join('events_schedule_speaker as ess', 'ess.events_speaker_id', '=', 'es.id')
+            ->join('events_schedule as sched', 'sched.id', '=', 'ess.events_schedule_id')
+            ->where('sched.events_id', $event_id)
+            ->whereNotNull('es.company_name')
+            ->select('es.company_name')
+            ->distinct()
+            ->orderBy('es.company_name', 'asc')
+            ->pluck('es.company_name');
     }
 }

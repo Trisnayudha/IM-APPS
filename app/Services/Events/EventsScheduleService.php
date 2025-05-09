@@ -105,4 +105,32 @@ class EventsScheduleService
         }
         return $data;
     }
+
+    public function detailSchedule($schedule_id, $events_id)
+    {
+        $data = DB::table('events_schedule')
+            ->select(
+                'events_schedule.id',
+                'events_schedule.name',
+                'events_schedule.time_start',
+                'events_schedule.time_end',
+                'events_schedule.timezone as status',
+                'events_schedule.location',
+                'md_sponsor.image as sponsor_image',
+                'events_schedule.desc'
+            )
+            ->leftJoin('md_sponsor', function ($join) {
+                $join->on('md_sponsor.id', '=', 'events_schedule.md_sponsor_id');
+            })
+            ->where('events_schedule.id', '=', $schedule_id)
+            ->first();
+
+        $data->sponsor_image = (!empty($data->sponsor_image) ? $data->sponsor_image : '');
+        $data->time_start = (!empty($data->time_start) ? date('H:i A', strtotime($data->time_start)) : '');
+        $data->time_end = (!empty($data->time_end) ? date('H:i A', strtotime($data->time_end)) : '');
+        $data->isBookmark = self::isBookmark('Conference Agenda', $data->id, $events_id->id);
+        $data->speaker = EventsSpeakerService::listSpeakerSchedule($data->id);
+
+        return $data;
+    }
 }

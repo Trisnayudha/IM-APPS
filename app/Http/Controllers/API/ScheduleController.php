@@ -64,6 +64,16 @@ class ScheduleController extends Controller
         return response()->json($response);
     }
 
+    public function detail(Request $request)
+    {
+        $schedule_id = $request->schedule_id;
+        $events_id = $this->eventService->getLastEvent();
+        $data = EventsScheduleService::detailSchedule($schedule_id, $events_id);
+        $response['status'] = 200;
+        $response['message'] = 'Show Detail Schedule';
+        $response['payload'] = $data;
+        return response()->json($response);
+    }
     public function reserve(Request $request)
     {
         $schedule_id = $request->schedule_id;
