@@ -15,12 +15,26 @@ class AiController extends Controller
     }
     public function suggestMeet(Request $request)
     {
-        $id =  auth('sanctum')->user()->id ?? null;
-        $category = $request->category;
-        $data = $this->aiService->getSuggestMeet($id, $category);
-        $response['status'] = 200;
-        $response['message'] = 'Generate Text AI';
-        $response['payload'] = $data;
-        return response()->json($response);
+        $id = auth('sanctum')->user()->id;
+        $category = $request->input('category');
+        $company_id = $request->input('company_id');
+        $delegate_id = $request->input('delegate_id');   // opsional
+        $product_id = $request->input('product_id');     // opsional
+
+        if (!$category || !$company_id) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'category dan company_id wajib diisi.',
+                'payload' => null
+            ], 422);
+        }
+
+        $data = $this->aiService->getSuggestMeet($id, $category, $company_id, $delegate_id, $product_id);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Generate Text AI',
+            'payload' => $data,
+        ]);
     }
 }
