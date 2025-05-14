@@ -11,7 +11,8 @@ class UserService implements UserRepositoryInterface
     public function getUserById($id)
     {
         return User::leftjoin('ms_phone_code', 'ms_phone_code.ms_country_id', 'users.ms_prefix_call_id')
-            ->select('users.*', 'ms_phone_code.code')
+            ->leftjoin('ms_company_category', 'ms_company_category.id', 'users.ms_company_category_id')
+            ->select('users.*', 'ms_phone_code.code', 'ms_company_category.name as ms_company_category_other')
             ->where('users.id', $id)->first();
     }
 

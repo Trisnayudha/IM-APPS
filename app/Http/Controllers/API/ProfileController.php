@@ -270,6 +270,7 @@ class ProfileController extends Controller
         $job_title = $request->job_title;
         $company_web = $request->company_web;
         $company_name = $request->company_name;
+        $category_id = $request->category_id;
         $category_name = $request->category_name;
         $ms_company_project_type_id = $request->ms_company_project_type_id;
         $classify_minerals_name = $request->classify_minerals_name;
@@ -294,6 +295,7 @@ class ProfileController extends Controller
                 $save->city = strtoupper($city);
                 $save->company_web = $company_web;
                 $save->is_register = 1;
+                $save->ms_company_category_id = $category_id;
                 $save->ms_company_category_other = $category_name;
                 $save->class_company_minerals_other = $classify_minerals_name;
                 $save->class_company_mining_other = $classify_mining_name;
@@ -359,7 +361,8 @@ class ProfileController extends Controller
             'email_alternate',
             'company_name',
             'company_web',
-            'ms_company_category_other'
+            'ms_company_category_id',
+            'company_logo'
         ];
 
         $filled = 0;
