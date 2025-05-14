@@ -112,6 +112,7 @@ class EventsSpeakerService
         $schedules = DB::table('events_schedule_speaker as ess')
             ->join('events_schedule as sched', 'sched.id', '=', 'ess.events_schedule_id')
             ->where('ess.events_speaker_id', $speaker_id)
+            ->where('sched.events_id', '13')
             ->select(
                 'sched.id',
                 'sched.name',
