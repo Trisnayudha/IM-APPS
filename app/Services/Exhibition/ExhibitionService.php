@@ -97,7 +97,7 @@ class ExhibitionService implements ExhibitionRepositoryController
         } else {
             $query->where('events_company.type', '=', $sponsor_type);
         }
-        $query->where('events_company.status', '=', 'Active');
+        $query->where('events_company.exhibition_status', '=', 'on');
 
         if (!empty($search)) {
             $query->where('company.name', 'LIKE', "%$search%");
