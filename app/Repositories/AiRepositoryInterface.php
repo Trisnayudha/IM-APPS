@@ -20,5 +20,5 @@ interface AiRepositoryInterface
     /**
      * Placeholder for future AI room chat logic
      */
-    public function getRoomChat();
+    public function getRoomChat($id, $target_id);
 }

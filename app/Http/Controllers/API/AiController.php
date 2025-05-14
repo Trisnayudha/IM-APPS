@@ -37,4 +37,22 @@ class AiController extends Controller
             'payload' => $data,
         ]);
     }
+
+    public function roomChat(Request $request, AiService $ai)
+    {
+        $request->validate([
+            'target_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $text = $ai->getRoomChat(
+            auth('sanctum')->id(),
+            $request->input('target_id')
+        );
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'Generated room chat intro',
+            'payload' => $text,
+        ]);
+    }
 }

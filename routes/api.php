@@ -124,6 +124,7 @@ Route::post('/profile/progress', [ProfileController::class, 'progress']);
 Route::post('/networking', [NetworkingController::class, 'index']);
 Route::post('/networking/detail', [NetworkingController::class, 'detail']);
 Route::post('/networking/getRoom', [NetworkingController::class, 'createRoom']);
+Route::post('/networking/ai/room', [AiController::class, 'roomChat']);
 
 Route::post('/inbox', [InboxController::class, 'index']);
 // Route::post('/inbox/v2', [InboxController::class, 'index2']);

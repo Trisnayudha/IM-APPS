@@ -93,14 +93,13 @@ Write exactly 2 clear sentences in English, no salutations or subject lines.",
 
         // Append product context if exists
         if ($product) {
-            $prompt .= " Also mention the product “{$product->name}”.";
+            $prompt .= " Also mention the product “{$product->title}”.";
         }
 
         // Append delegate context if exists
         if ($delegate) {
             $prompt .= " And ask for {$delegate->name} to reach out.";
         }
-
         // Call OpenAI
         $response = Http::withToken(env('OPENAI_API_KEY'))
             ->post('https://api.openai.com/v1/chat/completions', [
@@ -125,8 +124,50 @@ Write exactly 2 clear sentences in English, no salutations or subject lines.",
         return $clean ?: 'No response from AI.';
     }
 
-    public function getRoomChat()
+    /**
+     * Generate a professional “room chat” intro message.
+     *
+     * @param int $user_id   ID of the sender
+     * @param int $target_id ID of the recipient
+     * @return string|array
+     */
+    public function getRoomChat($user_id, $target_id)
     {
-        // Future implementation...
+        // Fetch both users
+        $me     = User::find($user_id);
+        $them   = User::find($target_id);
+
+        if (! $me || ! $them) {
+            return ['error' => 'User not found'];
+        }
+
+        // Build a one-off prompt
+        $prompt = "
+I am {$me->name}, {$me->job_title} at {$me->company_name}.
+You are {$them->name}.
+Write 2–3 concise, friendly yet professional sentences in English to start a chat with {$them->name}, without any salutations or subject lines.";
+
+        // Call OpenAI
+        $response = Http::withToken(env('OPENAI_API_KEY'))
+            ->post('https://api.openai.com/v1/chat/completions', [
+                'model'       => 'gpt-4',
+                'messages'    => [
+                    ['role' => 'system', 'content' => 'You are a professional business conversation assistant.'],
+                    ['role' => 'user', 'content' => trim($prompt)],
+                ],
+                'max_tokens'  => 150,
+                'temperature' => 0.7,
+            ]);
+
+        if (! $response->successful()) {
+            return ['error' => 'AI generation failed', 'detail' => $response->body()];
+        }
+
+        // Clean output
+        $raw       = $response->json()['choices'][0]['message']['content'] ?? '';
+        $single    = preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $raw));
+        $clean     = trim($single);
+
+        return $clean ?: 'No response from AI.';
     }
 }
