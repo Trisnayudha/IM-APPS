@@ -64,7 +64,6 @@ Write exactly 2 clear sentences in English, no salutations or subject lines.",
         // Optional contexts
         $delegate = $delegate_id ? CompanyRepresentative::find($delegate_id) : null;
         $product  = $product_id  ? Product::find($product_id) : null;
-
         // Load template
         $template = $this->promptTemplates[$category] ?? null;
         if (! $template) {
@@ -99,7 +98,7 @@ Write exactly 2 clear sentences in English, no salutations or subject lines.",
 
         // Append delegate context if exists
         if ($delegate) {
-            $prompt .= " And ask for {delegate_name} to reach out.";
+            $prompt .= " And ask for {$delegate->name} to reach out.";
         }
 
         // Call OpenAI
