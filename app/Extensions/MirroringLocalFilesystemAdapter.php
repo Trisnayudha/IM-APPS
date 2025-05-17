@@ -32,12 +32,5 @@ class MirroringLocalFilesystemAdapter extends BaseLocalAdapter
 
         $command = "rclone copyto $local $remote 2>&1";
         exec($command, $output, $returnCode);
-
-        dd([
-            'command' => $command,
-            'output' => $output,
-            'return_code' => $returnCode,
-            'local_exists' => file_exists(storage_path('app/' . $path)),
-        ]);
     }
 }
