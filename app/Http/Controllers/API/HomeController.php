@@ -201,10 +201,10 @@ class HomeController extends Controller
                 'networking' => $accesSpecial,
                 'inbox' => $access,
                 'floor_plan' => $access,
-                'schedule' => $access,
+                'schedule' => false,
                 'exhibition' => $access,
-                'event_booklet' => $access,
-                'replay' => $accesSpecial,
+                'event_booklet' => false,
+                'replay' => false,
                 'mining_directory' => $access,
                 'bookmark' => $access,
                 'speakers' => $access

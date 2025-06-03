@@ -175,7 +175,7 @@ class SponsorsService implements SponsorRepositoryInterface
             ->orderBy('md_medical.sort', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
-            $row->name = 'Media PARTNERS';
+            $row->name = 'Medical PARTNERS';
             $row->type = (!empty($row->slug) ? 'premium' : 'free');
             $row->image = (!empty($row->image) ? $row->image : '');
         }
