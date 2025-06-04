@@ -38,9 +38,10 @@ class EventsSpeakerService
         $now = now('Asia/Jakarta');
 
         $query = DB::table('events_speaker as es')
-            ->join('events_schedule_speaker as ess', 'ess.events_speaker_id', '=', 'es.id')
-            ->join('events_schedule as sched', 'sched.id', '=', 'ess.events_schedule_id')
-            ->where('sched.events_id', $event_id)
+            ->join('events_speaker_list as ess', 'ess.events_speaker_id', '=', 'es.id')
+            ->leftJoin('events_schedule_speaker as esched_speaker', 'esched_speaker.events_speaker_id', '=', 'es.id')
+            ->leftJoin('events_schedule as sched', 'sched.id', '=', 'esched_speaker.events_schedule_id')
+            ->where('ess.events_id', $event_id)
             ->select(
                 'es.id',
                 'es.name',
