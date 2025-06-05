@@ -198,7 +198,7 @@ class HomeController extends Controller
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
                 'show_restriction' => $event->status_event == 'on' ? true : false,
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
-                'networking' => $accesSpecial,
+                'networking' => $access,
                 'inbox' => $access,
                 'floor_plan' => $access,
                 'schedule' => false,
@@ -207,7 +207,7 @@ class HomeController extends Controller
                 'replay' => false,
                 'mining_directory' => $access,
                 'bookmark' => $access,
-                'speakers' => true
+                'speakers' => $access
 
             ];
             $response['status'] = 200;
