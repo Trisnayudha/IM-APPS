@@ -201,7 +201,7 @@ class HomeController extends Controller
                 'networking' => $access,
                 'inbox' => $access,
                 'floor_plan' => $access,
-                'schedule' => false,
+                'schedule' => true,
                 'exhibition' => $access,
                 'event_booklet' => false,
                 'replay' => false,
