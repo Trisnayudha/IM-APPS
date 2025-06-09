@@ -167,34 +167,33 @@ class ScanAppsController extends Controller
 
         try {
             $likePattern = "%{$search}%";
+
             $results = DB::table('payment as p')
                 ->join('users as u', 'u.id', '=', 'p.users_id')
                 ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
+                ->where('p.events_id', 13)
+                ->where('p.aproval_quota_users', 1)
+                ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled'])
                 ->where(function ($query) use ($likePattern) {
                     $query->where('u.name', 'like', $likePattern)
                         ->orWhere('u.company_name', 'like', $likePattern);
                 })
-                ->where('p.aproval_quota_users', 1)
-                ->where('p.events_id', 13)
-                ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled'])
-                ->orderByRaw("CASE WHEN u.name NOT LIKE '% %' THEN 0 ELSE 1 END, u.name")
-                ->limit(5)
                 ->select('u.name', 'u.job_title', 'u.company_name', 'p.code_payment', 'et.title', 'et.type')
+                ->orderBy('u.name')
+                ->limit(5)
                 ->get();
 
-            $data = [];
-            foreach ($results as $r) {
+            $data = $results->map(function ($r) {
                 list($ticketLabel, $ticketColor) = $this->mapTicketType($r->type, $r->title);
-                $data[] = [
+                return [
                     'name' => $r->name,
                     'job_title' => $r->job_title,
                     'company' => $r->company_name,
                     'code_payment' => $r->code_payment,
-                    'checkin_field' => null,
                     'ticket_type' => $ticketLabel,
                     'ticket_color' => $ticketColor
                 ];
-            }
+            });
 
             return response()->json([
                 'status' => 1,
