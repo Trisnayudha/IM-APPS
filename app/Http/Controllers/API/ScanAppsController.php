@@ -74,22 +74,12 @@ class ScanAppsController extends Controller
 
             $filename = null;
             if ($image) {
-                // Send the image to the upload API first
-                $uploadResponse = Http::post('https://indonesiaminer.com/upload-image/company', [
-                    'image' => $image, // Send the base64 image string
-                    'folder' => 'uploads/images/exhibition', // Optional folder parameter
-                ]);
+                // Convert base64 to binary
+                $imageBinary = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $image));
+                $filename = uniqid() . '.png';
 
-                // Check if the upload was successful
-                if ($uploadResponse->successful()) {
-                    $filename = $uploadResponse->json()['image']; // Get the image path from the response
-                } else {
-                    return response()->json([
-                        'status' => 0,
-                        'message' => 'Image upload failed',
-                        'data' => null
-                    ], 500);
-                }
+                // Save the image to public storage
+                Storage::disk('public')->put('uploads/images/exhibition/' . $filename, $imageBinary);
             }
 
             if ($col) {
@@ -120,9 +110,9 @@ class ScanAppsController extends Controller
 
             // Include full image URL in response if image exists
             if ($filename) {
-                $baseUrl = url('/');
-                $uploadFolder = Storage::disk('public')->url('uploads/');
-                $payload['image_url'] = "{$baseUrl}/{$uploadFolder}{$filename}";
+                // Generate full URL to the image stored in public disk
+                $imageUrl = url('storage/uploads/images/exhibition/' . $filename);
+                $payload['image_url'] = $imageUrl;
             }
 
             // Send simplified payload to the webhook URL asynchronously
