@@ -20,6 +20,7 @@ use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\ScheduleController;
 use App\Http\Controllers\API\SpeakerController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\API\ScanAppsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -176,3 +177,11 @@ Route::post('scan/login/v1', [AuthController::class, 'loginQrCode']);
 
 //AI
 Route::post('ai/suggest-meet', [AiController::class, 'suggestMeet']);
+
+
+// Ngrok routes
+Route::post('checkin', [ScanAppsController::class, 'checkin']);
+Route::get('list-delegate', [ScanAppsController::class, 'listDelegate']);
+Route::post('scan-qr', [ScanAppsController::class, 'scanQr']);
+Route::get('/ngrok', [ScanAppsController::class, 'getAllNgrok']);
+Route::get('/ngrok/{ngrokId}', [ScanAppsController::class, 'getNgrokById']);
