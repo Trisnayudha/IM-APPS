@@ -34,13 +34,15 @@ class ScanAppsController extends Controller
         }
 
         try {
-            $result = DB::select(
-                "SELECT p.id, ud.id
-                 FROM payment p
-                 JOIN users_delegate ud ON ud.users_id = p.users_id AND ud.events_id = p.events_id
-                 WHERE p.code_payment = :code_payment AND p.aproval_quota_users = 1",
-                ['code_payment' => $codePayment]
-            );
+            $result = DB::table('payment as p')
+                ->join('users_delegate as ud', function ($join) {
+                    $join->on('ud.users_id', '=', 'p.users_id')
+                        ->on('ud.events_id', '=', 'p.events_id');
+                })
+                ->where('p.code_payment', $codePayment)
+                ->where('p.aproval_quota_users', 1)
+                ->select('p.id as payment_id', 'ud.id as delegate_id', 'ud.users_id')
+                ->first();
 
             if (!$result) {
                 return response()->json([
@@ -50,14 +52,13 @@ class ScanAppsController extends Controller
                 ]);
             }
 
-            $paymentId = $result[0]->id;
-            $delegateId = $result[0]->id;
+            $paymentId = $result->payment_id;
+            $delegateId = $result->delegate_id;
 
             // Determine which checkin_day column based on the provided day
+            $col = null;
             try {
                 $dt = Carbon::parse($day);
-                $col = null;
-
                 if ($dt->year == 2025 && $dt->month == 6) {
                     if ($dt->day == 10) {
                         $col = 'date_day1';
@@ -73,9 +74,22 @@ class ScanAppsController extends Controller
 
             $filename = null;
             if ($image) {
-                $filename = $codePayment . '_' . Carbon::now()->timestamp . '.jpg';
-                $path = Storage::disk('public')->path('uploads/' . $filename);
-                Storage::put('uploads/' . $filename, base64_decode($image));
+                // Send the image to the upload API first
+                $uploadResponse = Http::post('https://indonesiaminer.com/upload-image/company', [
+                    'image' => $image, // Send the base64 image string
+                    'folder' => 'uploads/images/exhibition', // Optional folder parameter
+                ]);
+
+                // Check if the upload was successful
+                if ($uploadResponse->successful()) {
+                    $filename = $uploadResponse->json()['image']; // Get the image path from the response
+                } else {
+                    return response()->json([
+                        'status' => 0,
+                        'message' => 'Image upload failed',
+                        'data' => null
+                    ], 500);
+                }
             }
 
             if ($col) {
@@ -89,7 +103,7 @@ class ScanAppsController extends Controller
 
             // Update users table with name, job, and company
             DB::table('users')
-                ->where('id', DB::table('users_delegate')->where('id', $delegateId)->value('users_id'))
+                ->where('id', $result->users_id)
                 ->update([
                     'name' => $name,
                     'job_title' => $job,
@@ -163,25 +177,24 @@ class ScanAppsController extends Controller
 
         try {
             $likePattern = "%{$search}%";
-            $results = DB::select(
-                "SELECT u.name, u.job_title, u.company_name, p.code_payment, et.title, et.type
-                 FROM payment p
-                 JOIN users u ON u.id = p.users_id
-                 JOIN events_tickets et ON et.id = p.package_id
-                 WHERE (u.name LIKE :likePattern OR u.company_name LIKE :likePattern)
-                 AND p.aproval_quota_users = 1
-                 AND p.events_id = 13
-                 AND p.status NOT IN ('trash', 'Waiting', 'cancelled')
-                 ORDER BY (CASE WHEN u.name NOT LIKE '% %' THEN 0 ELSE 1 END), u.name
-                 LIMIT 5",
-                ['likePattern' => $likePattern]
-            );
+            $results = DB::table('payment as p')
+                ->join('users as u', 'u.id', '=', 'p.users_id')
+                ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
+                ->where(function ($query) use ($likePattern) {
+                    $query->where('u.name', 'like', $likePattern)
+                        ->orWhere('u.company_name', 'like', $likePattern);
+                })
+                ->where('p.aproval_quota_users', 1)
+                ->where('p.events_id', 13)
+                ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled'])
+                ->orderByRaw("CASE WHEN u.name NOT LIKE '% %' THEN 0 ELSE 1 END, u.name")
+                ->limit(5)
+                ->select('u.name', 'u.job_title', 'u.company_name', 'p.code_payment', 'et.title', 'et.type')
+                ->get();
 
             $data = [];
             foreach ($results as $r) {
-                // Assuming the function map_ticket_type exists in the utils/ticket_mapper.php
                 list($ticketLabel, $ticketColor) = $this->mapTicketType($r->type, $r->title);
-
                 $data[] = [
                     'name' => $r->name,
                     'job_title' => $r->job_title,
@@ -225,7 +238,6 @@ class ScanAppsController extends Controller
         $data = $request->json()->all();
         $codePayment = $data['code_payment'] ?? null;
         $day = $data['day'] ?? null;
-
         if (!$codePayment || !$day) {
             return response()->json([
                 'status' => 0,
@@ -256,26 +268,31 @@ class ScanAppsController extends Controller
                 ], 400);
             }
 
-            $result = DB::select(
-                "SELECT p.id AS payment_id, u.name, u.job_title, u.company_name, et.category, et.title, et.type
-                 FROM payment p
-                 JOIN users u ON u.id = p.users_id
-                 JOIN events_tickets et ON et.id = p.package_id
-                 WHERE p.code_payment = :code_payment
-                   AND p.aproval_quota_users = 1
-                   AND p.status NOT IN ('trash', 'Waiting', 'cancelled')",
-                ['code_payment' => $codePayment]
-            );
+            $result = DB::table('payment as p')
+                ->join('users as u', 'u.id', '=', 'p.users_id')
+                ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
+                ->where('p.code_payment', $codePayment)
+                ->where('p.aproval_quota_users', 1)
+                ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled'])
+                ->select(
+                    'p.id as payment_id',
+                    'u.name',
+                    'u.job_title',
+                    'u.company_name',
+                    'et.category',
+                    'et.title',
+                    'et.type'
+                )
+                ->first();
 
             if ($result) {
-                $row = $result[0];
-                $paymentId = $row->payment_id;
-                $name = $row->name;
-                $jobTitle = $row->job_title;
-                $company = $row->company_name;
-                $category = $row->category;
-                $title = $row->title;
-                $typeVal = $row->type;
+                $paymentId = $result->payment_id;
+                $name = $result->name;
+                $jobTitle = $result->job_title;
+                $company = $result->company_name;
+                $category = $result->category;
+                $title = $result->title;
+                $typeVal = $result->type;
 
                 if ($col && $category != 'All Access') {
                     if (preg_match('/^Day (\d+)$/', $category, $matches)) {
