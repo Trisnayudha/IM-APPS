@@ -24,6 +24,7 @@ class ScanAppsController extends Controller
         $job = $data['job_title'] ?? null;
         $company = $data['company'] ?? null;
         $image = $data['image'] ?? null;
+
         if (!$codePayment || !$linkWebhook || !$day) {
             return response()->json([
                 'status' => 0,
@@ -73,8 +74,22 @@ class ScanAppsController extends Controller
 
             $filename = null;
             if ($image) {
-                $filename = $codePayment . '_' . Carbon::now()->timestamp . '.jpg';
-                Storage::put('uploads/' . $filename, base64_decode($image));
+                // Send the image to the upload API first
+                $uploadResponse = Http::post('https://indonesiaminer.com/upload-image/company', [
+                    'image' => $image, // Send the base64 image string
+                    'folder' => 'uploads/images/exhibition', // Optional folder parameter
+                ]);
+
+                // Check if the upload was successful
+                if ($uploadResponse->successful()) {
+                    $filename = $uploadResponse->json()['image']; // Get the image path from the response
+                } else {
+                    return response()->json([
+                        'status' => 0,
+                        'message' => 'Image upload failed',
+                        'data' => null
+                    ], 500);
+                }
             }
 
             if ($col) {
