@@ -211,16 +211,32 @@ class ScanAppsController extends Controller
     }
 
     // Add mapTicketType method in the controller if not already defined
-    private function mapTicketType($ticketType, $ticketTitle)
+    private function mapTicketType($typeVal, $title)
     {
-        // Logic for mapping ticket types, return a label and color based on the ticket type
-        // Example
-        if ($ticketType == 'VIP') {
-            return ['VIP Ticket', 'gold'];
-        } elseif ($ticketType == 'Regular') {
-            return ['Regular Ticket', 'blue'];
+        // Updated mapping logic based on revised requirements
+        if ($typeVal == 'Platinum' || $typeVal == 'Delegate Speaker') {
+            return ['Delegate Pass', '#1428DF'];
         }
-        return ['General Ticket', 'green'];
+        if ($typeVal == 'Gold') {
+            if (strpos($title, 'Working') !== false) {
+                return ['Working Pass', '#DAA520'];
+            }
+            return ['Exhibitor Pass', '#FFD700'];
+        }
+        if ($typeVal == 'Silver') {
+            if (strpos($title, 'Investor') !== false) {
+                return ['Investor Pass', '#1E90FF'];
+            } elseif (strpos($title, 'Mining') !== false) {
+                return ['Mining Pass', '#228B22'];
+            } elseif (strpos($title, 'Media') !== false) {
+                return ['Media Pass', '#8A2BE2'];
+            }
+            return ['Working Pass', '#DAA520'];
+        }
+        if ($typeVal == 'Speaker') {
+            return ['Speaker Pass', '#D60000'];
+        }
+        return ['Unknown', '#808080'];
     }
 
     public function scanQr(Request $request)
