@@ -122,7 +122,7 @@ class EventService implements EventRepositoryInterface
 
     public function findUser($qrcode)
     {
-        $find = Payment::where('code_payment', $qrcode)->where('events_id', '12')->first();
+        $find = Payment::where('code_payment', $qrcode)->where('events_id', '13')->first();
         if ($find) {
             $findUser = User::where('id', $find->users_id)->first();
 
