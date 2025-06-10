@@ -323,9 +323,10 @@ class ScanAppsController extends Controller
                 $imageUrl = $image ? url("storage/uploads/images/exhibition/{$image}") : null;
 
                 if ($col) {
+                    $jakartaTime = \Carbon\Carbon::now('Asia/Jakarta');
                     DB::table('users_delegate')
                         ->where('payment_id', $paymentId)
-                        ->update([$col => now()]);
+                        ->update([$col => $jakartaTime->toDateTimeString()]);
                 }
 
                 list($ticketLabel, $ticketColor) = $this->mapTicketType($typeVal, $title);
