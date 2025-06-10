@@ -203,7 +203,7 @@ class HomeController extends Controller
                 'floor_plan' => $access,
                 'schedule' => true,
                 'exhibition' => $access,
-                'event_booklet' => false,
+                'event_booklet' => $access,
                 'replay' => false,
                 'mining_directory' => $access,
                 'bookmark' => $access,
