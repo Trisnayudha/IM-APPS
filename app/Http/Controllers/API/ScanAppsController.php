@@ -372,7 +372,7 @@ class ScanAppsController extends Controller
         $timeCheckin = $jakartaTime->format('H:i');
         $apiUrl = "https://nusagateway.com/api/send-message.php";
         $payload = [
-            "token" => env('NUSA_GATEWAY_TOKEN'),
+            "token" => '7EoagVjJfYgElEkYI1KKXOObIzZoGB7S1QcDQbbOH6dqKNk6SL',
             "phone" => "120363389769846913",
             "message" => "✅ Team, *{$name}* dari {$company} melakukan check-in sebagai {$typeVal} di Lobby Utama The Westin Jakarta 🏨 pada pukul {$timeCheckin} WIB hari ini."
         ];
