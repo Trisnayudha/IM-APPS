@@ -332,9 +332,8 @@ class ScanAppsController extends Controller
                 }
 
                 list($ticketLabel, $ticketColor) = $this->mapTicketType($typeVal, $title);
-
                 // Send WhatsApp notification for speakers (example)
-                if (strtolower($ticketLabel) == 'Speaker Pass') {
+                if ($ticketLabel == 'Speaker Pass') {
                     $this->sendWhatsAppNotification($name, $company, $ticketLabel);
                 }
 
@@ -372,16 +371,17 @@ class ScanAppsController extends Controller
     {
         $jakartaTime = \Carbon\Carbon::now('Asia/Jakarta');
         $timeCheckin = $jakartaTime->format('H:i');
-        $apiUrl = "https://nusagateway.com/api/send-message.php";
-        $payload = [
-            "token" => '7EoagVjJfYgElEkYI1KKXOObIzZoGB7S1QcDQbbOH6dqKNk6SL',
-            "phone" => "120363389769846913",
-            "message" => "✅ Team, *{$name}* dari {$company} melakukan check-in sebagai {$typeVal} di Lobby Utama The Westin Jakarta 🏨 pada pukul {$timeCheckin} WIB hari ini."
+        $sendMessageUrl = 'https://nusagateway.com/api/send-message.php';
+        $sendMessageData = [
+            'token' => '7EoagVjJfYgElEkYI1KKXOObIzZoGB7S1QcDQbbOH6dqKNk6SL',
+            'phone' => '120363389769846913',
+            'message' => "✅ Team, *{$name}* dari {$company} melakukan check-in sebagai {$typeVal} di Lobby Utama The Westin Jakarta 🏨 pada pukul {$timeCheckin} WIB hari ini."
+
         ];
 
         try {
-            $response = Http::post($apiUrl, $payload);
-            $response->throw();
+
+            $sendMessageResponse = $this->makeCurlRequest($sendMessageUrl, 'POST', $sendMessageData);
         } catch (\Exception $e) {
             Log::error("Failed to send WhatsApp notification: " . $e->getMessage());
         }
@@ -447,5 +447,35 @@ class ScanAppsController extends Controller
                 'data' => null
             ], 500);
         }
+    }
+    private function makeCurlRequest($url, $method, $data)
+    {
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+        if ($method === 'POST') {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        }
+
+        $response = curl_exec($ch);
+
+        if ($response === false) {
+            throw new \Exception(curl_error($ch));
+        }
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        curl_close($ch);
+
+        if ($statusCode !== 200) {
+            throw new \Exception('Request failed with status code ' . $statusCode);
+        }
+
+        return json_decode($response, true);
     }
 }
