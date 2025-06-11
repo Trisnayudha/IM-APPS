@@ -75,7 +75,7 @@ class ScanAppsController extends Controller
             $filename = null;
             if ($image) {
                 // Check if the delegate already has an image
-                $existingImage = DB::table('users_delegate')->where('id', $delegateId)->value('image');
+                $existingImage = DB::table('users_delegate')->where('payment_id', $paymentId)->value('image');
                 // Only create and save a new image if it doesn't exist
                 if (!$existingImage) {
                     // Convert base64 to binary and create a new image
