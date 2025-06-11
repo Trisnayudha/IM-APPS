@@ -327,7 +327,7 @@ class ScanAppsController extends Controller
                     DB::table('users_delegate')
                         ->where('payment_id', $paymentId)
                         ->update([
-                            $col => $jakartaTime->format('Y-m-d H:i:s')
+                            'date_day2' => $jakartaTime->format('Y-m-d H:i:s')
                         ]);
                 }
 
