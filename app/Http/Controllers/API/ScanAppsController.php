@@ -334,7 +334,7 @@ class ScanAppsController extends Controller
                 list($ticketLabel, $ticketColor) = $this->mapTicketType($typeVal, $title);
 
                 // Send WhatsApp notification for speakers (example)
-                if (strtolower($typeVal) == 'speaker') {
+                if (strtolower($ticketLabel) == 'Speaker Pass') {
                     $this->sendWhatsAppNotification($name, $company, $typeVal);
                 }
 
