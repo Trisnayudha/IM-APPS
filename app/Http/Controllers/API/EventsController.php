@@ -37,11 +37,11 @@ class EventsController extends Controller
         $limit = $request->limit;
         $events_id = $this->eventService->getLastEvent();
         $data = [];
-        $data['first_day'] = $this->eventService->listAll($events_id->id, '2024-06-04', $limit, 'replay');
-        $data['second_day'] = $this->eventService->listAll($events_id->id, '2024-06-05', $limit, 'replay');
-        $data['third_day'] = $this->eventService->listAll($events_id->id, '2024-06-06', $limit, 'replay');
-        $data['showcase'] = $this->eventService->listAll($events_id->id, '2024-06-04', $limit, 'showcase');
-        $data['workshop'] = $this->eventService->listAll($events_id->id, '2024-06-04', $limit, 'workshop');
+        $data['first_day'] = $this->eventService->listAll($events_id->id, '2025-06-10', $limit, 'replay');
+        $data['second_day'] = $this->eventService->listAll($events_id->id, '2025-06-11', $limit, 'replay');
+        $data['third_day'] = $this->eventService->listAll($events_id->id, '2025-06-12', $limit, 'replay');
+        $data['showcase'] = $this->eventService->listAll($events_id->id, '2025-06-10', $limit, 'showcase');
+        $data['workshop'] = $this->eventService->listAll($events_id->id, '2025-06-10', $limit, 'workshop');
         $response['status'] = 200;
         $response['message'] = 'Success show data';
         $response['payload'] = $data;
