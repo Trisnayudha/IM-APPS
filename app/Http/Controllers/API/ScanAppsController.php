@@ -378,9 +378,7 @@ class ScanAppsController extends Controller
             'message' => "✅ Team, *{$name}* dari {$company} melakukan check-in sebagai {$typeVal} di Lobby Utama The Westin Jakarta 🏨 pada pukul {$timeCheckin} WIB hari ini."
 
         ];
-
         try {
-
             $sendMessageResponse = $this->makeCurlRequest($sendMessageUrl, 'POST', $sendMessageData);
         } catch (\Exception $e) {
             Log::error("Failed to send WhatsApp notification: " . $e->getMessage());
