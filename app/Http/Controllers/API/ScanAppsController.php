@@ -326,7 +326,9 @@ class ScanAppsController extends Controller
                     $jakartaTime = \Carbon\Carbon::now('Asia/Jakarta');
                     DB::table('users_delegate')
                         ->where('payment_id', $paymentId)
-                        ->update([$col => $jakartaTime->toDateTimeString()]);
+                        ->update([
+                            $col => $jakartaTime->format('Y-m-d H:i:s')
+                        ]);
                 }
 
                 list($ticketLabel, $ticketColor) = $this->mapTicketType($typeVal, $title);
