@@ -258,6 +258,19 @@ class ScanAppsController extends Controller
             ], 400);
         }
 
+        // Check if code_payment exists in database before proceeding
+        $exists = DB::table('payment')
+            ->where('code_payment', $codePayment)
+            ->exists();
+
+        if (!$exists) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Delegate Not Found',
+                'data' => null
+            ], 404);
+        }
+
         try {
             // Parse the day parameter (ISO or Indonesian format) and map to checkin_day field
             $col = null;
