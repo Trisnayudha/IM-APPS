@@ -58,7 +58,7 @@ class ScanAppsController extends Controller
             // Determine which checkin_day column based on the provided day
             $col = null;
             try {
-                $dt = Carbon::parse($day);
+                $dt = \Carbon\Carbon::parse($day);
                 if ($dt->year == 2025 && $dt->month == 6) {
                     if ($dt->day == 10) {
                         $col = 'date_day1';
