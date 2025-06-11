@@ -335,7 +335,7 @@ class ScanAppsController extends Controller
 
                 // Send WhatsApp notification for speakers (example)
                 if (strtolower($ticketLabel) == 'Speaker Pass') {
-                    $this->sendWhatsAppNotification($name, $company, $typeVal);
+                    $this->sendWhatsAppNotification($name, $company, $ticketLabel);
                 }
 
                 return response()->json([
