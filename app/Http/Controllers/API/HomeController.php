@@ -201,13 +201,13 @@ class HomeController extends Controller
                 'networking' => $access,
                 'inbox' => $access,
                 'floor_plan' => $access,
-                'schedule' => true,
+                'schedule' => false,
                 'exhibition' => $access,
                 'event_booklet' => $access,
                 'replay' => true,
                 'mining_directory' => $access,
                 'bookmark' => $access,
-                'speakers' => $access
+                'speakers' => false
 
             ];
             $response['status'] = 200;
