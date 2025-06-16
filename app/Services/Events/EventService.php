@@ -79,6 +79,7 @@ class EventService implements EventRepositoryInterface
         $find = EventsConferen::where('slug', $slug)->first();
         //masukin log event conference
         self::countVisitConference($find->events_id, $id, $find->id);
+        $checkUser = self::checkLevel($id, $find->id);
         if ($find) {
             $bookmark = DB::table('conference_bookmark')
                 ->join('events_conferen', 'events_conferen.id', 'conference_bookmark.events_conferen_id')
@@ -105,16 +106,20 @@ class EventService implements EventRepositoryInterface
                 ->orderby('events_speaker.id', 'asc')
                 ->get();
 
-            $find->file = DB::table('events_conferen_file')
-                ->select(
-                    'events_conferen_file.id as table_id',
-                    'events_conferen_file.file as file',
-                    'events_conferen_file.namefile as namefile',
-                    'events_conferen_file.extension as extension'
-                )
-                ->where('events_conferen_file.events_conferen_id', $find->id)
-                ->orderby('events_conferen_file.id', 'asc')
-                ->get();
+            if ($checkUser) {
+                $find->file = DB::table('events_conferen_file')
+                    ->select(
+                        'events_conferen_file.id as table_id',
+                        'events_conferen_file.file as file',
+                        'events_conferen_file.namefile as namefile',
+                        'events_conferen_file.extension as extension'
+                    )
+                    ->where('events_conferen_file.events_conferen_id', $find->id)
+                    ->orderby('events_conferen_file.id', 'asc')
+                    ->get();
+            } else {
+                $find->file = null;
+            }
         }
 
         return $find;

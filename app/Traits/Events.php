@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\Log\EventsConferenLog;
+use App\Models\Payment\Payment;
 use App\Repositories\EventsLog;
 use App\Repositories\UsersLog;
 use Illuminate\Support\Facades\Cookie;
@@ -233,6 +234,19 @@ trait Events
         $save->save();
 
         return true;
+    }
+
+    public static function checkLevel($users_id, $events_id)
+    {
+        $check = Payment::join('events_tickets', 'events_tickets.id', 'payment.package_id')
+            ->where('users_id', $users_id)
+            ->where('events_id', $events_id)
+            ->first();
+
+        if ($check->type == 'Platinum') {
+            return true;
+        }
+        return false;
     }
 
     public static function isTextPayment($package_name, $events_id)
