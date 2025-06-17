@@ -242,7 +242,7 @@ trait Events
             ->where('payment.users_id', $users_id)
             ->where('payment.events_id', $events_id)
             ->first();
-
+        dd($check);
         if ($check->type == 'Platinum') {
             return true;
         }
