@@ -239,8 +239,8 @@ trait Events
     public static function checkLevel($users_id, $events_id)
     {
         $check = Payment::join('events_tickets', 'events_tickets.id', 'payment.package_id')
-            ->where('users_id', $users_id)
-            ->where('events_id', $events_id)
+            ->where('payment.users_id', $users_id)
+            ->where('payment.events_id', $events_id)
             ->first();
 
         if ($check->type == 'Platinum') {
