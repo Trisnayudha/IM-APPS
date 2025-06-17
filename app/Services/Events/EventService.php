@@ -79,7 +79,7 @@ class EventService implements EventRepositoryInterface
         $find = EventsConferen::where('slug', $slug)->first();
         //masukin log event conference
         self::countVisitConference($find->events_id, $id, $find->id);
-        $checkUser = self::checkLevel($id, $find->id);
+        $checkUser = self::checkLevel($id, $find->events_id);
         if ($find) {
             $bookmark = DB::table('conference_bookmark')
                 ->join('events_conferen', 'events_conferen.id', 'conference_bookmark.events_conferen_id')
