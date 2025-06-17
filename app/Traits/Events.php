@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Models\Log\EventsConferenLog;
 use App\Models\Payment\Payment;
 use App\Models\Log\EventsLog;
+use App\Models\Log\NetworkingLog;
 use App\Repositories\UsersLog;
 use Illuminate\Support\Facades\Cookie;
 
@@ -209,6 +210,24 @@ trait Events
         $save->year = date('Y');
         $save->events_id = $events_id;
         $save->users_id = $users_id;
+        $save->ip = request()->ip();
+        $save->user_agent = request()->userAgent();
+        $save->save();
+
+        return true;
+    }
+    public static function countVisitNetworking($events_id, $users_id, $target_id)
+    {
+        date_default_timezone_set('Asia/Jakarta');
+
+        $save = new NetworkingLog();
+        $save->created_at = date('Y-m-d H:i:s');
+        $save->day = date('d');
+        $save->month = date('m');
+        $save->year = date('Y');
+        $save->events_id = $events_id;
+        $save->users_id = $users_id;
+        $save->target_id = $target_id;
         $save->ip = request()->ip();
         $save->user_agent = request()->userAgent();
         $save->save();

@@ -5,12 +5,14 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Services\Events\EventService;
 use App\Services\Networking\NetworkingService;
+use App\Traits\Events;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class NetworkingController extends Controller
 {
+    use Events;
     protected $networkingService;
     protected $eventService;
     public function __construct(NetworkingService $networkingService, EventService $eventService)
@@ -27,6 +29,7 @@ class NetworkingController extends Controller
         if ($id) {
             $events_id =  $this->eventService->getLastEvent();
             $data = $this->networkingService->listAll($search, $limit, $id, $events_id->id);
+            self::countVisitNetworking($events_id->id, $id, null);
             $response['status'] = 200;
             $response['message'] = 'Show data networking successfully';
             $response['payload'] = $data;
@@ -45,6 +48,7 @@ class NetworkingController extends Controller
         $users_id = $request->users_id;
         if ($id) {
             $profile = $this->networkingService->detailDelegate($users_id);
+            self::countVisitNetworking(13, $id, $users_id);
             if ($profile) {
                 $response['status'] = 200;
                 $response['message'] = 'Show detail delegate';
