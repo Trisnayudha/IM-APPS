@@ -4,7 +4,7 @@ namespace App\Traits;
 
 use App\Models\Log\EventsConferenLog;
 use App\Models\Payment\Payment;
-use App\Repositories\EventsLog;
+use App\Models\Log\EventsLog;
 use App\Repositories\UsersLog;
 use Illuminate\Support\Facades\Cookie;
 
@@ -198,10 +198,9 @@ trait Events
      * @param $events_id
      * @return bool
      */
-    public static function countVisitEvents($events_id)
+    public static function countVisitEvents($events_id, $users_id)
     {
         date_default_timezone_set('Asia/Jakarta');
-        $users_id = getSessionDelegate('login_id');
 
         $save = new EventsLog();
         $save->created_at = date('Y-m-d H:i:s');

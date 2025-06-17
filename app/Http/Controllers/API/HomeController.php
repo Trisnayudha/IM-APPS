@@ -13,10 +13,11 @@ use App\Services\Sponsors\SponsorsService;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
 use App\Traits\Directory;
+use App\Traits\Events;
 
 class HomeController extends Controller
 {
-    use Directory;
+    use Directory, Events;
     protected $msService;
     protected $sponsorsService;
     protected $companyService;
@@ -194,6 +195,7 @@ class HomeController extends Controller
                 $accesSpecial = false;
                 $access = false;
             }
+            self::countVisitEvents($event->id, $id);
             $data = [
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
                 'show_restriction' => $event->status_event == 'on' ? true : false,
