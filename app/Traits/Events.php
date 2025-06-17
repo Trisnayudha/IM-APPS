@@ -259,6 +259,7 @@ trait Events
         $check = Payment::join('events_tickets', 'events_tickets.id', 'payment.package_id')
             ->where('payment.users_id', $users_id)
             ->where('payment.events_id', $events_id)
+            ->select('events_tickets.type')
             ->first();
         if ($check->type == 'Platinum') {
             return true;
