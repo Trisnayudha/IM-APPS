@@ -202,7 +202,7 @@ class HomeController extends Controller
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
                 'networking' => $access,
                 'inbox' => $access,
-                'floor_plan' => $access,
+                'floor_plan' => false,
                 'schedule' => false,
                 'exhibition' => $access,
                 'event_booklet' => $access,
