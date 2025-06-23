@@ -33,7 +33,7 @@ class SendEventReminder implements ShouldQueue
 
         $notif = new Notification();
         $notif->id = $this->userId; // Gunakan userId yang disimpan
-        $message = 'Reminder Session : ' . $event->name . ' - Indonesia Miner 2024';
+        $message = 'Reminder Session : ' . $event->name . ' - Indonesia Miner 2025';
         $short_message = substr($message, 0, 100);
         $notif->message = $short_message;
         // Gabungkan date_events dan time_start

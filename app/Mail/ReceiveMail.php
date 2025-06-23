@@ -31,7 +31,7 @@ class ReceiveMail extends Mailable
     public function build()
     {
         return  $this->from(env('EMAIL_SENDER'), env('EMAIL_NAME'))
-            ->subject('Thank you for registering Indonesia Miner 2024')
+            ->subject('Thank you for registering Indonesia Miner 2025')
             ->view('email.receive_benefit', [
                 'name' => $this->find->name,
                 'company' => $this->find->company_name,

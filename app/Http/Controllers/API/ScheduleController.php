@@ -82,7 +82,7 @@ class ScheduleController extends Controller
         $findSchedule = EventsSchedule::where('id', $schedule_id)->first();
         if ($findSchedule) {
             // Menyiapkan data untuk tautan Google Calendar
-            $name_schedule = $findSchedule->name . ' - Indonesia Miner 2024';
+            $name_schedule = $findSchedule->name . ' - Indonesia Miner 2025';
             $date_schedule = $findSchedule->date_events;
             $location_schedule = $findSchedule->location;
             $time_start = $findSchedule->time_start;
