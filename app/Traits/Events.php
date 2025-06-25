@@ -261,9 +261,9 @@ trait Events
             ->where('payment.events_id', $events_id)
             ->where('payment.aproval_quota_users', 1)
             ->whereIn('payment.status', ['Free', 'Paid Off'])
-            ->select('events_tickets.type')
+            ->select('events_tickets.type', 'events_tickets.title')
             ->first();
-        if ($check->type == 'Platinum' || $check->type == 'Delegate Speaker' || $check->type == 'Speaker') {
+        if ($check->type == 'Platinum' || $check->type == 'Delegate Speaker' || $check->type == 'Speaker' || $check->title == 'Mining Pass') {
             return true;
         }
         return false;
