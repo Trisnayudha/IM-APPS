@@ -206,7 +206,7 @@ class HomeController extends Controller
                 'schedule' => false,
                 'exhibition' => $access,
                 'event_booklet' => $access,
-                'replay' => true,
+                'replay' => false,
                 'mining_directory' => $access,
                 'bookmark' => $access,
                 'speakers' => false
