@@ -18,9 +18,9 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_sponsor.slug'
 
             )
-            ->where('md_sponsor.type', $type)
-            ->where('md_sponsor.status', 'show')
-            ->orderby('md_sponsor.sort', 'asc')
+            ->where('md_sponsor.type3', $type)
+            ->where('md_sponsor.status3', 'show')
+            ->orderby('md_sponsor.sort3', 'asc')
             ->get();
 
         foreach ($sponsor as $x => $row) {
@@ -36,7 +36,7 @@ class SponsorsService implements SponsorRepositoryInterface
         $sponsor = DB::table('events_sponsors_temporary as est')
             ->join('md_landyark as ml', 'ml.id', '=', 'est.md_sponsor_id')
             ->select('ml.id', 'ml.name', 'ml.image', 'ml.link', 'ml.desc')
-            ->where('est.events_id', 13)
+            ->where('est.events_id', 14)
             ->where('est.type', 'landyard')
             ->orderBy('ml.sort', 'asc')
             ->get();
@@ -55,7 +55,7 @@ class SponsorsService implements SponsorRepositoryInterface
         $sponsor = DB::table('events_sponsors_temporary as est')
             ->join('md_mobile as ml', 'ml.id', '=', 'est.md_sponsor_id')
             ->select('ml.id', 'ml.name', 'ml.image', 'ml.link', 'ml.desc')
-            ->where('est.events_id', 13)
+            ->where('est.events_id', 14)
             ->where('est.type', 'mobile')
             ->orderBy('ml.sort', 'asc')
             ->get();
@@ -75,7 +75,7 @@ class SponsorsService implements SponsorRepositoryInterface
         $sponsor = DB::table('events_sponsors_temporary as est')
             ->join('md_charging as mc', 'mc.id', '=', 'est.md_sponsor_id')
             ->select('mc.id', 'mc.name', 'mc.image', 'mc.link', 'mc.desc')
-            ->where('est.events_id', 13)
+            ->where('est.events_id', 14)
             ->where('est.type', 'charging')
             ->orderBy('mc.sort', 'asc')
             ->get();
@@ -93,7 +93,7 @@ class SponsorsService implements SponsorRepositoryInterface
         $sponsor = DB::table('events_sponsors_temporary as est')
             ->join('md_knowledge_partner as mkp', 'mkp.id', '=', 'est.md_sponsor_id')
             ->select('mkp.id', 'mkp.name', 'mkp.image', 'mkp.link', 'mkp.desc')
-            ->where('est.events_id', 13)
+            ->where('est.events_id', 14)
             ->where('est.type', 'knowledge')
             ->orderBy('mkp.sort', 'asc')
             ->get();
@@ -111,7 +111,7 @@ class SponsorsService implements SponsorRepositoryInterface
         $sponsor = DB::table('events_sponsors_temporary as est')
             ->join('md_registration as mr', 'mr.id', '=', 'est.md_sponsor_id')
             ->select('mr.id', 'mr.name', 'mr.image', 'mr.link', 'mr.desc')
-            ->where('est.events_id', 13)
+            ->where('est.events_id', 14)
             ->where('est.type', 'registration')
             ->orderBy('mr.sort', 'asc')
             ->get();
@@ -129,7 +129,7 @@ class SponsorsService implements SponsorRepositoryInterface
         $sponsor = DB::table('events_sponsors_temporary as est')
             ->join('md_lunch as ml', 'ml.id', '=', 'est.md_sponsor_id')
             ->select('ml.id', 'ml.name', 'ml.image', 'ml.link', 'ml.desc')
-            ->where('est.events_id', 13)
+            ->where('est.events_id', 14)
             ->where('est.type', 'lunch')
             ->orderBy('ml.sort', 'asc')
             ->get();
