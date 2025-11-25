@@ -171,8 +171,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_medical.image',
                 'md_medical.link'
             )
-            ->where('status', 'show')
-            ->orderBy('md_medical.sort', 'asc')
+            ->where('status3', 'show')
+            ->orderBy('md_medical.sort3', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
             $row->name = 'Medical PARTNERS';
@@ -191,8 +191,8 @@ class SponsorsService implements SponsorRepositoryInterface
                 'md_association.image',
                 'md_association.link'
             )
-            ->where('status', 'show')
-            ->orderBy('md_association.sort', 'asc')
+            ->where('status3', 'show')
+            ->orderBy('md_association.sort3', 'asc')
             ->get();
         foreach ($sponsor as $x => $row) {
             $row->name = 'Media PARTNERS';
