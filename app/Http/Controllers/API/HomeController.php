@@ -159,7 +159,7 @@ class HomeController extends Controller
         $findCompany = $this->companyService->getCompanyBySlug($slug);
         if ($findCompany) {
             $findContact = $this->companyService->getListContactById($findCompany->id);
-            self::countVisitPage('Company', 'In Apps', null, $findCompany->id, 11, $id);
+            self::countVisitPage('Company', 'In Apps', null, $findCompany->id, 14, $id);
             $data = [
                 'company' => $findCompany,
                 'contact' => $findContact
@@ -198,9 +198,9 @@ class HomeController extends Controller
             self::countVisitEvents($event->id, $id);
             $data = [
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
-                'show_restriction' => $event->status_event == 'on' ? true : false,
+                'show_restriction' => $event->status_event == 'on' ? false : true,
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
-                'networking' => false,
+                'networking' => true,
                 'inbox' => $access,
                 'floor_plan' => false,
                 'schedule' => false,
