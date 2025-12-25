@@ -15,6 +15,7 @@ use App\Http\Controllers\API\InsightController;
 use App\Http\Controllers\API\MiningDirectoryController;
 use App\Http\Controllers\API\MsPrefixController;
 use App\Http\Controllers\API\NetworkingController;
+use App\Http\Controllers\API\NetworkingV2Controller;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\ScheduleController;
@@ -126,6 +127,19 @@ Route::post('/networking', [NetworkingController::class, 'index']);
 Route::post('/networking/detail', [NetworkingController::class, 'detail']);
 Route::post('/networking/getRoom', [NetworkingController::class, 'createRoom']);
 Route::post('/networking/ai/room', [AiController::class, 'roomChat']);
+Route::prefix('networking-v2')->group(function () {
+    // Swipe Cards
+    Route::get('/cards', [NetworkingV2Controller::class, 'cards']);
+    Route::post('/swipe', [NetworkingV2Controller::class, 'swipe']);
+    // Request Connection
+    Route::post('/request', [NetworkingV2Controller::class, 'sendRequest']);
+    Route::get('/requests', [NetworkingV2Controller::class, 'requestInbox']);
+    Route::post('/request/{id}/action', [NetworkingV2Controller::class, 'actionRequest']);
+    // Connections
+    Route::get('/connections', [NetworkingV2Controller::class, 'connections']);
+    // Meeting Table
+    Route::post('/meeting-table', [NetworkingV2Controller::class, 'requestMeeting']);
+});
 
 Route::post('/inbox', [InboxController::class, 'index']);
 // Route::post('/inbox/v2', [InboxController::class, 'index2']);
