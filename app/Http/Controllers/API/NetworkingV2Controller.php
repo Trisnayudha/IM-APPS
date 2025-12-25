@@ -120,7 +120,7 @@ class NetworkingV2Controller extends Controller
         $userId = auth('sanctum')->id();
         $event = $this->eventService->getLastEvent();
 
-        DB::table('networking_request')->insertOrIgnore([
+        DB::table('networking_requests')->insertOrIgnore([
             'requester_id' => $userId,
             'target_id' => $request->target_id,
             'events_id' => $event->id,
@@ -145,16 +145,16 @@ class NetworkingV2Controller extends Controller
     {
         $userId = auth('sanctum')->id();
 
-        $requests = DB::table('networking_request')
-            ->join('users', 'users.id', '=', 'networking_request.requester_id')
-            ->where('networking_request.target_id', $userId)
-            ->where('networking_request.status', 'pending')
+        $requests = DB::table('networking_requests')
+            ->join('users', 'users.id', '=', 'networking_requests.requester_id')
+            ->where('networking_requests.target_id', $userId)
+            ->where('networking_requests.status', 'pending')
             ->select(
-                'networking_request.id',
+                'networking_requests.id',
                 'users.name',
                 'users.company_name',
                 'users.image_users',
-                'networking_request.message'
+                'networking_requests.message'
             )
             ->get();
 
@@ -175,7 +175,7 @@ class NetworkingV2Controller extends Controller
 
         $userId = auth('sanctum')->id();
 
-        $req = DB::table('networking_request')
+        $req = DB::table('networking_requests')
             ->where('id', $id)
             ->where('target_id', $userId)
             ->first();
@@ -184,7 +184,7 @@ class NetworkingV2Controller extends Controller
             return response()->json(['status' => 404, 'message' => 'Request not found']);
         }
 
-        DB::table('networking_request')
+        DB::table('networking_requests')
             ->where('id', $id)
             ->update([
                 'status' => $request->action,
@@ -217,15 +217,15 @@ class NetworkingV2Controller extends Controller
     {
         $userId = auth('sanctum')->id();
 
-        $connections = DB::table('networking_request')
+        $connections = DB::table('networking_requests')
             ->join('users', function ($join) use ($userId) {
-                $join->on('users.id', '=', 'networking_request.requester_id')
-                    ->orOn('users.id', '=', 'networking_request.target_id');
+                $join->on('users.id', '=', 'networking_requests.requester_id')
+                    ->orOn('users.id', '=', 'networking_requests.target_id');
             })
-            ->where('networking_request.status', 'accepted')
+            ->where('networking_requests.status', 'accepted')
             ->where(function ($q) use ($userId) {
-                $q->where('networking_request.requester_id', $userId)
-                    ->orWhere('networking_request.target_id', $userId);
+                $q->where('networking_requests.requester_id', $userId)
+                    ->orWhere('networking_requests.target_id', $userId);
             })
             ->where('users.id', '<>', $userId)
             ->select('users.id', 'users.name', 'users.company_name', 'users.image_users')
