@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateNetworkingSwapsTable extends Migration
 {
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up()
     {
         Schema::create('networking_swaps', function (Blueprint $table) {

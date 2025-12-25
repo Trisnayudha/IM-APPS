@@ -4,20 +4,25 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateNetworkingMeetingTable extends Migration
+class CreateNetworkingRequestsTable extends Migration
 {
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up()
     {
-        Schema::create('networking_meeting_table', function (Blueprint $table) {
+        Schema::create('networking_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('requester_id');
             $table->unsignedBigInteger('target_id');
             $table->unsignedBigInteger('events_id');
-            $table->dateTime('schedule_date')->nullable();
-            $table->integer('table_number')->nullable();
-            $table->enum('status', ['pending', 'accepted', 'declined', 'completed'])->default('pending');
-            $table->text('note')->nullable();
+            $table->text('message')->nullable();
+            $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->timestamps();
+
+            $table->unique(['requester_id', 'target_id', 'events_id'], 'uniq_networking_request');
 
             $table->foreign('requester_id')->references('id')->on('users')->cascadeOnDelete();
             $table->foreign('target_id')->references('id')->on('users')->cascadeOnDelete();
@@ -27,6 +32,6 @@ class CreateNetworkingMeetingTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('networking_meeting_table');
+        Schema::dropIfExists('networking_requests');
     }
 }

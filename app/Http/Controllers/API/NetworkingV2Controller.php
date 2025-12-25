@@ -70,7 +70,7 @@ class NetworkingV2Controller extends Controller
         $event = $this->eventService->getLastEvent();
 
         // quota check (only non-paid)
-        $quota = DB::table('networking_quota')
+        $quota = DB::table('networking_quotas')
             ->where('users_id', $userId)
             ->where('events_id', $event->id)
             ->first();
@@ -96,7 +96,7 @@ class NetworkingV2Controller extends Controller
         );
 
         if ($quota) {
-            DB::table('networking_quota')
+            DB::table('networking_quotas')
                 ->where('id', $quota->id)
                 ->increment('used_quota');
         }
