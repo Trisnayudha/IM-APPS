@@ -22,9 +22,14 @@ class NetworkingV2Controller extends Controller
      */
     public function cards(Request $request)
     {
+        $response = [];
+
         $userId = auth('sanctum')->id();
         if (!$userId) {
-            return response()->json(['status' => 401, 'message' => 'Unauthorized']);
+            $response['status']  = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = [];
+            return response()->json($response, 401);
         }
 
         $event = $this->eventService->getLastEvent();
@@ -35,7 +40,9 @@ class NetworkingV2Controller extends Controller
             ->where('events_id', $event->id)
             ->pluck('target_id');
 
-        $cards = DB::table('users_delegate')
+        $perPage = $request->get('per_page', 10);
+
+        $data = DB::table('users_delegate')
             ->join('users', 'users.id', '=', 'users_delegate.users_id')
             ->where('users_delegate.events_id', $event->id)
             ->where('users.id', '<>', $userId)
@@ -47,26 +54,45 @@ class NetworkingV2Controller extends Controller
                 'users.company_name',
                 'users.image_users'
             )
-            ->limit(10)
-            ->get();
+            ->orderBy('users.id')
+            ->paginate($perPage);
 
-        return response()->json([
-            'status' => 200,
-            'payload' => $cards
-        ]);
+        $response['status']  = 200;
+        $response['message'] = 'Show data networking successfully';
+        $response['payload'] = [
+            'data' => $data->items(),
+            'pagination' => [
+                'current_page' => $data->currentPage(),
+                'last_page'    => $data->lastPage(),
+                'per_page'     => $data->perPage(),
+                'total'        => $data->total(),
+            ]
+        ];
+
+        return response()->json($response);
     }
+
 
     /**
      * POST Swipe
      */
     public function swipe(Request $request)
     {
+        $response = [];
+
         $request->validate([
             'target_id' => 'required|integer',
             'direction' => 'required|in:left,right'
         ]);
 
         $userId = auth('sanctum')->id();
+        if (!$userId) {
+            $response['status']  = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = [];
+            return response()->json($response, 401);
+        }
+
         $event = $this->eventService->getLastEvent();
 
         // quota check (only non-paid)
@@ -76,20 +102,20 @@ class NetworkingV2Controller extends Controller
             ->first();
 
         if ($quota && $quota->used_quota >= $quota->total_quota) {
-            return response()->json([
-                'status' => 403,
-                'message' => 'Swap quota exceeded'
-            ]);
+            $response['status']  = 403;
+            $response['message'] = 'Swap quota exceeded';
+            $response['payload'] = [];
+            return response()->json($response, 403);
         }
 
         DB::table('networking_swaps')->updateOrInsert(
             [
-                'users_id' => $userId,
+                'users_id'  => $userId,
                 'target_id' => $request->target_id,
                 'events_id' => $event->id,
             ],
             [
-                'direction' => $request->direction,
+                'direction'  => $request->direction,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
@@ -101,51 +127,80 @@ class NetworkingV2Controller extends Controller
                 ->increment('used_quota');
         }
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Swiped ' . $request->direction
-        ]);
+        $response['status']  = 200;
+        $response['message'] = 'Swiped ' . $request->direction . ' successfully';
+        $response['payload'] = [
+            'target_id' => $request->target_id,
+            'direction' => $request->direction
+        ];
+
+        return response()->json($response);
     }
+
 
     /**
      * POST Send Request Connection
      */
     public function sendRequest(Request $request)
     {
+        $response = [];
+
         $request->validate([
             'target_id' => 'required|integer',
-            'message' => 'nullable|string'
+            'message'   => 'nullable|string'
         ]);
 
         $userId = auth('sanctum')->id();
+        if (!$userId) {
+            $response['status']  = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = [];
+            return response()->json($response, 401);
+        }
+
         $event = $this->eventService->getLastEvent();
 
         DB::table('networking_requests')->insertOrIgnore([
             'requester_id' => $userId,
-            'target_id' => $request->target_id,
-            'events_id' => $event->id,
-            'message' => $request->message,
-            'status' => 'pending',
-            'created_at' => now(),
-            'updated_at' => now(),
+            'target_id'    => $request->target_id,
+            'events_id'    => $event->id,
+            'message'      => $request->message,
+            'status'       => 'pending',
+            'created_at'   => now(),
+            'updated_at'   => now(),
         ]);
 
         // 👉 trigger email / push notif here
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Request sent'
-        ]);
+        $response['status']  = 200;
+        $response['message'] = 'Request sent successfully';
+        $response['payload'] = [
+            'target_id' => $request->target_id,
+            'status'    => 'pending'
+        ];
+
+        return response()->json($response);
     }
+
 
     /**
      * GET Request Inbox
      */
-    public function requestInbox()
+    public function requestInbox(Request $request)
     {
-        $userId = auth('sanctum')->id();
+        $response = [];
 
-        $requests = DB::table('networking_requests')
+        $userId = auth('sanctum')->id();
+        if (!$userId) {
+            $response['status']  = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = [];
+            return response()->json($response, 401);
+        }
+
+        $perPage = $request->get('per_page', 10);
+
+        $data = DB::table('networking_requests')
             ->join('users', 'users.id', '=', 'networking_requests.requester_id')
             ->where('networking_requests.target_id', $userId)
             ->where('networking_requests.status', 'pending')
@@ -154,26 +209,46 @@ class NetworkingV2Controller extends Controller
                 'users.name',
                 'users.company_name',
                 'users.image_users',
-                'networking_requests.message'
+                'networking_requests.message',
+                'networking_requests.created_at'
             )
-            ->get();
+            ->orderBy('networking_requests.created_at', 'desc')
+            ->paginate($perPage);
 
-        return response()->json([
-            'status' => 200,
-            'payload' => $requests
-        ]);
+        $response['status']  = 200;
+        $response['message'] = 'Show inbox request successfully';
+        $response['payload'] = [
+            'data' => $data->items(),
+            'pagination' => [
+                'current_page' => $data->currentPage(),
+                'last_page'    => $data->lastPage(),
+                'per_page'     => $data->perPage(),
+                'total'        => $data->total(),
+            ]
+        ];
+
+        return response()->json($response);
     }
+
 
     /**
      * POST Accept / Decline Request
      */
     public function actionRequest(Request $request, $id)
     {
+        $response = [];
+
         $request->validate([
             'action' => 'required|in:accepted,declined'
         ]);
 
         $userId = auth('sanctum')->id();
+        if (!$userId) {
+            $response['status']  = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = [];
+            return response()->json($response, 401);
+        }
 
         $req = DB::table('networking_requests')
             ->where('id', $id)
@@ -181,15 +256,20 @@ class NetworkingV2Controller extends Controller
             ->first();
 
         if (!$req) {
-            return response()->json(['status' => 404, 'message' => 'Request not found']);
+            $response['status']  = 404;
+            $response['message'] = 'Request not found';
+            $response['payload'] = [];
+            return response()->json($response, 404);
         }
 
         DB::table('networking_requests')
             ->where('id', $id)
             ->update([
-                'status' => $request->action,
+                'status'     => $request->action,
                 'updated_at' => now()
             ]);
+
+        $payload = [];
 
         // auto create chat if accepted
         if ($request->action === 'accepted') {
@@ -199,71 +279,132 @@ class NetworkingV2Controller extends Controller
             ]);
 
             DB::table('users_chat_users')->insert([
-                ['users_chat_id' => $chatId, 'users_id' => $req->requester_id, 'target_id' => $req->target_id, 'created_at' => now()],
-                ['users_chat_id' => $chatId, 'users_id' => $req->target_id, 'target_id' => $req->requester_id, 'created_at' => now()],
+                [
+                    'users_chat_id' => $chatId,
+                    'users_id'      => $req->requester_id,
+                    'target_id'     => $req->target_id,
+                    'created_at'    => now()
+                ],
+                [
+                    'users_chat_id' => $chatId,
+                    'users_id'      => $req->target_id,
+                    'target_id'     => $req->requester_id,
+                    'created_at'    => now()
+                ],
             ]);
+
+            $payload = [
+                'chat_id' => $chatId,
+                'status'  => 'accepted'
+            ];
+        } else {
+            $payload = [
+                'status' => 'declined'
+            ];
         }
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Request ' . $request->action
-        ]);
+        $response['status']  = 200;
+        $response['message'] = 'Request ' . $request->action . ' successfully';
+        $response['payload'] = $payload;
+
+        return response()->json($response);
     }
+
 
     /**
      * GET Connected Users
      */
-    public function connections()
+    public function connections(Request $request)
     {
+        $response = [];
+
         $userId = auth('sanctum')->id();
+        if (!$userId) {
+            $response['status']  = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = [];
+            return response()->json($response, 401);
+        }
 
-        $connections = DB::table('networking_requests')
-            ->join('users', function ($join) use ($userId) {
-                $join->on('users.id', '=', 'networking_requests.requester_id')
-                    ->orOn('users.id', '=', 'networking_requests.target_id');
+        $perPage = $request->get('per_page', 10);
+
+        $data = DB::table('networking_requests as nr')
+            ->join('users as u', function ($join) use ($userId) {
+                $join->on('u.id', '=', 'nr.requester_id')
+                    ->orOn('u.id', '=', 'nr.target_id');
             })
-            ->where('networking_requests.status', 'accepted')
+            ->where('nr.status', 'accepted')
             ->where(function ($q) use ($userId) {
-                $q->where('networking_requests.requester_id', $userId)
-                    ->orWhere('networking_requests.target_id', $userId);
+                $q->where('nr.requester_id', $userId)
+                    ->orWhere('nr.target_id', $userId);
             })
-            ->where('users.id', '<>', $userId)
-            ->select('users.id', 'users.name', 'users.company_name', 'users.image_users')
+            ->where('u.id', '<>', $userId)
+            ->select(
+                'u.id',
+                'u.name',
+                'u.company_name',
+                'u.image_users'
+            )
             ->distinct()
-            ->get();
+            ->orderBy('u.name')
+            ->paginate($perPage);
 
-        return response()->json([
-            'status' => 200,
-            'payload' => $connections
-        ]);
+        $response['status']  = 200;
+        $response['message'] = 'Show connections successfully';
+        $response['payload'] = [
+            'data' => $data->items(),
+            'pagination' => [
+                'current_page' => $data->currentPage(),
+                'last_page'    => $data->lastPage(),
+                'per_page'     => $data->perPage(),
+                'total'        => $data->total(),
+            ]
+        ];
+
+        return response()->json($response);
     }
+
 
     /**
      * POST Request Meeting Table
      */
     public function requestMeeting(Request $request)
     {
+        $response = [];
+
         $request->validate([
-            'target_id' => 'required|integer',
-            'schedule_date' => 'required|date'
+            'target_id'      => 'required|integer',
+            'schedule_date'  => 'required|date'
         ]);
 
         $userId = auth('sanctum')->id();
+        if (!$userId) {
+            $response['status']  = 401;
+            $response['message'] = 'Unauthorized';
+            $response['payload'] = [];
+            return response()->json($response, 401);
+        }
+
         $event = $this->eventService->getLastEvent();
 
         DB::table('networking_meeting_table')->insert([
-            'requester_id' => $userId,
-            'target_id' => $request->target_id,
-            'events_id' => $event->id,
+            'requester_id'  => $userId,
+            'target_id'     => $request->target_id,
+            'events_id'     => $event->id,
             'schedule_date' => Carbon::parse($request->schedule_date),
-            'status' => 'pending',
-            'created_at' => now(),
-            'updated_at' => now(),
+            'status'        => 'pending',
+            'created_at'    => now(),
+            'updated_at'    => now(),
         ]);
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Meeting request sent'
-        ]);
+        $response['status']  = 200;
+        $response['message'] = 'Meeting request sent successfully';
+        $response['payload'] = [
+            'target_id'     => $request->target_id,
+            'schedule_date' => Carbon::parse($request->schedule_date)->toDateTimeString(),
+            'status'        => 'pending'
+        ];
+
+        return response()->json($response);
     }
 }

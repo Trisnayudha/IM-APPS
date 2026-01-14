@@ -88,7 +88,7 @@ class HomeController extends Controller
                     'data' => $registration,
                 ],
                 [
-                    'name' => 'LANDYARD & BADGES SPONSOR',
+                    'name' => 'LANYARD & BADGES SPONSOR',
                     'type' => 'landyard',
                     'data' => $landyark
                 ],
