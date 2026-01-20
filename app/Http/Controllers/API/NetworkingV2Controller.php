@@ -429,12 +429,12 @@ class NetworkingV2Controller extends Controller
          * USER BAYAR (UNLIMITED)
          * =========================
          */
-        if ($payment && strtolower($payment->status) !== 'Free') {
+        if ($payment && $payment->status !== 'Free') {
             return response()->json([
                 'status' => 200,
                 'message' => 'User quota info',
                 'payload' => [
-                    'type' => 'Bayar',
+                    'type' => 'PAID',
                     'remaining_connect' => null,
                     'total_connect_avail' => null
                 ]
@@ -492,7 +492,7 @@ class NetworkingV2Controller extends Controller
             'status' => 200,
             'message' => 'User quota info',
             'payload' => [
-                'type' => 'Gratis',
+                'type' => 'GUEST',
                 'remaining_connect' => max(0, $total - $used),
                 'total_connect_avail' => $total
             ]
