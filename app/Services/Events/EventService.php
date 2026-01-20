@@ -37,7 +37,7 @@ class EventService implements EventRepositoryInterface
             ->where('payment.events_id', $events_id)
             ->where('payment.aproval_quota_users', 1)
             ->whereIn('payment.status', ['Free', 'Paid Off'])
-            ->select('payment.qr_code', 'events_tickets.type as package')->first();
+            ->select('payment.qr_code', 'events_tickets.type as package', 'payment.status')->first();
     }
 
     public function listAll($events_id, $date, $limit = 3, $status)
