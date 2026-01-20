@@ -129,6 +129,8 @@ Route::post('/networking/getRoom', [NetworkingController::class, 'createRoom']);
 Route::post('/networking/ai/room', [AiController::class, 'roomChat']);
 Route::prefix('networking-v2')->group(function () {
     // Swipe Cards
+    Route::get('quota', [NetworkingV2Controller::class, 'quota']);
+
     Route::get('/cards', [NetworkingV2Controller::class, 'cards']);
     Route::post('/swipe', [NetworkingV2Controller::class, 'swipe']);
     // Request Connection

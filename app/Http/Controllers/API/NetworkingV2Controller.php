@@ -407,4 +407,95 @@ class NetworkingV2Controller extends Controller
 
         return response()->json($response);
     }
+
+    public function quota(Request $request)
+    {
+        $userId = auth('sanctum')->id();
+        if (!$userId) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'Unauthorized',
+                'payload' => null
+            ], 401);
+        }
+
+        $event = $this->eventService->getLastEvent();
+
+        // 🔑 single source of truth
+        $payment = $this->eventService->getCheckPayment($userId, $event->id);
+
+        /**
+         * =========================
+         * USER BAYAR (UNLIMITED)
+         * =========================
+         */
+        if ($payment && strtolower($payment->package) !== 'free') {
+            return response()->json([
+                'status' => 200,
+                'message' => 'User quota info',
+                'payload' => [
+                    'type' => 'Bayar',
+                    'remaining_connect' => null,
+                    'total_connect_avail' => null
+                ]
+            ]);
+        }
+
+        /**
+         * =========================
+         * USER GRATIS (PAKAI QUOTA)
+         * =========================
+         */
+
+        // default quota gratis
+        $defaultQuota = 5;
+        $today = now()->toDateString();
+
+        // init quota kalau belum ada
+        $quota = DB::table('networking_quotas')
+            ->where('users_id', $userId)
+            ->where('events_id', $event->id)
+            ->first();
+
+        if (!$quota) {
+            $quotaId = DB::table('networking_quotas')->insertGetId([
+                'users_id'     => $userId,
+                'events_id'    => $event->id,
+                'total_quota'  => $defaultQuota,
+                'used_quota'   => 0,
+                'reset_date'   => $today,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+
+            $quota = DB::table('networking_quotas')->where('id', $quotaId)->first();
+        }
+
+        // reset harian (kalau mau dipakai)
+        if ($quota->reset_date !== $today) {
+            DB::table('networking_quotas')
+                ->where('id', $quota->id)
+                ->update([
+                    'used_quota' => 0,
+                    'reset_date' => $today,
+                    'updated_at' => now()
+                ]);
+
+            $quota->used_quota = 0;
+            $quota->reset_date = $today;
+        }
+
+        $total = (int) $quota->total_quota;
+        $used  = (int) $quota->used_quota;
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'User quota info',
+            'payload' => [
+                'type' => 'Gratis',
+                'remaining_connect' => max(0, $total - $used),
+                'total_connect_avail' => $total
+            ]
+        ]);
+    }
 }
