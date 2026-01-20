@@ -73,13 +73,8 @@ class NetworkingV2Controller extends Controller
     }
 
 
-    /**
-     * POST Swipe
-     */
     public function swipe(Request $request)
     {
-        $response = [];
-
         $request->validate([
             'target_id' => 'required|integer',
             'direction' => 'required|in:left,right'
@@ -87,27 +82,67 @@ class NetworkingV2Controller extends Controller
 
         $userId = auth('sanctum')->id();
         if (!$userId) {
-            $response['status']  = 401;
-            $response['message'] = 'Unauthorized';
-            $response['payload'] = [];
-            return response()->json($response, 401);
+            return response()->json([
+                'status'  => 401,
+                'message' => 'Unauthorized',
+                'payload' => []
+            ], 401);
         }
 
         $event = $this->eventService->getLastEvent();
 
-        // quota check (only non-paid)
-        $quota = DB::table('networking_quotas')
-            ->where('users_id', $userId)
-            ->where('events_id', $event->id)
-            ->first();
+        // 🔑 Single source of truth: payment
+        $payment = $this->eventService->getCheckPayment($userId, $event->id);
 
-        if ($quota && $quota->used_quota >= $quota->total_quota) {
-            $response['status']  = 403;
-            $response['message'] = 'Swap quota exceeded';
-            $response['payload'] = [];
-            return response()->json($response, 403);
+        $isFreeUser = (!$payment || strtolower($payment->package) === 'free');
+
+        /**
+         * ==================================================
+         * QUOTA CHECK
+         * - HANYA user GRATIS
+         * - HANYA swipe KANAN
+         * ==================================================
+         */
+        $quota = null;
+
+        if ($isFreeUser && $request->direction === 'right') {
+
+            // ambil / init quota
+            $quota = DB::table('networking_quotas')
+                ->where('users_id', $userId)
+                ->where('events_id', $event->id)
+                ->first();
+
+            if (!$quota) {
+                // init default quota gratis
+                $quotaId = DB::table('networking_quotas')->insertGetId([
+                    'users_id'     => $userId,
+                    'events_id'    => $event->id,
+                    'total_quota'  => 5, // default swipe gratis
+                    'used_quota'   => 0,
+                    'reset_date'   => now()->toDateString(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+
+                $quota = DB::table('networking_quotas')->where('id', $quotaId)->first();
+            }
+
+            // safety check
+            if ($quota->used_quota >= $quota->total_quota) {
+                return response()->json([
+                    'status'  => 403,
+                    'message' => 'Swap quota exceeded',
+                    'payload' => []
+                ], 403);
+            }
         }
 
+        /**
+         * =========================
+         * SAVE SWIPE (LEFT / RIGHT)
+         * =========================
+         */
         DB::table('networking_swaps')->updateOrInsert(
             [
                 'users_id'  => $userId,
@@ -121,21 +156,30 @@ class NetworkingV2Controller extends Controller
             ]
         );
 
-        if ($quota) {
+        /**
+         * =========================
+         * CONSUME QUOTA
+         * - HANYA GRATIS
+         * - HANYA RIGHT
+         * =========================
+         */
+        if ($isFreeUser && $request->direction === 'right') {
             DB::table('networking_quotas')
                 ->where('id', $quota->id)
                 ->increment('used_quota');
         }
 
-        $response['status']  = 200;
-        $response['message'] = 'Swiped ' . $request->direction . ' successfully';
-        $response['payload'] = [
-            'target_id' => $request->target_id,
-            'direction' => $request->direction
-        ];
-
-        return response()->json($response);
+        return response()->json([
+            'status'  => 200,
+            'message' => 'Swiped ' . $request->direction . ' successfully',
+            'payload' => [
+                'target_id' => $request->target_id,
+                'direction' => $request->direction,
+                'quota_consumed' => ($isFreeUser && $request->direction === 'right')
+            ]
+        ]);
     }
+
 
 
     /**
