@@ -9,6 +9,7 @@ use App\Traits\Events;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class NetworkingController extends Controller
 {
@@ -41,31 +42,57 @@ class NetworkingController extends Controller
         return response()->json($response);
     }
 
-
     public function detail(Request $request)
     {
-        $id =  auth('sanctum')->user()->id ?? null;
-        $users_id = $request->users_id;
-        if ($id) {
-            $profile = $this->networkingService->detailDelegate($users_id);
-            self::countVisitNetworking(13, $id, $users_id);
-            if ($profile) {
-                $response['status'] = 200;
-                $response['message'] = 'Show detail delegate';
-                $response['payload'] = $profile;
-            } else {
-                $response['status'] = 404;
-                $response['message'] = 'Detail Not Found';
-                $response['payload'] = null;
-            }
-        } else {
-            $response['status'] = 401;
-            $response['message'] = 'Unauthorized';
-            $response['payload'] = null;
+        $authUser = auth('sanctum')->user();
+
+        // cek login
+        if (!$authUser) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'Unauthorized',
+                'payload' => null
+            ], 401);
         }
-        return response()->json($response);
-        //
+
+        // validasi users_id wajib
+        $validator = Validator::make($request->all(), [
+            'users_id' => 'required|integer'
+        ], [
+            'users_id.required' => 'users_id wajib di isi',
+            'users_id.integer' => 'users_id harus berupa angka'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Validation error',
+                'payload' => $validator->errors()
+            ], 422);
+        }
+
+        $users_id = $request->users_id;
+        $id = $authUser->id;
+
+        $profile = $this->networkingService->detailDelegate($users_id);
+
+        if (!$profile) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Detail Not Found',
+                'payload' => null
+            ], 404);
+        }
+
+        self::countVisitNetworking(14, $id, $users_id);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Show detail delegate',
+            'payload' => $profile
+        ], 200);
     }
+
 
     public function createRoom(Request $request)
     {
