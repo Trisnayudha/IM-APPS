@@ -429,7 +429,7 @@ class NetworkingV2Controller extends Controller
          * USER BAYAR (UNLIMITED)
          * =========================
          */
-        if ($payment && strtolower($payment->package) !== 'free') {
+        if ($payment && strtolower($payment->package) !== 'Free') {
             return response()->json([
                 'status' => 200,
                 'message' => 'User quota info',
