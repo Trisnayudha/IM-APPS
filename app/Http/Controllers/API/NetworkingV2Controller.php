@@ -236,10 +236,11 @@ class NetworkingV2Controller extends Controller
 
         $userId = auth('sanctum')->id();
         if (!$userId) {
-            $response['status']  = 401;
-            $response['message'] = 'Unauthorized';
-            $response['payload'] = [];
-            return response()->json($response, 401);
+            return response()->json([
+                'status'  => 401,
+                'message' => 'Unauthorized',
+                'payload' => []
+            ], 401);
         }
 
         $perPage = $request->get('per_page', 10);
@@ -250,11 +251,12 @@ class NetworkingV2Controller extends Controller
             ->where('networking_requests.status', 'pending')
             ->select(
                 'networking_requests.id',
-                'users.name',
-                'users.company_name',
-                'users.image_users',
-                'networking_requests.message',
-                'networking_requests.created_at'
+                'networking_requests.requester_id as users_id',
+                'networking_requests.events_id',
+                'users.name as users_name',
+                'users.job_title as users_job_title',
+                'users.company_name as users_company_name',
+                'users.image_users'
             )
             ->orderBy('networking_requests.created_at', 'desc')
             ->paginate($perPage);
@@ -273,6 +275,7 @@ class NetworkingV2Controller extends Controller
 
         return response()->json($response);
     }
+
 
 
     /**
