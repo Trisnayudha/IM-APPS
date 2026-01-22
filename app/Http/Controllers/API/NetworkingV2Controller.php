@@ -523,7 +523,7 @@ class NetworkingV2Controller extends Controller
         $userId = auth('sanctum')->id();
         if (!$userId) {
             return response()->json([
-                'status' => 401,
+                'status'  => 401,
                 'message' => 'Unauthorized',
                 'payload' => null
             ], 401);
@@ -531,79 +531,67 @@ class NetworkingV2Controller extends Controller
 
         $event = $this->eventService->getLastEvent();
 
-        // 🔑 single source of truth
+        /**
+         * =========================
+         * SINGLE SOURCE OF TRUTH
+         * (HARUS SAMA DENGAN swipe())
+         * =========================
+         */
         $payment = $this->eventService->getCheckPayment($userId, $event->id);
+        $isFreeUser = (!$payment || strtolower($payment->package) === 'free');
 
         /**
          * =========================
-         * USER BAYAR (UNLIMITED)
+         * USER PAID → UNLIMITED
          * =========================
          */
-        if ($payment && $payment->status !== 'Free') {
+        if (!$isFreeUser) {
             return response()->json([
-                'status' => 200,
+                'status'  => 200,
                 'message' => 'User quota info',
                 'payload' => [
-                    'type' => 'PAID',
-                    'remaining_connect' => null,
-                    'total_connect_avail' => null
+                    'type'                  => 'PAID',
+                    'remaining_connect'     => null,
+                    'total_connect_avail'   => null
                 ]
             ]);
         }
 
         /**
          * =========================
-         * USER GRATIS (PAKAI QUOTA)
+         * USER FREE → QUOTA BASED
          * =========================
          */
-
-        // default quota gratis
         $defaultQuota = 5;
-        $today = now()->toDateString();
 
-        // init quota kalau belum ada
+        // READ ONLY — TIDAK RESET / TIDAK UPDATE
         $quota = DB::table('networking_quotas')
             ->where('users_id', $userId)
             ->where('events_id', $event->id)
             ->first();
 
+        // kalau belum pernah swipe sama sekali
         if (!$quota) {
-            $quotaId = DB::table('networking_quotas')->insertGetId([
-                'users_id'     => $userId,
-                'events_id'    => $event->id,
-                'total_quota'  => $defaultQuota,
-                'used_quota'   => 0,
-                'reset_date'   => $today,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+            return response()->json([
+                'status'  => 200,
+                'message' => 'User quota info',
+                'payload' => [
+                    'type'                => 'GUEST',
+                    'remaining_connect'   => $defaultQuota,
+                    'total_connect_avail' => $defaultQuota
+                ]
             ]);
-
-            $quota = DB::table('networking_quotas')->where('id', $quotaId)->first();
-        }
-
-        // reset harian (kalau mau dipakai)
-        if ($quota->reset_date !== $today) {
-            DB::table('networking_quotas')
-                ->where('id', $quota->id)
-                ->update([
-                    'used_quota' => 0,
-                    'reset_date' => $today,
-                    'updated_at' => now()
-                ]);
-
-            $quota->used_quota = 0;
-            $quota->reset_date = $today;
         }
 
         $total = (int) $quota->total_quota;
         $used  = (int) $quota->used_quota;
 
         return response()->json([
-            'status' => 200,
+            'status'  => 200,
             'message' => 'User quota info',
             'payload' => [
-                'type' => 'GUEST',
-                'remaining_connect' => max(0, $total - $used),
+                'type'                => 'GUEST',
+                'remaining_connect'   => max(0, $total - $used),
                 'total_connect_avail' => $total
             ]
         ]);
