@@ -55,11 +55,51 @@ class NetworkingService implements NetworkingRepositoryInterface
 
     public function detailDelegate($users_id)
     {
-        $data = User::where('id', $users_id)->first();
-        $events_id = DB::table('events')->orderBy('id', 'desc')->first();
-        $data->isBookmark = self::isBookmark('Networking', $data->id, $events_id->id);
-        return $data;
+        $user = User::select(
+            'id',
+            'name',
+            'image_users',
+            'job_title',
+            'company_name',
+            'company_logo',
+            'bio_desc'
+        )
+            ->where('id', $users_id)
+            ->firstOrFail();
+
+        $event = DB::table('events')->orderBy('id', 'desc')->first();
+
+        $isBookmark = self::isBookmark(
+            'Networking',
+            $user->id,
+            $event->id
+        );
+
+        $isConnected = DB::table('networking_requests')
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($users_id) {
+                $q->where('requester_id', auth('sanctum')->id())
+                    ->where('target_id', $users_id);
+            })
+            ->orWhere(function ($q) use ($users_id) {
+                $q->where('requester_id', $users_id)
+                    ->where('target_id', auth('sanctum')->id());
+            })
+            ->exists() ? 1 : 0;
+
+        return [
+            'id'            => $user->id,
+            'name'          => $user->name,
+            'image_users'   => $user->image_users,
+            'job_title'     => $user->job_title,
+            'company_name'  => $user->company_name,
+            'company_logo'  => $user->company_logo,
+            'bio_desc'      => $user->bio_desc,
+            'isBookmark'    => $isBookmark ? 1 : 0,
+            'isConnected'   => $isConnected,
+        ];
     }
+
 
     public function scanUsers($codePayment)
     {
