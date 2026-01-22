@@ -484,7 +484,7 @@ class NetworkingV2Controller extends Controller
             })
             ->where('u.id', '<>', $userId)
             ->select(
-                'u.id',
+                'u.id as users_id',
                 'u.name as users_name',
                 'u.job_title as users_job_title',
                 'u.company_name as users_company_name',
