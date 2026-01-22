@@ -538,7 +538,7 @@ class NetworkingV2Controller extends Controller
          * =========================
          */
         $payment = $this->eventService->getCheckPayment($userId, $event->id);
-        $isFreeUser = (!$payment || strtolower($payment->package) === 'free');
+        $isFreeUser = (!$payment || strtolower($payment->package) === 'Free');
 
         /**
          * =========================
