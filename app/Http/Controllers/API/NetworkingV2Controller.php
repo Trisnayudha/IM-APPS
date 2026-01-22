@@ -77,7 +77,7 @@ class NetworkingV2Controller extends Controller
     {
         $request->validate([
             'target_id' => 'required|integer',
-            'direction' => 'required|in:left,right'
+            'direction' => 'required|in:left,right',
         ]);
 
         $userId = auth('sanctum')->id();
@@ -85,7 +85,7 @@ class NetworkingV2Controller extends Controller
             return response()->json([
                 'status'  => 401,
                 'message' => 'Unauthorized',
-                'payload' => []
+                'payload' => [],
             ], 401);
         }
 
@@ -100,8 +100,6 @@ class NetworkingV2Controller extends Controller
              */
             $payment = $this->eventService->getCheckPayment($userId, $event->id);
 
-            // 🔥 FINAL RULE:
-            // HANYA status == 'Free' (case-insensitive)
             $isFreeUser = (
                 $payment &&
                 trim(strtolower($payment->status)) === 'free'
@@ -131,9 +129,7 @@ class NetworkingV2Controller extends Controller
 
             /**
              * =========================================
-             * QUOTA CHECK
-             * - ONLY FREE
-             * - ONLY RIGHT
+             * QUOTA CHECK (FREE + RIGHT ONLY)
              * =========================================
              */
             $quota = null;
@@ -147,7 +143,7 @@ class NetworkingV2Controller extends Controller
                     ->lockForUpdate()
                     ->first();
 
-                // init quota kalau belum ada
+                // init quota
                 if (!$quota) {
                     $quotaId = DB::table('networking_quotas')->insertGetId([
                         'users_id'    => $userId,
@@ -172,14 +168,14 @@ class NetworkingV2Controller extends Controller
                     return response()->json([
                         'status'  => 403,
                         'message' => 'Swap quota exceeded',
-                        'payload' => []
+                        'payload' => [],
                     ], 403);
                 }
             }
 
             /**
              * =========================================
-             * SAVE SWIPE
+             * SAVE / UPDATE SWIPE
              * =========================================
              */
             DB::table('networking_swaps')->updateOrInsert(
@@ -197,24 +193,50 @@ class NetworkingV2Controller extends Controller
 
             /**
              * =========================================
-             * AUTO SEND REQUEST (RIGHT ONLY)
+             * HANDLE NETWORKING REQUEST
              * =========================================
              */
-            if ($request->direction === 'right' && !$existingRequest) {
-                DB::table('networking_requests')->insert([
-                    'requester_id' => $userId,
-                    'target_id'    => $request->target_id,
-                    'events_id'    => $event->id,
-                    'message'      => null,
-                    'status'       => 'pending',
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
-                ]);
+            $requestStatusBySwipe = [
+                'right' => 'accepted',
+                'left'  => 'declined',
+            ];
+
+            if ($existingRequest) {
+
+                // OPTIONAL: kalau tidak mau accepted bisa ditimpa
+                // if ($existingRequest->status === 'accepted') {
+                //     return response()->json([
+                //         'status'  => 409,
+                //         'message' => 'Request already accepted',
+                //         'payload' => [],
+                //     ], 409);
+                // }
+
+                DB::table('networking_requests')
+                    ->where('id', $existingRequest->id)
+                    ->update([
+                        'status'     => $requestStatusBySwipe[$request->direction],
+                        'updated_at' => now(),
+                    ]);
+            } else {
+
+                // create request hanya kalau swipe RIGHT
+                if ($request->direction === 'right') {
+                    DB::table('networking_requests')->insert([
+                        'requester_id' => $userId,
+                        'target_id'    => $request->target_id,
+                        'events_id'    => $event->id,
+                        'message'      => null,
+                        'status'       => 'pending',
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
             }
 
             /**
              * =========================================
-             * CONSUME QUOTA (FINAL)
+             * CONSUME QUOTA
              * =========================================
              */
             if ($isFreeUser && $shouldConsumeQuota && $quota) {
@@ -227,7 +249,7 @@ class NetworkingV2Controller extends Controller
 
             /**
              * =========================================
-             * RESPONSE (SAFE)
+             * RESPONSE
              * =========================================
              */
             $quotaPayload = null;
@@ -244,11 +266,13 @@ class NetworkingV2Controller extends Controller
                 'status'  => 200,
                 'message' => 'Swiped ' . $request->direction . ' successfully',
                 'payload' => [
-                    'target_id'    => $request->target_id,
-                    'direction'    => $request->direction,
-                    'request_sent' => ($request->direction === 'right' && !$existingRequest),
-                    'quota'        => $quotaPayload
-                ]
+                    'target_id'      => $request->target_id,
+                    'direction'      => $request->direction,
+                    'request_status' => $existingRequest
+                        ? $requestStatusBySwipe[$request->direction]
+                        : ($request->direction === 'right' ? 'pending' : null),
+                    'quota'          => $quotaPayload,
+                ],
             ]);
         });
     }
