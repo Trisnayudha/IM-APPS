@@ -21,37 +21,60 @@ class NetworkingService implements NetworkingRepositoryInterface
                 'users.job_title as users_job_title',
                 'users.company_name as users_company_name',
                 'users.image_users as image_users',
-                'users.email'
+                'users.email',
+                DB::raw('
+                CASE
+                    WHEN nr.id IS NOT NULL THEN 1
+                    ELSE 0
+                END as isConnected
+            ')
             )
+
             ->leftJoin('users', function ($join) {
                 $join->on('users.id', '=', 'users_delegate.users_id');
-                $join->whereNotNull('users.id');
             })
+
             ->leftJoin('events', function ($join) {
                 $join->on('events.id', '=', 'users_delegate.events_id');
-                $join->whereNotNull('events.id');
             })
+
+            ->leftJoin('networking_requests as nr', function ($join) use ($users_id, $events_id) {
+                $join->where('nr.status', 'accepted')
+                    ->where('nr.events_id', $events_id)
+                    ->where(function ($q) use ($users_id) {
+                        $q->where(function ($sub) use ($users_id) {
+                            $sub->on('nr.requester_id', '=', 'users_delegate.users_id')
+                                ->where('nr.target_id', '=', $users_id);
+                        })
+                            ->orWhere(function ($sub) use ($users_id) {
+                                $sub->on('nr.target_id', '=', 'users_delegate.users_id')
+                                    ->where('nr.requester_id', '=', $users_id);
+                            });
+                    });
+            })
+
             ->where(function ($q) use ($events_id, $search, $users_id) {
                 if ($search) {
                     $q->where(function ($subQ) use ($search) {
-                        $subQ->where('users.name', 'LIKE', '%' . $search . '%')
-                            ->orWhere('users.company_name', 'LIKE', '%' . $search . '%');
+                        $subQ->where('users.name', 'LIKE', "%{$search}%")
+                            ->orWhere('users.company_name', 'LIKE', "%{$search}%");
                     });
                 }
+
                 if ($users_id) {
                     $q->where('users_delegate.users_id', '<>', $users_id);
                 }
-                // $q->whereIn('users_delegate.payment_status', ['Free', 'Paid Off']);
+
                 if ($events_id) {
                     $q->where('users_delegate.events_id', $events_id);
                 }
+
                 $q->whereNotNull('users.name');
             })
+
             ->orderBy('users.id', 'asc')
             ->paginate($limit);
     }
-
-
 
     public function detailDelegate($users_id)
     {
