@@ -136,7 +136,7 @@ Route::prefix('networking-v2')->group(function () {
     // Request Connection
     Route::post('/request', [NetworkingV2Controller::class, 'sendRequest']);
     Route::get('/requests', [NetworkingV2Controller::class, 'requestInbox']);
-    Route::post('/request/{id}/action', [NetworkingV2Controller::class, 'actionRequest']);
+    Route::post('/request-action/{id}', [NetworkingV2Controller::class, 'actionRequest']);
     // Connections
     Route::get('/connections', [NetworkingV2Controller::class, 'connections']);
     // Meeting Table
