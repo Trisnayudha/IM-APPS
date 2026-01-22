@@ -89,160 +89,113 @@ class NetworkingV2Controller extends Controller
             ], 401);
         }
 
-        $event = $this->eventService->getLastEvent();
+        return DB::transaction(function () use ($request, $userId) {
 
-        /**
-         * =========================
-         * CHECK PAYMENT
-         * =========================
-         */
-        $payment = $this->eventService->getCheckPayment($userId, $event->id);
-        $isFreeUser = (!$payment || strtolower($payment->package) === 'free');
+            $event = $this->eventService->getLastEvent();
 
-        /**
-         * =========================
-         * EXISTING SWIPE
-         * =========================
-         */
-        $existingSwipe = DB::table('networking_swaps')
-            ->where('users_id', $userId)
-            ->where('target_id', $request->target_id)
-            ->where('events_id', $event->id)
-            ->first();
+            // ✅ FIX: Free / Off = pakai quota
+            $payment = $this->eventService->getCheckPayment($userId, $event->id);
+            $isFreeUser = (!$payment || in_array($payment->status, ['Free']));
 
-        /**
-         * =========================
-         * EXISTING REQUEST
-         * =========================
-         */
-        $existingRequest = DB::table('networking_requests')
-            ->where('requester_id', $userId)
-            ->where('target_id', $request->target_id)
-            ->where('events_id', $event->id)
-            ->first();
-
-        /**
-         * =========================
-         * QUOTA CHECK (FREE + RIGHT)
-         * =========================
-         */
-        $quota = null;
-        $shouldConsumeQuota = false;
-
-        if ($isFreeUser && $request->direction === 'right') {
-
-            $quota = DB::table('networking_quotas')
+            $existingSwipe = DB::table('networking_swaps')
                 ->where('users_id', $userId)
+                ->where('target_id', $request->target_id)
                 ->where('events_id', $event->id)
-                ->lockForUpdate()
                 ->first();
 
-            if (!$quota) {
-                $quotaId = DB::table('networking_quotas')->insertGetId([
-                    'users_id'    => $userId,
-                    'events_id'   => $event->id,
-                    'total_quota' => 5,
-                    'used_quota'  => 0,
-                    'reset_date'  => now()->toDateString(),
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
+            $existingRequest = DB::table('networking_requests')
+                ->where('requester_id', $userId)
+                ->where('target_id', $request->target_id)
+                ->where('events_id', $event->id)
+                ->first();
+
+            $quota = null;
+            $shouldConsumeQuota = false;
+
+            if ($isFreeUser && $request->direction === 'right') {
+
+                $quota = DB::table('networking_quotas')
+                    ->where('users_id', $userId)
+                    ->where('events_id', $event->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$quota) {
+                    $quotaId = DB::table('networking_quotas')->insertGetId([
+                        'users_id'    => $userId,
+                        'events_id'   => $event->id,
+                        'total_quota' => 5,
+                        'used_quota'  => 0,
+                        'reset_date'  => now()->toDateString(),
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ]);
+
+                    $quota = DB::table('networking_quotas')->where('id', $quotaId)->first();
+                }
+
+                // 👉 SWIPE KANAN SAJA YANG MAKAN QUOTA
+                if (!$existingSwipe || $existingSwipe->direction === 'left') {
+                    $shouldConsumeQuota = true;
+                }
+
+                if ($shouldConsumeQuota && $quota->used_quota >= $quota->total_quota) {
+                    return response()->json([
+                        'status'  => 403,
+                        'message' => 'Swap quota exceeded',
+                        'payload' => []
+                    ], 403);
+                }
+            }
+
+            DB::table('networking_swaps')->updateOrInsert(
+                [
+                    'users_id'  => $userId,
+                    'target_id' => $request->target_id,
+                    'events_id' => $event->id,
+                ],
+                [
+                    'direction'  => $request->direction,
+                    'created_at' => $existingSwipe ? $existingSwipe->created_at : now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            if ($request->direction === 'right' && !$existingRequest) {
+                DB::table('networking_requests')->insert([
+                    'requester_id' => $userId,
+                    'target_id'    => $request->target_id,
+                    'events_id'    => $event->id,
+                    'message'      => null,
+                    'status'       => 'pending',
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
                 ]);
-
-                $quota = DB::table('networking_quotas')->where('id', $quotaId)->first();
             }
 
-            /**
-             * =========================
-             * QUOTA LOGIC
-             * =========================
-             * - belum pernah swipe
-             * - atau dari left → right
-             */
-            if (!$existingSwipe || $existingSwipe->direction === 'left') {
-                $shouldConsumeQuota = true;
+            if ($shouldConsumeQuota) {
+                DB::table('networking_quotas')
+                    ->where('id', $quota->id)
+                    ->increment('used_quota');
+
+                $quota->used_quota++;
             }
 
-            if ($shouldConsumeQuota && $quota->used_quota >= $quota->total_quota) {
-                return response()->json([
-                    'status'  => 403,
-                    'message' => 'Swap quota exceeded',
-                    'payload' => []
-                ], 403);
-            }
-        }
-
-        /**
-         * =========================
-         * SAVE SWIPE
-         * =========================
-         */
-        DB::table('networking_swaps')->updateOrInsert(
-            [
-                'users_id'  => $userId,
-                'target_id' => $request->target_id,
-                'events_id' => $event->id,
-            ],
-            [
-                'direction'  => $request->direction,
-                'created_at' => $existingSwipe ? $existingSwipe->created_at : now(),
-                'updated_at' => now(),
-            ]
-        );
-
-        /**
-         * =========================
-         * AUTO SEND REQUEST
-         * - HANYA SWIPE RIGHT
-         * - HANYA JIKA BELUM ADA REQUEST
-         * =========================
-         */
-        if ($request->direction === 'right' && !$existingRequest) {
-            DB::table('networking_requests')->insert([
-                'requester_id' => $userId,
-                'target_id'    => $request->target_id,
-                'events_id'    => $event->id,
-                'message'      => null,
-                'status'       => 'pending',
-                'created_at'   => now(),
-                'updated_at'   => now(),
+            return response()->json([
+                'status'  => 200,
+                'message' => 'Swiped ' . $request->direction . ' successfully',
+                'payload' => [
+                    'direction' => $request->direction,
+                    'quota' => $isFreeUser ? [
+                        'total'     => $quota->total_quota,
+                        'used'      => $quota->used_quota,
+                        'remaining' => max(0, $quota->total_quota - $quota->used_quota),
+                    ] : null
+                ]
             ]);
-
-            // 👉 trigger email / push notif here
-        }
-
-        /**
-         * =========================
-         * CONSUME QUOTA
-         * =========================
-         */
-        if ($shouldConsumeQuota) {
-            DB::table('networking_quotas')
-                ->where('id', $quota->id)
-                ->increment('used_quota');
-
-            $quota->used_quota++;
-        }
-
-        /**
-         * =========================
-         * RESPONSE
-         * =========================
-         */
-        return response()->json([
-            'status'  => 200,
-            'message' => 'Swiped ' . $request->direction . ' successfully',
-            'payload' => [
-                'target_id' => $request->target_id,
-                'direction' => $request->direction,
-                'request_sent' => ($request->direction === 'right' && !$existingRequest),
-                'quota' => $isFreeUser ? [
-                    'total'     => $quota->total_quota,
-                    'used'      => $quota->used_quota,
-                    'remaining' => max(0, $quota->total_quota - $quota->used_quota),
-                ] : null
-            ]
-        ]);
+        });
     }
+
 
 
     /**
@@ -538,7 +491,7 @@ class NetworkingV2Controller extends Controller
          * =========================
          */
         $payment = $this->eventService->getCheckPayment($userId, $event->id);
-        $isFreeUser = (!$payment || in_array($payment->package, ['Free', 'Paid Off']));
+        $isFreeUser = (!$payment || in_array($payment->status, ['Free', 'Paid Off']));
 
 
         /**
