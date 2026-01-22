@@ -94,20 +94,23 @@ class NetworkingV2Controller extends Controller
             $event = $this->eventService->getLastEvent();
 
             /**
-             * =========================
-             * PAYMENT → STATUS IS SOURCE OF TRUTH
-             * =========================
+             * =========================================
+             * PAYMENT STATUS (SOURCE OF TRUTH)
+             * =========================================
              */
             $payment = $this->eventService->getCheckPayment($userId, $event->id);
 
-            // 🔥 FINAL RULE
-            // HANYA status === 'Free' yang pakai quota
-            $isFreeUser = ($payment && $payment->status === 'Free');
+            // 🔥 FINAL RULE:
+            // HANYA status == 'Free' (case-insensitive)
+            $isFreeUser = (
+                $payment &&
+                trim(strtolower($payment->status)) === 'free'
+            );
 
             /**
-             * =========================
+             * =========================================
              * EXISTING SWIPE
-             * =========================
+             * =========================================
              */
             $existingSwipe = DB::table('networking_swaps')
                 ->where('users_id', $userId)
@@ -116,9 +119,9 @@ class NetworkingV2Controller extends Controller
                 ->first();
 
             /**
-             * =========================
+             * =========================================
              * EXISTING REQUEST
-             * =========================
+             * =========================================
              */
             $existingRequest = DB::table('networking_requests')
                 ->where('requester_id', $userId)
@@ -127,11 +130,11 @@ class NetworkingV2Controller extends Controller
                 ->first();
 
             /**
-             * =========================
+             * =========================================
              * QUOTA CHECK
-             * - HANYA FREE
-             * - HANYA RIGHT
-             * =========================
+             * - ONLY FREE
+             * - ONLY RIGHT
+             * =========================================
              */
             $quota = null;
             $shouldConsumeQuota = false;
@@ -144,6 +147,7 @@ class NetworkingV2Controller extends Controller
                     ->lockForUpdate()
                     ->first();
 
+                // init quota kalau belum ada
                 if (!$quota) {
                     $quotaId = DB::table('networking_quotas')->insertGetId([
                         'users_id'    => $userId,
@@ -158,17 +162,12 @@ class NetworkingV2Controller extends Controller
                     $quota = DB::table('networking_quotas')->where('id', $quotaId)->first();
                 }
 
-                /**
-                 * =========================
-                 * CONSUME RULE
-                 * - belum pernah swipe
-                 * - atau dari left → right
-                 * =========================
-                 */
+                // swipe pertama atau left → right
                 if (!$existingSwipe || $existingSwipe->direction === 'left') {
                     $shouldConsumeQuota = true;
                 }
 
+                // quota habis
                 if ($shouldConsumeQuota && $quota->used_quota >= $quota->total_quota) {
                     return response()->json([
                         'status'  => 403,
@@ -179,9 +178,9 @@ class NetworkingV2Controller extends Controller
             }
 
             /**
-             * =========================
+             * =========================================
              * SAVE SWIPE
-             * =========================
+             * =========================================
              */
             DB::table('networking_swaps')->updateOrInsert(
                 [
@@ -197,11 +196,9 @@ class NetworkingV2Controller extends Controller
             );
 
             /**
-             * =========================
-             * AUTO SEND REQUEST
-             * - HANYA SWIPE RIGHT
-             * - ANTI DUPLICATE
-             * =========================
+             * =========================================
+             * AUTO SEND REQUEST (RIGHT ONLY)
+             * =========================================
              */
             if ($request->direction === 'right' && !$existingRequest) {
                 DB::table('networking_requests')->insert([
@@ -216,11 +213,11 @@ class NetworkingV2Controller extends Controller
             }
 
             /**
-             * =========================
+             * =========================================
              * CONSUME QUOTA (FINAL)
-             * =========================
+             * =========================================
              */
-            if ($isFreeUser && $shouldConsumeQuota) {
+            if ($isFreeUser && $shouldConsumeQuota && $quota) {
                 DB::table('networking_quotas')
                     ->where('id', $quota->id)
                     ->increment('used_quota');
@@ -229,26 +226,33 @@ class NetworkingV2Controller extends Controller
             }
 
             /**
-             * =========================
-             * RESPONSE
-             * =========================
+             * =========================================
+             * RESPONSE (SAFE)
+             * =========================================
              */
+            $quotaPayload = null;
+
+            if ($isFreeUser && $quota) {
+                $quotaPayload = [
+                    'total'     => $quota->total_quota,
+                    'used'      => $quota->used_quota,
+                    'remaining' => max(0, $quota->total_quota - $quota->used_quota),
+                ];
+            }
+
             return response()->json([
                 'status'  => 200,
                 'message' => 'Swiped ' . $request->direction . ' successfully',
                 'payload' => [
-                    'target_id' => $request->target_id,
-                    'direction' => $request->direction,
+                    'target_id'    => $request->target_id,
+                    'direction'    => $request->direction,
                     'request_sent' => ($request->direction === 'right' && !$existingRequest),
-                    'quota' => $isFreeUser ? [
-                        'total'     => $quota->total_quota,
-                        'used'      => $quota->used_quota,
-                        'remaining' => max(0, $quota->total_quota - $quota->used_quota),
-                    ] : null
+                    'quota'        => $quotaPayload
                 ]
             ]);
         });
     }
+
 
 
     /**
