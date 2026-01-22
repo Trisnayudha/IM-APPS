@@ -22,11 +22,21 @@ class NetworkingService implements NetworkingRepositoryInterface
                 'users.company_name as users_company_name',
                 'users.image_users as image_users',
                 'users.email',
+
+                // sudah connect (accepted)
                 DB::raw('
                 CASE
-                    WHEN nr.id IS NOT NULL THEN 1
+                    WHEN nr_accept.id IS NOT NULL THEN 1
                     ELSE 0
                 END as isConnected
+            '),
+
+                // sudah request tapi belum ada action (pending)
+                DB::raw('
+                CASE
+                    WHEN nr_pending.id IS NOT NULL THEN 1
+                    ELSE 0
+                END as request_pending
             ')
             )
 
@@ -38,17 +48,34 @@ class NetworkingService implements NetworkingRepositoryInterface
                 $join->on('events.id', '=', 'users_delegate.events_id');
             })
 
-            ->leftJoin('networking_requests as nr', function ($join) use ($users_id, $events_id) {
-                $join->where('nr.status', 'accepted')
-                    ->where('nr.events_id', $events_id)
+            /* ===== ACCEPTED ===== */
+            ->leftJoin('networking_requests as nr_accept', function ($join) use ($users_id, $events_id) {
+                $join->where('nr_accept.status', 'accepted')
+                    ->where('nr_accept.events_id', $events_id)
                     ->where(function ($q) use ($users_id) {
                         $q->where(function ($sub) use ($users_id) {
-                            $sub->on('nr.requester_id', '=', 'users_delegate.users_id')
-                                ->where('nr.target_id', '=', $users_id);
+                            $sub->on('nr_accept.requester_id', '=', 'users_delegate.users_id')
+                                ->where('nr_accept.target_id', '=', $users_id);
                         })
                             ->orWhere(function ($sub) use ($users_id) {
-                                $sub->on('nr.target_id', '=', 'users_delegate.users_id')
-                                    ->where('nr.requester_id', '=', $users_id);
+                                $sub->on('nr_accept.target_id', '=', 'users_delegate.users_id')
+                                    ->where('nr_accept.requester_id', '=', $users_id);
+                            });
+                    });
+            })
+
+            /* ===== PENDING ===== */
+            ->leftJoin('networking_requests as nr_pending', function ($join) use ($users_id, $events_id) {
+                $join->where('nr_pending.status', 'pending')
+                    ->where('nr_pending.events_id', $events_id)
+                    ->where(function ($q) use ($users_id) {
+                        $q->where(function ($sub) use ($users_id) {
+                            $sub->on('nr_pending.requester_id', '=', 'users_delegate.users_id')
+                                ->where('nr_pending.target_id', '=', $users_id);
+                        })
+                            ->orWhere(function ($sub) use ($users_id) {
+                                $sub->on('nr_pending.target_id', '=', 'users_delegate.users_id')
+                                    ->where('nr_pending.requester_id', '=', $users_id);
                             });
                     });
             })
@@ -75,6 +102,7 @@ class NetworkingService implements NetworkingRepositoryInterface
             ->orderBy('users.id', 'asc')
             ->paginate($limit);
     }
+
 
     public function detailDelegate($users_id)
     {
