@@ -515,11 +515,6 @@ class NetworkingV2Controller extends Controller
      */
     public function requestMeeting(Request $request)
     {
-        $request->validate([
-            'target_id'     => 'required|integer',
-            'schedule_date' => 'required|date',
-            'table_number'  => 'required|integer|min:1|max:12'
-        ]);
 
         $userId = auth('sanctum')->id();
         if (!$userId) {
@@ -532,7 +527,7 @@ class NetworkingV2Controller extends Controller
 
         $event = $this->eventService->getLastEvent();
 
-        $exists = DB::table('networking_meeting_table')
+        $exists = DB::table('networking_meeting_tables')
             ->where('events_id', $event->id)
             ->whereDate('schedule_date', Carbon::parse($request->schedule_date)->toDateString())
             ->whereTime('schedule_date', Carbon::parse($request->schedule_date)->toTimeString())
@@ -547,7 +542,7 @@ class NetworkingV2Controller extends Controller
             ], 409);
         }
 
-        DB::table('networking_meeting_table')->insert([
+        DB::table('networking_meeting_tables')->insert([
             'requester_id'  => $userId,
             'target_id'     => $request->target_id,
             'events_id'     => $event->id,
@@ -577,7 +572,7 @@ class NetworkingV2Controller extends Controller
 
         // contoh: event 3 hari
         $dates = collect(range(0, 2))->map(function ($i) use ($event) {
-            return Carbon::parse($event->start_date)->addDays($i)->format('Y-m-d');
+            return Carbon::parse($event->date_start)->addDays($i)->format('Y-m-d');
         });
 
         return response()->json([
@@ -589,9 +584,6 @@ class NetworkingV2Controller extends Controller
 
     public function meetingTimes(Request $request)
     {
-        $request->validate([
-            'date' => 'required|date'
-        ]);
 
         $event = $this->eventService->getLastEvent();
 
@@ -606,10 +598,9 @@ class NetworkingV2Controller extends Controller
         ];
 
         $availableTimes = [];
-
         foreach ($allTimes as $time) {
 
-            $count = DB::table('networking_meeting_table')
+            $count = DB::table('networking_meeting_tables')
                 ->where('events_id', $event->id)
                 ->whereDate('schedule_date', $request->date)
                 ->whereTime('schedule_date', $time)
@@ -629,14 +620,9 @@ class NetworkingV2Controller extends Controller
 
     public function availableTables(Request $request)
     {
-        $request->validate([
-            'date' => 'required|date',
-            'time' => 'required'
-        ]);
-
         $event = $this->eventService->getLastEvent();
 
-        $usedTables = DB::table('networking_meeting_table')
+        $usedTables = DB::table('networking_meeting_tables')
             ->where('events_id', $event->id)
             ->whereDate('schedule_date', $request->date)
             ->whereTime('schedule_date', $request->time)
