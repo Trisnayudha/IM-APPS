@@ -140,6 +140,9 @@ Route::prefix('networking-v2')->group(function () {
     // Connections
     Route::get('/connections', [NetworkingV2Controller::class, 'connections']);
     // Meeting Table
+    Route::get('/meeting-table/dates', [NetworkingV2Controller::class, 'meetingDates']);
+    Route::get('/meeting-table/times', [NetworkingV2Controller::class, 'meetingTimes']);
+    Route::get('/meeting-table/tables', [NetworkingV2Controller::class, 'availableTables']);
     Route::post('/meeting-table', [NetworkingV2Controller::class, 'requestMeeting']);
 });
 

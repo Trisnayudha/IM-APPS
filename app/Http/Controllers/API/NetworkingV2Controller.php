@@ -515,43 +515,148 @@ class NetworkingV2Controller extends Controller
      */
     public function requestMeeting(Request $request)
     {
-        $response = [];
-
         $request->validate([
-            'target_id'      => 'required|integer',
-            'schedule_date'  => 'required|date'
+            'target_id'     => 'required|integer',
+            'schedule_date' => 'required|date',
+            'table_number'  => 'required|integer|min:1|max:12'
         ]);
 
         $userId = auth('sanctum')->id();
         if (!$userId) {
-            $response['status']  = 401;
-            $response['message'] = 'Unauthorized';
-            $response['payload'] = [];
-            return response()->json($response, 401);
+            return response()->json([
+                'status' => 401,
+                'message' => 'Unauthorized',
+                'payload' => []
+            ], 401);
         }
 
         $event = $this->eventService->getLastEvent();
+
+        $exists = DB::table('networking_meeting_table')
+            ->where('events_id', $event->id)
+            ->whereDate('schedule_date', Carbon::parse($request->schedule_date)->toDateString())
+            ->whereTime('schedule_date', Carbon::parse($request->schedule_date)->toTimeString())
+            ->where('table_number', $request->table_number)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 409,
+                'message' => 'Table already booked',
+                'payload' => []
+            ], 409);
+        }
 
         DB::table('networking_meeting_table')->insert([
             'requester_id'  => $userId,
             'target_id'     => $request->target_id,
             'events_id'     => $event->id,
             'schedule_date' => Carbon::parse($request->schedule_date),
+            'table_number'  => $request->table_number,
             'status'        => 'pending',
             'created_at'    => now(),
             'updated_at'    => now(),
         ]);
 
-        $response['status']  = 200;
-        $response['message'] = 'Meeting request sent successfully';
-        $response['payload'] = [
-            'target_id'     => $request->target_id,
-            'schedule_date' => Carbon::parse($request->schedule_date)->toDateTimeString(),
-            'status'        => 'pending'
+        return response()->json([
+            'status' => 200,
+            'message' => 'Meeting request sent successfully',
+            'payload' => [
+                'target_id'     => $request->target_id,
+                'schedule_date' => Carbon::parse($request->schedule_date)->toDateTimeString(),
+                'table_number'  => $request->table_number,
+                'status'        => 'pending'
+            ]
+        ]);
+    }
+
+
+    public function meetingDates()
+    {
+        $event = $this->eventService->getLastEvent();
+
+        // contoh: event 3 hari
+        $dates = collect(range(0, 2))->map(function ($i) use ($event) {
+            return Carbon::parse($event->start_date)->addDays($i)->format('Y-m-d');
+        });
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Available dates',
+            'payload' => $dates
+        ]);
+    }
+
+    public function meetingTimes(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date'
+        ]);
+
+        $event = $this->eventService->getLastEvent();
+
+        $allTimes = [
+            '08:00',
+            '09:30',
+            '10:30',
+            '12:00',
+            '13:00',
+            '15:00',
+            '16:00',
         ];
 
-        return response()->json($response);
+        $availableTimes = [];
+
+        foreach ($allTimes as $time) {
+
+            $count = DB::table('networking_meeting_table')
+                ->where('events_id', $event->id)
+                ->whereDate('schedule_date', $request->date)
+                ->whereTime('schedule_date', $time)
+                ->count();
+
+            if ($count < 12) {
+                $availableTimes[] = $time;
+            }
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Available times',
+            'payload' => $availableTimes
+        ]);
     }
+
+    public function availableTables(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'time' => 'required'
+        ]);
+
+        $event = $this->eventService->getLastEvent();
+
+        $usedTables = DB::table('networking_meeting_table')
+            ->where('events_id', $event->id)
+            ->whereDate('schedule_date', $request->date)
+            ->whereTime('schedule_date', $request->time)
+            ->pluck('table_number')
+            ->toArray();
+
+        $tables = collect(range(1, 12))->map(function ($table) use ($usedTables) {
+            return [
+                'table_number' => $table,
+                'status' => in_array($table, $usedTables) ? 'filled' : 'available'
+            ];
+        });
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Available tables',
+            'payload' => $tables
+        ]);
+    }
+
 
     public function quota(Request $request)
     {
