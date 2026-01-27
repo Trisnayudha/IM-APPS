@@ -106,6 +106,55 @@ class EventsScheduleService
         return $data;
     }
 
+    public function listReservedScheduleByDate($date, $events_id = null, $type, $userId)
+    {
+        $data = DB::table('events_schedule_reserve as esr')
+            ->join('events_schedule as es', 'es.id', '=', 'esr.events_schedule_id')
+            ->leftJoin('md_sponsor as ms', 'ms.id', '=', 'es.md_sponsor_id')
+            ->select(
+                'es.id',
+                'es.name',
+                'es.time_start',
+                'es.time_end',
+                'es.timezone as status',
+                'es.location',
+                'ms.image as sponsor_image',
+                'es.desc'
+            )
+            ->where('esr.users_id', $userId)
+            // 🔁 REFLECT BODY REQUEST
+            ->when($date, function ($q) use ($date) {
+                $q->whereDate('es.date_events', $date);
+            })
+            ->when($events_id, function ($q) use ($events_id) {
+                $q->where('es.events_id', $events_id);
+            })
+            ->when($type, function ($q) use ($type) {
+                // samakan dengan logic lama
+                $q->where('es.status', $type);
+                // kalau realnya pakai timezone, ganti ke:
+                // $q->where('es.timezone', $type);
+            })
+
+            ->orderBy('es.time_start', 'asc')
+            ->get();
+
+        foreach ($data as $row) {
+            $row->sponsor_image = $row->sponsor_image ?? '';
+            $row->time_start = $row->time_start
+                ? date('H:i A', strtotime($row->time_start))
+                : '';
+            $row->time_end = $row->time_end
+                ? date('H:i A', strtotime($row->time_end))
+                : '';
+            $row->isBookmark = self::isBookmark('Conference Agenda', $row->id, $events_id);
+            $row->speaker = EventsSpeakerService::listSpeakerSchedule($row->id);
+        }
+
+        return $data;
+    }
+
+
     public function detailSchedule($schedule_id, $events_id)
     {
         $data = DB::table('events_schedule')

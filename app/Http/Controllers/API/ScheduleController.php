@@ -82,7 +82,7 @@ class ScheduleController extends Controller
         $findSchedule = EventsSchedule::where('id', $schedule_id)->first();
         if ($findSchedule) {
             // Menyiapkan data untuk tautan Google Calendar
-            $name_schedule = $findSchedule->name . ' - Indonesia Miner 2025';
+            $name_schedule = $findSchedule->name . ' - Indonesia Miner 2026';
             $date_schedule = $findSchedule->date_events;
             $location_schedule = $findSchedule->location;
             $time_start = $findSchedule->time_start;
@@ -118,5 +118,46 @@ class ScheduleController extends Controller
             $response['payload'] = null;
         }
         return response()->json($response);
+    }
+
+    public function listReserved(Request $request)
+    {
+        $userId = auth('sanctum')->id();
+        if (!$userId) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'Unauthorized',
+                'payload' => []
+            ], 401);
+        }
+        $date = $request->date;
+        $type = $request->type;
+        $events_id = $this->eventService->getLastEvent();
+
+        // ambil schedule_id yang sudah di-reserve user
+        $reservedScheduleIds = EventsScheduleReserve::where('users_id', $userId)
+            ->pluck('events_schedule_id')
+            ->toArray();
+
+        if (empty($reservedScheduleIds)) {
+            return response()->json([
+                'status' => 200,
+                'message' => 'No reserved schedule',
+                'payload' => []
+            ]);
+        }
+        // pakai service yang sama dengan showList
+        $data = EventsScheduleService::listReservedScheduleByDate(
+            $date,
+            $events_id->id,
+            $type,
+            $userId // ← tambahan filter
+        );
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Show reserved schedule ' . $type,
+            'payload' => $data
+        ]);
     }
 }
