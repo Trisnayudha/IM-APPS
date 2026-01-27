@@ -12,6 +12,7 @@ use App\Http\Controllers\API\ExhibitionController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\InboxController;
 use App\Http\Controllers\API\InsightController;
+use App\Http\Controllers\API\MeetingTableController;
 use App\Http\Controllers\API\MiningDirectoryController;
 use App\Http\Controllers\API\MsPrefixController;
 use App\Http\Controllers\API\NetworkingController;
@@ -145,6 +146,9 @@ Route::prefix('networking-v2')->group(function () {
     Route::get('/meeting-table/tables', [NetworkingV2Controller::class, 'availableTables']);
     Route::post('/meeting-table', [NetworkingV2Controller::class, 'requestMeeting']);
 });
+Route::get('/meeting-table/my-approved', [MeetingTableController::class, 'myApproved']);
+Route::get('/meeting-table/pending', [MeetingTableController::class, 'pending']);
+Route::post('/meeting-table/action', [MeetingTableController::class, 'action']);
 
 Route::post('/inbox', [InboxController::class, 'index']);
 // Route::post('/inbox/v2', [InboxController::class, 'index2']);
