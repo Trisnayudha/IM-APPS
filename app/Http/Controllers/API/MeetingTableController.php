@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\MeetingTable\MeetingTableService;
+use Illuminate\Support\Facades\DB;
 
 class MeetingTableController extends Controller
 {
@@ -83,6 +84,33 @@ class MeetingTableController extends Controller
             'status' => 200,
             'message' => 'Meeting request ' . $request->action,
             'payload' => []
+        ]);
+    }
+
+    public function pendingIndicator()
+    {
+        $userId = auth('sanctum')->id();
+
+        if (!$userId) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'Unauthorized',
+                'payload' => []
+            ], 401);
+        }
+
+        $count = DB::table('networking_meeting_tables')
+            ->where('target_id', $userId)
+            ->where('status', 'pending')
+            ->count();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Pending indicator',
+            'payload' => [
+                'has_pending' => $count > 0,
+                'total' => $count
+            ]
         ]);
     }
 }

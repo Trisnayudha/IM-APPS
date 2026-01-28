@@ -149,6 +149,8 @@ Route::prefix('networking-v2')->group(function () {
 Route::get('/meeting-table/my-approved', [MeetingTableController::class, 'myApproved']);
 Route::get('/meeting-table/pending', [MeetingTableController::class, 'pending']);
 Route::post('/meeting-table/action', [MeetingTableController::class, 'action']);
+Route::get('/meeting-table/pending-indicator', [MeetingTableController::class, 'pendingIndicator']);
+
 
 Route::post('/inbox', [InboxController::class, 'index']);
 // Route::post('/inbox/v2', [InboxController::class, 'index2']);
