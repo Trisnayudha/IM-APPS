@@ -130,9 +130,9 @@ class ScheduleController extends Controller
                 'payload' => []
             ], 401);
         }
+
         $date = $request->date;
-        $type = $request->type;
-        $events_id = $this->eventService->getLastEvent();
+        $event = $this->eventService->getLastEvent();
 
         // ambil schedule_id yang sudah di-reserve user
         $reservedScheduleIds = EventsScheduleReserve::where('users_id', $userId)
@@ -146,17 +146,16 @@ class ScheduleController extends Controller
                 'payload' => []
             ]);
         }
-        // pakai service yang sama dengan showList
+
         $data = EventsScheduleService::listReservedScheduleByDate(
             $date,
-            $events_id->id,
-            $type,
-            $userId // ← tambahan filter
+            $event->id,
+            $userId
         );
 
         return response()->json([
             'status' => 200,
-            'message' => 'Show reserved schedule ' . $type,
+            'message' => 'Show reserved schedule',
             'payload' => $data
         ]);
     }
