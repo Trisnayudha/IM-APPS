@@ -11,6 +11,7 @@ use App\Services\Profile\ProfileService;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Intervention\Image\Facades\Image;
 
 class ProfileController extends Controller
@@ -47,72 +48,128 @@ class ProfileController extends Controller
     public function updatePersonal(UpdateProfileRequest $request)
     {
         $id = auth('sanctum')->user()->id ?? null;
-        $find = $this->userService->getUserById($id);
-        if ($find) {
-            $file = $request->image;
-            if (!empty($file)) {
-                $imageName = time() . '.' . $request->image->extension();
-                $db = 'storage/profile/' . $imageName;
-                $save_folder = $request->image->storeAs('public/profile', $imageName);
-                // Create a new Intervention Image instance from the uploaded file
-                $compressedImage = Image::make(storage_path('app/' . $save_folder));
-                // Resize the image while maintaining aspect ratio and avoiding upscaling
-                $compressedImage->resize(800, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                // Save the resized image
-                $compressedImage->save(storage_path('app/public/profile/' . $imageName));
-                $find->image_users = $db;
-            }
-            $find->name = $request->name;
-            $find->bio_desc = $request->bio_desc;
-            $find->save();
+        $user = $this->userService->getUserById($id);
 
-            $response['status'] = 200;
-            $response['message'] = 'Successfully update data';
-            $response['payload'] = null;
-        } else {
-            $response['status'] = 401;
-            $response['message'] = 'User Not Found';
-            $response['payload'] = null;
+        if (!$user) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'User Not Found',
+                'payload' => null
+            ], 401);
         }
 
-        return response()->json($response, 200);
+        // ✅ HANDLE IMAGE (OPTIONAL)
+        if ($request->hasFile('image')) {
+
+            $file = $request->file('image');
+
+            // Validasi tambahan (opsional tapi disarankan)
+            if (!$file->isValid()) {
+                return response()->json([
+                    'status' => 422,
+                    'message' => 'Invalid image file',
+                    'payload' => null
+                ], 422);
+            }
+
+            // Convert image ke base64
+            $base64 = 'data:' . $file->getMimeType() . ';base64,' .
+                base64_encode(file_get_contents($file->getRealPath()));
+
+            // Upload ke API eksternal
+            $upload = Http::timeout(30)->post(
+                'https://indonesiaminer.com/api/upload-image/company',
+                [
+                    'image'  => $base64,
+                    'folder' => 'uploads/images/profile'
+                ]
+            );
+
+            if (!$upload->successful() || !isset($upload['image'])) {
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'Upload image failed',
+                    'payload' => $upload->json()
+                ], 500);
+            }
+
+            // Path image dari API
+            $user->image_users = $upload['image'];
+        }
+
+        // ✅ UPDATE DATA LAIN
+        $user->name = $request->name;
+        $user->bio_desc = $request->bio_desc;
+        $user->save();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Successfully update data',
+            'payload' => null
+        ], 200);
     }
 
     public function uploadCompanyProfile(Request $request)
     {
         $id = auth('sanctum')->user()->id ?? null;
-        $find = $this->userService->getUserById($id);
-        if ($find) {
-            $file = $request->image;
-            if (!empty($file)) {
-                $imageName = time() . '.' . $request->image->extension();
-                $db = 'storage/company-logo/' . $imageName;
-                $save_folder = $request->image->storeAs('public/company-logo', $imageName);
-                // Create a new Intervention Image instance from the uploaded file
-                $compressedImage = Image::make(storage_path('app/' . $save_folder));
-                // Resize the image while maintaining aspect ratio and avoiding upscaling
-                $compressedImage->resize(800, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                // Save the resized image
-                $compressedImage->save(storage_path('app/public/company-logo/' . $imageName));
-                // $find->company_logo = $db;
-            }
-            $find->save();
+        $user = $this->userService->getUserById($id);
 
-            $response['status'] = 200;
-            $response['message'] = 'Successfully update data';
-            $response['payload'] = $db ?? null;
-        } else {
-            $response['status'] = 401;
-            $response['message'] = 'User Not Found';
-            $response['payload'] = null;
+        if (!$user) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'User Not Found',
+                'payload' => null
+            ], 401);
         }
-        return response()->json($response, 200);
+
+        if (!$request->hasFile('image')) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Image is required',
+                'payload' => null
+            ], 422);
+        }
+
+        $file = $request->file('image');
+
+        if (!$file->isValid()) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Invalid image file',
+                'payload' => null
+            ], 422);
+        }
+
+        // ✅ Convert image ke base64
+        $base64 = 'data:' . $file->getMimeType() . ';base64,' .
+            base64_encode(file_get_contents($file->getRealPath()));
+
+        // ✅ Upload ke API eksternal
+        $upload = Http::timeout(30)->post(
+            'https://indonesiaminer.com/api/upload-image/company',
+            [
+                'image'  => $base64,
+                'folder' => 'uploads/images/company-logo',
+            ]
+        );
+
+        if (!$upload->successful() || !isset($upload['image'])) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'Upload company logo failed',
+                'payload' => $upload->json()
+            ], 500);
+        }
+
+        // ✅ Simpan path logo dari API
+        $user->company_logo = $upload['image'];
+        $user->save();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Successfully upload company logo',
+            'payload' => $upload['image']
+        ], 200);
     }
 
     public function changePassword(ChangePasswordRequest $request)
