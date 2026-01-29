@@ -723,4 +723,33 @@ class NetworkingV2Controller extends Controller
             ]
         ]);
     }
+
+    /**
+     * GET Has Pending Request (boolean only)
+     */
+    public function hasRequest()
+    {
+        $userId = auth('sanctum')->id();
+        if (!$userId) {
+            return response()->json([
+                'status'  => 401,
+                'message' => 'Unauthorized',
+                'payload' => null
+            ], 401);
+        }
+
+        $event = $this->eventService->getLastEvent();
+
+        $hasRequest = DB::table('networking_requests')
+            ->where('target_id', $userId)
+            ->where('events_id', $event->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'Has pending request',
+            'payload' => $hasRequest
+        ]);
+    }
 }

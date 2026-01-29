@@ -137,6 +137,7 @@ Route::prefix('networking-v2')->group(function () {
     // Request Connection
     Route::post('/request', [NetworkingV2Controller::class, 'sendRequest']);
     Route::get('/requests', [NetworkingV2Controller::class, 'requestInbox']);
+    Route::get('/requests/info', [NetworkingV2Controller::class, 'requestInfo']);
     Route::post('/action/{id}', [NetworkingV2Controller::class, 'actionRequest']);
     // Connections
     Route::get('/connections', [NetworkingV2Controller::class, 'connections']);
