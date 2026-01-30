@@ -202,14 +202,14 @@ class HomeController extends Controller
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
                 'networking' => true,
                 'inbox' => $access,
-                'floor_plan' => false,
-                'schedule' => false,
+                'floor_plan' => true,
+                'schedule' => true,
                 'exhibition' => $access,
                 'event_booklet' => $access,
-                'replay' => false,
+                'replay' => true,
                 'mining_directory' => $access,
                 'bookmark' => $access,
-                'speakers' => false
+                'speakers' => true
 
             ];
             $response['status'] = 200;
