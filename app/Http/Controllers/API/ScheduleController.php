@@ -74,50 +74,74 @@ class ScheduleController extends Controller
         $response['payload'] = $data;
         return response()->json($response);
     }
+
     public function reserve(Request $request)
     {
         $schedule_id = $request->schedule_id;
-        $id =  auth('sanctum')->user()->id ?? null;
+        $id = auth('sanctum')->user()->id ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'Unauthorized',
+                'payload' => null
+            ], 401);
+        }
 
         $findSchedule = EventsSchedule::where('id', $schedule_id)->first();
-        if ($findSchedule) {
-            // Menyiapkan data untuk tautan Google Calendar
-            $name_schedule = $findSchedule->name . ' - Indonesia Miner 2026';
-            $date_schedule = $findSchedule->date_events;
-            $location_schedule = $findSchedule->location;
-            $time_start = $findSchedule->time_start;
-            $time_end = $findSchedule->time_end;
 
-            // Format tanggal sesuai dengan aturan Google Calendar (YYYYMMDDTHHMMSS)
-            $startDateTime = Carbon::parse($date_schedule . ' ' . $time_start)->format('Ymd\THis');
-            $endDateTime = Carbon::parse($date_schedule . ' ' . $time_end)->format('Ymd\THis');
+        if (!$findSchedule) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Schedule Not Found',
+                'payload' => null
+            ], 404);
+        }
 
-            // Membuat tautan Google Calendar dengan parameter yang sesuai
-            $link = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
-            $link .= '&text=' . urlencode($name_schedule);
-            $link .= '&dates=' . $startDateTime . '/' . $endDateTime;
-            $link .= '&location=' . urlencode($location_schedule);
+        // ✅ Cek apakah sudah pernah reserve
+        $alreadyReserved = EventsScheduleReserve::where('users_id', $id)
+            ->where('events_schedule_id', $schedule_id)
+            ->exists();
 
-            $data = [
-                'google_calendar' => $link
-            ];
-            $save = new EventsScheduleReserve();
-            $save->users_id = $id;
-            $save->events_schedule_id = $schedule_id;
-            $save->save();
+        // Siapkan Google Calendar link (tetap dikirim)
+        $name_schedule = $findSchedule->name . ' - Indonesia Miner 2026';
+        $date_schedule = $findSchedule->date_events;
+        $location_schedule = $findSchedule->location;
+        $time_start = $findSchedule->time_start;
+        $time_end = $findSchedule->time_end;
+
+        $startDateTime = Carbon::parse($date_schedule . ' ' . $time_start)->format('Ymd\THis');
+        $endDateTime = Carbon::parse($date_schedule . ' ' . $time_end)->format('Ymd\THis');
+
+        $link = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+        $link .= '&text=' . urlencode($name_schedule);
+        $link .= '&dates=' . $startDateTime . '/' . $endDateTime;
+        $link .= '&location=' . urlencode($location_schedule);
+
+        $data = [
+            'google_calendar' => $link
+        ];
+
+        if (!$alreadyReserved) {
+            // ✅ Save hanya kalau belum pernah reserve
+            EventsScheduleReserve::create([
+                'users_id' => $id,
+                'events_schedule_id' => $schedule_id,
+            ]);
 
             $dateTime = Carbon::parse($date_schedule . ' ' . $time_start);
 
+            // Optional: hanya dispatch kalau belum reserve
             SendEventReminder::dispatch($findSchedule->id, $id)->delay($dateTime);
-            $response['status'] = 200;
-            $response['message'] = 'Reserve Successfully';
-            $response['payload'] = $data;
-        } else {
-            $response['status'] = 404;
-            $response['message'] = 'Schedule Not Found';
-            $response['payload'] = null;
         }
-        return response()->json($response);
+
+        return response()->json([
+            'status' => 200,
+            'message' => $alreadyReserved
+                ? 'Already Reserved'
+                : 'Reserve Successfully',
+            'payload' => $data
+        ]);
     }
 
     public function listReserved(Request $request)
