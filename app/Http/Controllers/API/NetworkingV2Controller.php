@@ -622,19 +622,18 @@ class NetworkingV2Controller extends Controller
     {
         $event = $this->eventService->getLastEvent();
 
+        $scheduleDateTime = $request->date . ' ' . $request->time . ':00';
+        // hasil: 2026-05-05 08:00:00
         $usedTables = DB::table('networking_meeting_tables')
             ->where('events_id', $event->id)
-            ->whereDate('schedule_date', $request->date)
-            ->whereTime('schedule_date', $request->time)
+            ->where('schedule_date', $scheduleDateTime)
             ->pluck('table_number')
             ->toArray();
 
-        $tables = collect(range(1, 12))->map(function ($table) use ($usedTables) {
-            return [
-                'table_number' => $table,
-                'status' => in_array($table, $usedTables) ? 'filled' : 'available'
-            ];
-        });
+        $tables = collect(range(1, 12))->map(fn($table) => [
+            'table_number' => $table,
+            'status' => in_array($table, $usedTables) ? 'unavailable' : 'available',
+        ]);
 
         return response()->json([
             'status' => 200,
