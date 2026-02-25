@@ -515,7 +515,6 @@ class NetworkingV2Controller extends Controller
      */
     public function requestMeeting(Request $request)
     {
-
         $userId = auth('sanctum')->id();
         if (!$userId) {
             return response()->json([
@@ -525,19 +524,29 @@ class NetworkingV2Controller extends Controller
             ], 401);
         }
 
+        $request->validate([
+            'target_id'      => 'required|integer',
+            'schedule_date'  => 'required|date', // atau date_format:Y-m-d H:i:s
+            'table_number'   => 'required|integer|min:1|max:12',
+        ]);
+
         $event = $this->eventService->getLastEvent();
 
+        // Normalize schedule_date to 'Y-m-d H:i:s'
+        $scheduleDateTime = Carbon::parse($request->schedule_date)->format('Y-m-d H:i:s');
+
+        // ✅ only pending & accepted lock
         $exists = DB::table('networking_meeting_tables')
             ->where('events_id', $event->id)
-            ->whereDate('schedule_date', Carbon::parse($request->schedule_date)->toDateString())
-            ->whereTime('schedule_date', Carbon::parse($request->schedule_date)->toTimeString())
+            ->where('schedule_date', $scheduleDateTime)
             ->where('table_number', $request->table_number)
+            ->whereIn('status', ['pending', 'accepted'])
             ->exists();
 
         if ($exists) {
             return response()->json([
                 'status' => 409,
-                'message' => 'Table already booked',
+                'message' => 'This table was just booked by another user. Please select another available table.',
                 'payload' => []
             ], 409);
         }
@@ -546,7 +555,7 @@ class NetworkingV2Controller extends Controller
             'requester_id'  => $userId,
             'target_id'     => $request->target_id,
             'events_id'     => $event->id,
-            'schedule_date' => Carbon::parse($request->schedule_date),
+            'schedule_date' => $scheduleDateTime,
             'table_number'  => $request->table_number,
             'status'        => 'pending',
             'created_at'    => now(),
@@ -557,9 +566,9 @@ class NetworkingV2Controller extends Controller
             'status' => 200,
             'message' => 'Meeting request sent successfully',
             'payload' => [
-                'target_id'     => $request->target_id,
-                'schedule_date' => Carbon::parse($request->schedule_date)->toDateTimeString(),
-                'table_number'  => $request->table_number,
+                'target_id'     => (int) $request->target_id,
+                'schedule_date' => $scheduleDateTime,
+                'table_number'  => (int) $request->table_number,
                 'status'        => 'pending'
             ]
         ]);
