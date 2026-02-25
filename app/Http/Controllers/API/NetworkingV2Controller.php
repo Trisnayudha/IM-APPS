@@ -622,11 +622,12 @@ class NetworkingV2Controller extends Controller
     {
         $event = $this->eventService->getLastEvent();
 
-        $scheduleDateTime = $request->date . ' ' . $request->time . ':00';
-        // hasil: 2026-05-05 08:00:00
+        $scheduleDateTime = $request->date . ' ' . $request->time . ':00'; // 2026-05-05 08:00:00
+
         $usedTables = DB::table('networking_meeting_tables')
             ->where('events_id', $event->id)
             ->where('schedule_date', $scheduleDateTime)
+            ->whereIn('status', ['pending', 'accepted']) // ✅ pending & accepted = lock
             ->pluck('table_number')
             ->toArray();
 
