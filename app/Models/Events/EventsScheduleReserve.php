@@ -9,4 +9,9 @@ class EventsScheduleReserve extends Model
 {
     use HasFactory;
     protected $table = 'events_schedule_reserve';
+
+    protected $fillable = [
+        'users_id',
+        'events_schedule_id',
+    ];
 }
