@@ -124,6 +124,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 'product.slug',
                 'product.image',
                 'product.location',
+                'product.views',
                 'company.name as company_name'
             )
             ->whereIn('product.company_id', $arr)
@@ -288,6 +289,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 'project.image',
                 'project.location',
                 'project.desc',
+                'project.views',
                 'company.name as company_name'
             )
             ->whereIn('project.company_id', $arr)
@@ -458,6 +460,7 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 'company_video.title',
                 'company_video.thumbnail',
                 'company_video.url',
+                'company_video.views',
                 'events_company.company_id'
             )
             // ->whereIn('company_video.company_id',$arr)
