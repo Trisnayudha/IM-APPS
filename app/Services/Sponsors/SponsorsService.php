@@ -222,6 +222,8 @@ class SponsorsService implements SponsorRepositoryInterface
             $find = DB::table('md_charging')->where('id', '=', $id)->first();
         } elseif ($type == 'knowledge') {
             $find = DB::table('md_knowledge_partner')->where('id', '=', $id)->first();
+        } elseif ($type == 'medical') {
+            $find = DB::table('md_medical')->where('id', '=', $id)->first();
         } else {
             $find = 'Type Not Found';
         }
