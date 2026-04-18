@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\WhatsappApi;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -13,24 +15,51 @@ use Illuminate\Support\Str;
 
 class ScanAppsController extends Controller
 {
+    // Event dates: May 5-7, 2026
+    private const EVENT_YEAR  = 2026;
+    private const EVENT_MONTH = 5;
+    private const EVENT_DAYS  = [5 => 'date_day1', 6 => 'date_day2', 7 => 'date_day3'];
+
+    private function resolveCheckinColumn(Carbon $dt): ?string
+    {
+        if ($dt->year === self::EVENT_YEAR && $dt->month === self::EVENT_MONTH) {
+            return self::EVENT_DAYS[$dt->day] ?? null;
+        }
+        return null;
+    }
+
+    private function ok($message, $data = null, int $httpCode = 200)
+    {
+        return response()->json([
+            'status'  => $httpCode,
+            'message' => $message,
+            'data'    => $data,
+        ], $httpCode);
+    }
+
+    private function err($message, int $httpCode = 400)
+    {
+        return response()->json([
+            'status'  => $httpCode,
+            'message' => $message,
+            'data'    => null,
+        ], $httpCode);
+    }
+
     public function checkin(Request $request)
     {
         $data = $request->all();
 
         $codePayment = $data['code_payment'] ?? null;
         $linkWebhook = $data['link_webhook'] ?? null;
-        $day = $data['day'] ?? null;
-        $name = $data['name'] ?? null;
-        $job = $data['job_title'] ?? null;
-        $company = $data['company'] ?? null;
-        $image = $data['image'] ?? null;
+        $day         = $data['day'] ?? null;
+        $name        = $data['name'] ?? null;
+        $job         = $data['job_title'] ?? null;
+        $company     = $data['company'] ?? null;
+        $image       = $data['image'] ?? null;
 
         if (!$codePayment || !$linkWebhook || !$day) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'code_payment, link_webhook, and day are required',
-                'data' => null
-            ], 400);
+            return $this->err('code_payment, link_webhook, and day are required', 400);
         }
 
         try {
@@ -45,45 +74,28 @@ class ScanAppsController extends Controller
                 ->first();
 
             if (!$result) {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'QR Code tidak valid',
-                    'data' => null
-                ]);
+                return $this->err('QR Code tidak valid', 404);
             }
 
-            $paymentId = $result->payment_id;
+            $paymentId  = $result->payment_id;
             $delegateId = $result->delegate_id;
 
-            // Determine which checkin_day column based on the provided day
             $col = null;
             try {
-                $dt = \Carbon\Carbon::parse($day);
-                if ($dt->year == 2025 && $dt->month == 6) {
-                    if ($dt->day == 10) {
-                        $col = 'date_day1';
-                    } elseif ($dt->day == 11) {
-                        $col = 'date_day2';
-                    } elseif ($dt->day == 12) {
-                        $col = 'date_day3';
-                    }
-                }
+                $dt  = Carbon::parse($day);
+                $col = $this->resolveCheckinColumn($dt);
             } catch (\Exception $e) {
-                // If parsing fails, do not update any checkin_day
+                // parsing fails — skip checkin column update
             }
 
-            $filename = null;
-            // Check if the delegate already has an image
+            $filename      = null;
             $existingImage = DB::table('users_delegate')->where('payment_id', $paymentId)->value('image');
 
             if ($image) {
-                // Convert base64 to binary and create a new image
                 $imageBinary = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $image));
-                $filename = uniqid() . '.png';
-                // Save the image to public storage
+                $filename    = uniqid() . '.png';
                 Storage::disk('public')->put('uploads/images/exhibition/' . $filename, $imageBinary);
             } elseif ($existingImage) {
-                // Use existing image if no new image is provided
                 $filename = $existingImage;
             }
 
@@ -91,71 +103,364 @@ class ScanAppsController extends Controller
                 DB::table('users_delegate')
                     ->where('id', $delegateId)
                     ->update([
-                        $col => $day,
+                        $col    => $day,
                         'image' => $filename
                     ]);
             }
 
-            // Update users table with name, job, and company
             DB::table('users')
                 ->where('id', $result->users_id)
                 ->update([
-                    'name' => $name,
-                    'job_title' => $job,
+                    'name'         => $name,
+                    'job_title'    => $job,
                     'company_name' => $company
                 ]);
 
             $payload = [
-                'name' => $name,
-                'company' => $company,
-                'job_title' => $job,
+                'name'         => $name,
+                'company'      => $company,
+                'job_title'    => $job,
                 'code_payment' => $codePayment,
-                'day' => $day
+                'day'          => $day
             ];
 
-            // Include full image URL in response if image exists
             if ($filename) {
-                // Generate full URL to the image stored in public disk
-                $imageUrl = url('storage/uploads/images/exhibition/' . $filename);
-                $payload['image_url'] = $imageUrl;
+                $payload['image_url'] = url('storage/uploads/images/exhibition/' . $filename);
             }
 
-            // Send simplified payload to the webhook URL asynchronously
-            $webhookPayload = [
-                'name' => $name,
-                'job_title' => $job,
-                'company' => $company,
+            $this->sendWebhook($linkWebhook, [
+                'name'         => $name,
+                'job_title'    => $job,
+                'company'      => $company,
                 'code_payment' => $codePayment
-            ];
-
-            $this->sendWebhook($linkWebhook, $webhookPayload);
-
-            return response()->json([
-                'status' => 1,
-                'message' => 'Check-in berhasil',
-                'data' => $payload
             ]);
+
+            return $this->ok('Check-in berhasil', $payload);
         } catch (\Exception $e) {
             Log::error("Error in /checkin: " . $e->getMessage());
-            return response()->json([
-                'status' => 0,
-                'message' => 'Error: ' . $e->getMessage(),
-                'data' => null
-            ], 500);
+            return $this->err($e->getMessage(), 500);
         }
     }
 
-    private function sendWebhook($url, $payload)
+    public function scanQr(Request $request)
+    {
+        $data        = $request->json()->all();
+        $codePayment = $data['code_payment'] ?? null;
+        $day         = $data['day'] ?? null;
+
+        if (!$codePayment || !$day) {
+            return $this->err('code_payment and day are required', 400);
+        }
+
+        try {
+            $col = null;
+            $dt  = null;
+            try {
+                $dt  = Carbon::parse($day);
+                $col = $this->resolveCheckinColumn($dt);
+            } catch (\Exception $e) {
+                return $this->err('Invalid day format', 400);
+            }
+
+            if (!$col) {
+                return $this->err('Day is not a valid event day (May 5, 6, or 7, 2026)', 400);
+            }
+
+            $result = DB::table('payment as p')
+                ->join('users as u', 'u.id', '=', 'p.users_id')
+                ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
+                ->where('p.code_payment', $codePayment)
+                ->where('p.aproval_quota_users', 1)
+                ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled', 'Expired'])
+                ->select(
+                    'p.id as payment_id',
+                    'u.name',
+                    'u.job_title',
+                    'u.company_name',
+                    'et.category',
+                    'et.title',
+                    'et.type'
+                )
+                ->first();
+
+            if (!$result) {
+                $payment = DB::table('payment')->where('code_payment', $codePayment)->first();
+                if (!$payment) {
+                    return $this->err('Delegate Not Found', 404);
+                }
+                return $this->err('Payment is not approved or has been cancelled', 403);
+            }
+
+            $paymentId = $result->payment_id;
+            $category  = $result->category;
+            $typeVal   = $result->type;
+            $title     = $result->title;
+
+            // Day access check for non-All Access tickets
+            if ($category !== 'All Access' && preg_match('/^Day (\d+)$/', $category, $matches)) {
+                $accessDay   = (int) $matches[1];
+                $expectedDay = 4 + $accessDay; // Day 1 → May 5, Day 2 → May 6, Day 3 → May 7
+                if ($dt->day !== $expectedDay) {
+                    return $this->err(
+                        "Your ticket grants Day {$accessDay} Access. See you on May {$expectedDay} for Indonesia Miner 2026!",
+                        403
+                    );
+                }
+            }
+
+            $delegate = DB::table('users_delegate')->where('payment_id', $paymentId)->first();
+            if (!$delegate) {
+                return $this->err('Delegate record not found', 404);
+            }
+
+            $imageUrl         = $delegate->image
+                ? url("storage/uploads/images/exhibition/{$delegate->image}")
+                : null;
+            $alreadyCheckedIn = !empty($delegate->$col);
+
+            $jakartaTime = Carbon::now('Asia/Jakarta');
+            DB::table('users_delegate')
+                ->where('payment_id', $paymentId)
+                ->update([$col => $jakartaTime->format('Y-m-d H:i:s')]);
+
+            list($ticketLabel, $ticketColor, $accessAreas) = $this->mapTicketType($typeVal, $title);
+
+            if ($ticketLabel === 'Speaker Pass') {
+                $this->sendWhatsAppNotification($result->name, $result->company_name, $ticketLabel, $imageUrl);
+            }
+
+            return $this->ok(
+                $alreadyCheckedIn ? 'Already checked in (re-scan)' : 'Scan QR successful',
+                [
+                    'name'               => $result->name,
+                    'job_title'          => $result->job_title,
+                    'company'            => $result->company_name,
+                    'code_payment'       => $codePayment,
+                    'checkin_field'      => $col,
+                    'ticket_type'        => $ticketLabel,
+                    'ticket_color'       => $ticketColor,
+                    'access_areas'       => $accessAreas,
+                    'image'              => $imageUrl,
+                    'already_checked_in' => $alreadyCheckedIn,
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->err($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * GET /api/guests/snapshot
+     * Download seluruh data tamu untuk offline-first mode di Flutter app.
+     * Cache TTL dikontrol via SNAPSHOT_CACHE_TTL di .env (default 5 menit).
+     * Tambah ?refresh=1 untuk force rebuild cache.
+     */
+    public function guestsSnapshot(Request $request)
     {
         try {
-            $response = Http::timeout(15)->post($url, $payload);
+            $ttl     = (int) env('SNAPSHOT_CACHE_TTL', 300); // detik
+            $cacheKey = 'guests_snapshot_event_14';
 
-            if ($response->status() !== 200) {
-                Log::error("Webhook failed with status: {$response->status()}, Response: {$response->body()}");
+            if ($request->boolean('refresh')) {
+                Cache::forget($cacheKey);
             }
+
+            $payload = Cache::remember($cacheKey, $ttl, function () {
+                $results = DB::table('payment as p')
+                    ->join('users as u', 'u.id', '=', 'p.users_id')
+                    ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
+                    ->leftJoin('users_delegate as ud', 'ud.payment_id', '=', 'p.id')
+                    ->where('p.events_id', 14)
+                    ->where('p.aproval_quota_users', 1)
+                    ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled', 'Expired'])
+                    ->select(
+                        'p.id as payment_id',
+                        'p.code_payment',
+                        'u.name',
+                        'u.job_title',
+                        'u.company_name',
+                        'et.category',
+                        'et.title',
+                        'et.type',
+                        'ud.image',
+                        'ud.date_day1',
+                        'ud.date_day2',
+                        'ud.date_day3'
+                    )
+                    ->get();
+
+                $guests = $results->map(function ($r) {
+                    list($ticketLabel, $ticketColor, $accessAreas) = $this->mapTicketType($r->type, $r->title);
+                    return [
+                        'payment_id'   => $r->payment_id,
+                        'code_payment' => $r->code_payment,
+                        'name'         => $r->name,
+                        'job_title'    => $r->job_title,
+                        'company'      => $r->company_name,
+                        'ticket_type'  => $ticketLabel,
+                        'ticket_color' => $ticketColor,
+                        'access_areas' => $accessAreas,
+                        'category'     => $r->category,
+                        'image'        => $r->image
+                            ? url("storage/uploads/images/exhibition/{$r->image}")
+                            : null,
+                        'checkins'     => [
+                            'day1' => $r->date_day1,
+                            'day2' => $r->date_day2,
+                            'day3' => $r->date_day3,
+                        ],
+                    ];
+                });
+
+                return [
+                    'event_id'     => 14,
+                    'generated_at' => Carbon::now('Asia/Jakarta')->toIso8601String(),
+                    'total'        => $guests->count(),
+                    'guests'       => $guests,
+                ];
+            });
+
+            return $this->ok('Success', $payload);
         } catch (\Exception $e) {
-            Log::error("Error sending webhook: " . $e->getMessage());
+            return $this->err($e->getMessage(), 500);
         }
+    }
+
+    /**
+     * POST /api/checkins/batch
+     * Upload pending checkins dari tablet saat koneksi pulih.
+     * Body: { "checkins": [{ "code_payment": "...", "day": "2026-05-05", "checked_in_at": "..." }] }
+     */
+    public function batchCheckin(Request $request)
+    {
+        $data     = $request->json()->all();
+        $checkins = $data['checkins'] ?? [];
+
+        if (empty($checkins) || !is_array($checkins)) {
+            return $this->err('checkins array is required', 400);
+        }
+
+        $results     = [];
+        $jakartaTime = Carbon::now('Asia/Jakarta');
+
+        foreach ($checkins as $checkin) {
+            $codePayment = $checkin['code_payment'] ?? null;
+            $day         = $checkin['day'] ?? null;
+            $checkedInAt = $checkin['checked_in_at'] ?? $jakartaTime->format('Y-m-d H:i:s');
+            $imageBase64 = $checkin['image'] ?? null;
+            $name        = $checkin['name'] ?? null;
+            $jobTitle    = $checkin['job_title'] ?? null;
+            $company     = $checkin['company'] ?? null;
+
+            if (!$codePayment || !$day) {
+                $results[] = [
+                    'code_payment' => $codePayment,
+                    'status'       => 400,
+                    'message'      => 'Missing code_payment or day',
+                    'image'        => null,
+                ];
+                continue;
+            }
+
+            try {
+                $dt  = Carbon::parse($day);
+                $col = $this->resolveCheckinColumn($dt);
+
+                if (!$col) {
+                    $results[] = [
+                        'code_payment' => $codePayment,
+                        'status'       => 400,
+                        'message'      => 'Invalid event day',
+                        'image'        => null,
+                    ];
+                    continue;
+                }
+
+                $payment = DB::table('payment')->where('code_payment', $codePayment)->first();
+                if (!$payment) {
+                    $results[] = [
+                        'code_payment' => $codePayment,
+                        'status'       => 404,
+                        'message'      => 'Not found',
+                        'image'        => null,
+                    ];
+                    continue;
+                }
+
+                $delegate         = DB::table('users_delegate')->where('payment_id', $payment->id)->first();
+                $alreadyCheckedIn = $delegate && !empty($delegate->$col);
+
+                // Save new face image only if explicitly sent
+                $filename = null;
+                if ($imageBase64) {
+                    $imageBinary = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $imageBase64));
+                    $filename    = uniqid() . '.png';
+                    Storage::disk('public')->put('uploads/images/exhibition/' . $filename, $imageBinary);
+                }
+
+                // Update users_delegate: checkin time (if not yet) + image (only if new image sent)
+                $delegateUpdate = [];
+                if (!$alreadyCheckedIn) {
+                    $delegateUpdate[$col] = Carbon::parse($checkedInAt)
+                        ->setTimezone('Asia/Jakarta')
+                        ->format('Y-m-d H:i:s');
+                }
+                if ($filename) {
+                    $delegateUpdate['image'] = $filename;
+                }
+                if ($delegateUpdate) {
+                    DB::table('users_delegate')
+                        ->where('payment_id', $payment->id)
+                        ->update($delegateUpdate);
+                }
+
+                // Update user profile fields if provided
+                $userUpdate = array_filter([
+                    'name'         => $name,
+                    'job_title'    => $jobTitle,
+                    'company_name' => $company,
+                ]);
+                if ($userUpdate) {
+                    DB::table('users')
+                        ->where('id', $payment->users_id)
+                        ->update($userUpdate);
+                }
+
+                // Resolve final image URL (new upload takes priority, fallback to existing)
+                $finalImage = $filename ?? ($delegate->image ?? null);
+                $imageUrl   = $finalImage
+                    ? url("storage/uploads/images/exhibition/{$finalImage}")
+                    : null;
+
+                $results[] = [
+                    'code_payment' => $codePayment,
+                    'status'       => 200,
+                    'message'      => !$alreadyCheckedIn ? 'Check-in recorded' : 'Already checked in, skipped',
+                    'image'        => $imageUrl,
+                ];
+            } catch (\Exception $e) {
+                $results[] = [
+                    'code_payment' => $codePayment,
+                    'status'       => 500,
+                    'message'      => $e->getMessage(),
+                    'image'        => null,
+                ];
+            }
+        }
+
+        $synced  = collect($results)->where('status', 200)->where('message', 'Check-in recorded')->count();
+        $skipped = collect($results)->where('message', 'Already checked in, skipped')->count();
+        $failed  = collect($results)->whereIn('status', [400, 404, 500])->count();
+
+        // Invalidate snapshot cache so next GET /guests/snapshot reflects updated checkins
+        if ($synced > 0) {
+            Cache::forget('guests_snapshot_event_14');
+        }
+
+        return $this->ok("Batch processed: {$synced} synced, {$skipped} skipped, {$failed} failed", [
+            'summary' => compact('synced', 'skipped', 'failed'),
+            'results' => $results,
+        ]);
     }
 
     public function listDelegate(Request $request)
@@ -163,11 +468,7 @@ class ScanAppsController extends Controller
         $search = $request->query('search', '');
 
         if (strlen($search) < 4) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'Search term must be at least 4 characters',
-                'data' => []
-            ], 400);
+            return $this->err('Search term must be at least 4 characters', 400);
         }
 
         try {
@@ -176,7 +477,7 @@ class ScanAppsController extends Controller
             $results = DB::table('payment as p')
                 ->join('users as u', 'u.id', '=', 'p.users_id')
                 ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
-                ->where('p.events_id', 13)
+                ->where('p.events_id', 14)
                 ->where('p.aproval_quota_users', 1)
                 ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled'])
                 ->where(function ($query) use ($likePattern) {
@@ -189,210 +490,105 @@ class ScanAppsController extends Controller
                 ->get();
 
             $data = $results->map(function ($r) {
-                list($ticketLabel, $ticketColor) = $this->mapTicketType($r->type, $r->title);
+                list($ticketLabel, $ticketColor, $accessAreas) = $this->mapTicketType($r->type, $r->title);
                 return [
-                    'name' => $r->name,
-                    'job_title' => $r->job_title,
-                    'company' => $r->company_name,
+                    'name'         => $r->name,
+                    'job_title'    => $r->job_title,
+                    'company'      => $r->company_name,
                     'code_payment' => $r->code_payment,
-                    'ticket_type' => $ticketLabel,
-                    'ticket_color' => $ticketColor
+                    'ticket_type'  => $ticketLabel,
+                    'ticket_color' => $ticketColor,
+                    'access_areas' => $accessAreas,
                 ];
             });
 
-            return response()->json([
-                'status' => 1,
-                'message' => 'Success',
-                'data' => $data
-            ]);
+            return $this->ok('Success', $data);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 0,
-                'message' => $e->getMessage(),
-                'data' => []
-            ], 500);
+            return $this->err($e->getMessage(), 500);
         }
     }
 
-    // Add mapTicketType method in the controller if not already defined
+    /**
+     * Returns [$label, $color, $access_areas]
+     *
+     * access_areas reflects what the badge grants:
+     *   All Access  → Conference + Exhibition + Networking Functions
+     *   Exhibitor   → Exhibition + Networking Functions
+     *   Explore     → Exhibition only
+     */
     private function mapTicketType($typeVal, $title)
     {
-        // Updated mapping logic based on revised requirements
+        $allAccess      = ['Conference', 'Exhibition', 'Networking Functions'];
+        $exhibitorAccess = ['Exhibition', 'Networking Functions'];
+        $exploreAccess  = ['Exhibition'];
+
         if ($typeVal == 'Platinum' || $typeVal == 'Delegate Speaker') {
-            return ['Delegate Pass', '#1428DF'];
+            return ['Delegate Pass', '#1428DF', $allAccess];
+        }
+        if ($typeVal == 'Speaker') {
+            return ['Speaker Pass', '#D60000', $allAccess];
         }
         if ($typeVal == 'Gold') {
             if (strpos($title, 'Working') !== false) {
-                return ['Working Pass', '#DAA520'];
+                return ['Working Pass', '#DAA520', []];
             }
-            return ['Exhibitor Pass', '#FFD700'];
+            if (strpos($title, 'Upgrade') !== false) {
+                return ['Exhibitor Pass', '#FFD700', $allAccess];
+            }
+            return ['Exhibitor Pass', '#FFD700', $exhibitorAccess];
         }
         if ($typeVal == 'Silver') {
-            if (strpos($title, 'Investor') !== false) {
-                return ['Investor Pass', '#1E90FF'];
+            if (strpos($title, 'Explore') !== false) {
+                return ['Explore Pass', '#F97316', $exploreAccess];
+            } elseif (strpos($title, 'Investor') !== false) {
+                return ['Investor Pass', '#1E90FF', $allAccess];
             } elseif (strpos($title, 'Mining') !== false) {
-                return ['Mining Pass', '#228B22'];
+                return ['Mining Pass', '#228B22', $allAccess];
             } elseif (strpos($title, 'Media') !== false) {
-                return ['Media Pass', '#8A2BE2'];
+                return ['Media Pass', '#8A2BE2', $allAccess];
+            } elseif (strpos($title, 'Exhibitor') !== false || strpos($title, 'Exhibition') !== false) {
+                return ['Exhibitor Pass', '#FFD700', $exhibitorAccess];
             }
-            return ['Working Pass', '#DAA520'];
+            return ['Working Pass', '#DAA520', $exhibitorAccess];
         }
-        if ($typeVal == 'Speaker') {
-            return ['Speaker Pass', '#D60000'];
-        }
-        return ['Unknown', '#808080'];
+        return ['Unknown', '#808080', []];
     }
 
-    public function scanQr(Request $request)
+    private function sendWhatsAppNotification($name, $company, $typeVal, $imageUrl = null)
     {
-        $data = $request->json()->all();
-        $codePayment = $data['code_payment'] ?? null;
-        $day = $data['day'] ?? null;
-        if (!$codePayment || !$day) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'code_payment and day are required',
-                'data' => null
-            ], 400);
-        }
-
-        // Check if code_payment exists in database before proceeding
-        $exists = DB::table('payment')
-            ->where('code_payment', $codePayment)
-            ->exists();
-
-        if (!$exists) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'Delegate Not Found',
-                'data' => null
-            ], 404);
-        }
-
         try {
-            // Parse the day parameter (ISO or Indonesian format) and map to checkin_day field
-            $col = null;
-            try {
-                $dt = \Carbon\Carbon::parse($day);
-                if ($dt->year == 2025 && $dt->month == 6) {
-                    if ($dt->day == 10) {
-                        $col = 'date_day1';
-                    } elseif ($dt->day == 11) {
-                        $col = 'date_day2';
-                    } elseif ($dt->day == 12) {
-                        $col = 'date_day3';
-                    }
-                }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'Invalid day format',
-                    'data' => null
-                ], 400);
+            $timeCheckin = Carbon::now('Asia/Jakarta')->format('H:i');
+
+            $message = "✅ *INDONESIA MINER 2026 — Check-In Alert*\n\n"
+                . "*{$name}*\n"
+                . "{$company}\n"
+                . "🎫 {$typeVal}\n\n"
+                . "📍 Lobby Utama, The Westin Jakarta\n"
+                . "🕐 {$timeCheckin} WIB";
+
+            $wa        = new WhatsappApi();
+            $wa->phone = '120363389769846913';
+
+            if ($imageUrl) {
+                $message .= "\n📸 Foto: {$imageUrl}";
             }
 
-            $result = DB::table('payment as p')
-                ->join('users as u', 'u.id', '=', 'p.users_id')
-                ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
-                ->where('p.code_payment', $codePayment)
-                ->where('p.aproval_quota_users', 1)
-                ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled'])
-                ->select(
-                    'p.id as payment_id',
-                    'u.name',
-                    'u.job_title',
-                    'u.company_name',
-                    'et.category',
-                    'et.title',
-                    'et.type'
-                )
-                ->first();
-
-            if ($result) {
-                $paymentId = $result->payment_id;
-                $name = $result->name;
-                $jobTitle = $result->job_title;
-                $company = $result->company_name;
-                $category = $result->category;
-                $title = $result->title;
-                $typeVal = $result->type;
-
-                if ($col && $category != 'All Access') {
-                    if (preg_match('/^Day (\d+)$/', $category, $matches)) {
-                        $accessDay = (int) $matches[1];
-                        if ($dt->day != (9 + $accessDay)) {
-                            return response()->json([
-                                'status' => 0,
-                                'message' => "Your ticket grants Day {$accessDay} Access. See you on June " . (9 + $accessDay) . " for Indonesia Miner 2025!",
-                                'data' => null
-                            ], 403);
-                        }
-                    }
-                }
-
-                $image = DB::table('users_delegate')->where('payment_id', $paymentId)->value('image');
-                $imageUrl = $image ? url("storage/uploads/images/exhibition/{$image}") : null;
-
-                if ($col) {
-                    $jakartaTime = \Carbon\Carbon::now('Asia/Jakarta');
-                    DB::table('users_delegate')
-                        ->where('payment_id', $paymentId)
-                        ->update([
-                            $col => $jakartaTime->format('Y-m-d H:i:s')
-                        ]);
-                }
-
-                list($ticketLabel, $ticketColor) = $this->mapTicketType($typeVal, $title);
-                // Send WhatsApp notification for speakers (example)
-                if ($ticketLabel == 'Speaker Pass') {
-                    $this->sendWhatsAppNotification($name, $company, $ticketLabel);
-                }
-
-                return response()->json([
-                    'status' => 1,
-                    'message' => 'Scan QR successful',
-                    'data' => [
-                        'name' => $name,
-                        'job_title' => $jobTitle,
-                        'company' => $company,
-                        'code_payment' => $codePayment,
-                        'checkin_field' => $col,
-                        'ticket_type' => $ticketLabel,
-                        'ticket_color' => $ticketColor,
-                        'image' => $imageUrl
-                    ]
-                ]);
-            } else {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'Delegate not found',
-                    'data' => null
-                ], 404);
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 0,
-                'message' => $e->getMessage(),
-                'data' => null
-            ], 500);
-        }
-    }
-
-    private function sendWhatsAppNotification($name, $company, $typeVal)
-    {
-        $jakartaTime = \Carbon\Carbon::now('Asia/Jakarta');
-        $timeCheckin = $jakartaTime->format('H:i');
-        $sendMessageUrl = 'https://nusagateway.com/api/send-message.php';
-        $sendMessageData = [
-            'token' => '7EoagVjJfYgElEkYI1KKXOObIzZoGB7S1QcDQbbOH6dqKNk6SL',
-            'phone' => '120363389769846913',
-            'message' => "✅ Team, *{$name}* dari {$company} melakukan check-in sebagai {$typeVal} di Lobby Utama The Westin Jakarta 🏨 pada pukul {$timeCheckin} WIB hari ini."
-
-        ];
-        try {
-            $sendMessageResponse = $this->makeCurlRequest($sendMessageUrl, 'POST', $sendMessageData);
+            $wa->message = $message;
+            $wa->WhatsappMessageGroup();
         } catch (\Exception $e) {
             Log::error("Failed to send WhatsApp notification: " . $e->getMessage());
+        }
+    }
+
+    private function sendWebhook($url, $payload)
+    {
+        try {
+            $response = Http::timeout(15)->post($url, $payload);
+            if ($response->status() !== 200) {
+                Log::error("Webhook failed with status: {$response->status()}, Response: {$response->body()}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Error sending webhook: " . $e->getMessage());
         }
     }
 
@@ -401,27 +597,23 @@ class ScanAppsController extends Controller
         try {
             $ngrokData = DB::select("SELECT id, link, type, created_at, updated_at FROM ngrok");
 
-            $ngrokList = [];
-            foreach ($ngrokData as $row) {
-                $ngrokList[] = [
-                    'id' => $row->id,
-                    'link' => $row->link,
-                    'type' => $row->type,
-                    'created_at' => isset($row->created_at) && $row->created_at ? (method_exists($row->created_at, 'toIso8601String') ? $row->created_at->toIso8601String() : (string)$row->created_at) : null,
-                    'updated_at' => isset($row->updated_at) && $row->updated_at ? (method_exists($row->updated_at, 'toIso8601String') ? $row->updated_at->toIso8601String() : (string)$row->updated_at) : null
+            $data = array_map(function ($row) {
+                return [
+                    'id'         => $row->id,
+                    'link'       => $row->link,
+                    'type'       => $row->type,
+                    'created_at' => isset($row->created_at) && $row->created_at
+                        ? (method_exists($row->created_at, 'toIso8601String') ? $row->created_at->toIso8601String() : (string) $row->created_at)
+                        : null,
+                    'updated_at' => isset($row->updated_at) && $row->updated_at
+                        ? (method_exists($row->updated_at, 'toIso8601String') ? $row->updated_at->toIso8601String() : (string) $row->updated_at)
+                        : null,
                 ];
-            }
+            }, $ngrokData);
 
-            return response()->json([
-                'status' => 1,
-                'data' => $ngrokList
-            ]);
+            return $this->ok('Success', $data);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'Error: ' . $e->getMessage(),
-                'data' => null
-            ], 500);
+            return $this->err($e->getMessage(), 500);
         }
     }
 
@@ -430,61 +622,24 @@ class ScanAppsController extends Controller
         try {
             $ngrokData = DB::select("SELECT id, link, type, created_at, updated_at FROM ngrok WHERE id = ?", [$ngrokId]);
 
-            if ($ngrokData) {
-                $row = $ngrokData[0];
-                return response()->json([
-                    'status' => 1,
-                    'data' => [
-                        'id' => $row->id,
-                        'link' => $row->link,
-                        'type' => $row->type,
-                        'created_at' => isset($row->created_at) && $row->created_at ? (method_exists($row->created_at, 'toIso8601String') ? $row->created_at->toIso8601String() : (string)$row->created_at) : null,
-                        'updated_at' => isset($row->updated_at) && $row->updated_at ? (method_exists($row->updated_at, 'toIso8601String') ? $row->updated_at->toIso8601String() : (string)$row->updated_at) : null
-                    ]
-                ]);
-            } else {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'Record not found',
-                    'data' => null
-                ], 404);
+            if (!$ngrokData) {
+                return $this->err('Record not found', 404);
             }
+
+            $row = $ngrokData[0];
+            return $this->ok('Success', [
+                'id'         => $row->id,
+                'link'       => $row->link,
+                'type'       => $row->type,
+                'created_at' => isset($row->created_at) && $row->created_at
+                    ? (method_exists($row->created_at, 'toIso8601String') ? $row->created_at->toIso8601String() : (string) $row->created_at)
+                    : null,
+                'updated_at' => isset($row->updated_at) && $row->updated_at
+                    ? (method_exists($row->updated_at, 'toIso8601String') ? $row->updated_at->toIso8601String() : (string) $row->updated_at)
+                    : null,
+            ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'Error: ' . $e->getMessage(),
-                'data' => null
-            ], 500);
+            return $this->err($e->getMessage(), 500);
         }
-    }
-    private function makeCurlRequest($url, $method, $data)
-    {
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-        if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-        }
-
-        $response = curl_exec($ch);
-
-        if ($response === false) {
-            throw new \Exception(curl_error($ch));
-        }
-
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        curl_close($ch);
-
-        if ($statusCode !== 200) {
-            throw new \Exception('Request failed with status code ' . $statusCode);
-        }
-
-        return json_decode($response, true);
     }
 }
