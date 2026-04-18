@@ -201,16 +201,16 @@ class HomeController extends Controller
                 'show_restriction' => $event->status_event == 'on' ? false : true,
                 'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
                 'code_payment' => $checkPayment ? $checkPayment->code_payment : null,
-                'networking' => true,
-                'inbox' => true,
-                'floor_plan' => true,
-                'schedule' => true,
-                'exhibition' => true,
-                'event_booklet' => true,
-                'replay' => true,
-                'mining_directory' => true,
-                'bookmark' => true,
-                'speakers' => true
+                'networking' => false,
+                'inbox' => false,
+                'floor_plan' => false,
+                'schedule' => false,
+                'exhibition' => false,
+                'event_booklet' => false,
+                'replay' => false,
+                'mining_directory' => false,
+                'bookmark' => false,
+                'speakers' => false
 
             ];
             $response['status'] = 200;
