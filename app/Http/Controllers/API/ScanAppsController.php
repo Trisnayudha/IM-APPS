@@ -99,14 +99,13 @@ class ScanAppsController extends Controller
                 $filename = $existingImage;
             }
 
+            $delegateUpdate = ['image' => $filename];
             if ($col) {
-                DB::table('users_delegate')
-                    ->where('id', $delegateId)
-                    ->update([
-                        $col    => $day,
-                        'image' => $filename
-                    ]);
+                $delegateUpdate[$col] = $day;
             }
+            DB::table('users_delegate')
+                ->where('id', $delegateId)
+                ->update($delegateUpdate);
 
             DB::table('users')
                 ->where('id', $result->users_id)
