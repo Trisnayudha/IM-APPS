@@ -4,6 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Helpers\WhatsappApi;
 use App\Http\Controllers\Controller;
+use App\Models\Auth\User;
+use App\Models\Payment\Payment;
+use App\Models\Payment\UsersDelegate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -63,14 +66,13 @@ class ScanAppsController extends Controller
         }
 
         try {
-            $result = DB::table('payment as p')
-                ->join('users_delegate as ud', function ($join) {
-                    $join->on('ud.users_id', '=', 'p.users_id')
-                        ->on('ud.events_id', '=', 'p.events_id');
+            $result = Payment::join('users_delegate as ud', function ($join) {
+                    $join->on('ud.users_id', '=', 'payment.users_id')
+                        ->on('ud.events_id', '=', 'payment.events_id');
                 })
-                ->where('p.code_payment', $codePayment)
-                ->where('p.aproval_quota_users', 1)
-                ->select('p.id as payment_id', 'ud.id as delegate_id', 'ud.users_id')
+                ->where('payment.code_payment', $codePayment)
+                ->where('payment.aproval_quota_users', 1)
+                ->select('payment.id as payment_id', 'ud.id as delegate_id', 'ud.users_id')
                 ->first();
 
             if (!$result) {
@@ -88,8 +90,9 @@ class ScanAppsController extends Controller
                 // parsing fails — skip checkin column update
             }
 
+            $delegate      = UsersDelegate::where('payment_id', $paymentId)->first();
+            $existingImage = $delegate?->image;
             $filename      = null;
-            $existingImage = DB::table('users_delegate')->where('payment_id', $paymentId)->value('image');
 
             if ($image) {
                 $imageBinary = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $image));
@@ -103,17 +106,13 @@ class ScanAppsController extends Controller
             if ($col) {
                 $delegateUpdate[$col] = $day;
             }
-            DB::table('users_delegate')
-                ->where('id', $delegateId)
-                ->update($delegateUpdate);
+            UsersDelegate::where('id', $delegateId)->update($delegateUpdate);
 
-            DB::table('users')
-                ->where('id', $result->users_id)
-                ->update([
-                    'name'         => $name,
-                    'job_title'    => $job,
-                    'company_name' => $company
-                ]);
+            User::where('id', $result->users_id)->update([
+                'name'         => $name,
+                'job_title'    => $job,
+                'company_name' => $company
+            ]);
 
             $payload = [
                 'name'         => $name,
