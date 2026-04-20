@@ -61,8 +61,8 @@ class ScanAppsController extends Controller
         $company     = $data['company'] ?? null;
         $image       = $data['image'] ?? null;
 
-        if (!$codePayment || !$linkWebhook || !$day) {
-            return $this->err('code_payment, link_webhook, and day are required', 400);
+        if (!$codePayment || !$day) {
+            return $this->err('code_payment and day are required', 400);
         }
 
         try {
@@ -126,12 +126,14 @@ class ScanAppsController extends Controller
                 $payload['image_url'] = url('storage/uploads/images/exhibition/' . $filename);
             }
 
-            $this->sendWebhook($linkWebhook, [
-                'name'         => $name,
-                'job_title'    => $job,
-                'company'      => $company,
-                'code_payment' => $codePayment
-            ]);
+            if ($linkWebhook) {
+                $this->sendWebhook($linkWebhook, [
+                    'name'         => $name,
+                    'job_title'    => $job,
+                    'company'      => $company,
+                    'code_payment' => $codePayment
+                ]);
+            }
 
             return $this->ok('Check-in berhasil', $payload);
         } catch (\Exception $e) {
