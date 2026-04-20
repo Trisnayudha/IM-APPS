@@ -91,7 +91,7 @@ class ScanAppsController extends Controller
             }
 
             $delegate      = UsersDelegate::where('payment_id', $paymentId)->first();
-            $existingImage = $delegate?->image;
+            $existingImage = $delegate ? $delegate->image : null;
             $filename      = null;
 
             if ($image) {
