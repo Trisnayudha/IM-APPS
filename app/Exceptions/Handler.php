@@ -26,27 +26,4 @@ class Handler extends ExceptionHandler
             //
         });
     }
-
-    public function render($request, Throwable $e)
-    {
-        if ($request->is('api/*') || $request->expectsJson()) {
-            if ($e instanceof MethodNotAllowedHttpException) {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'Method not allowed',
-                    'data' => null
-                ], 405);
-            }
-
-            if ($e instanceof NotFoundHttpException) {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'Route not found',
-                    'data' => null
-                ], 404);
-            }
-        }
-
-        return parent::render($request, $e);
-    }
 }
