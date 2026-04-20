@@ -67,9 +67,9 @@ class ScanAppsController extends Controller
 
         try {
             $result = Payment::join('users_delegate as ud', function ($join) {
-                    $join->on('ud.users_id', '=', 'payment.users_id')
-                        ->on('ud.events_id', '=', 'payment.events_id');
-                })
+                $join->on('ud.users_id', '=', 'payment.users_id')
+                    ->on('ud.events_id', '=', 'payment.events_id');
+            })
                 ->where('payment.code_payment', $codePayment)
                 ->where('payment.aproval_quota_users', 1)
                 ->select('payment.id as payment_id', 'ud.id as delegate_id', 'ud.users_id')
@@ -603,6 +603,7 @@ class ScanAppsController extends Controller
                 return [
                     'id'         => $row->id,
                     'link'       => $row->link,
+                    'link_local' => $row->link_local,
                     'type'       => $row->type,
                     'created_at' => isset($row->created_at) && $row->created_at
                         ? (method_exists($row->created_at, 'toIso8601String') ? $row->created_at->toIso8601String() : (string) $row->created_at)
