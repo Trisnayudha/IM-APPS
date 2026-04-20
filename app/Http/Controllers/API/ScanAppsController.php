@@ -186,7 +186,11 @@ class ScanAppsController extends Controller
             if (!$result) {
                 $payment = DB::table('payment')->where('code_payment', $codePayment)->first();
                 if (!$payment) {
-                    return $this->err('Delegate Not Found', 404);
+                    return response()->json([
+                        'status'  => 404,
+                        'message' => 'Delegate Not Found',
+                        'data'    => null,
+                    ], 404);
                 }
                 return $this->err('Payment is not approved or has been cancelled', 403);
             }
