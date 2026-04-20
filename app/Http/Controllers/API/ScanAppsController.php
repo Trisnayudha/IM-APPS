@@ -597,7 +597,7 @@ class ScanAppsController extends Controller
     public function getAllNgrok()
     {
         try {
-            $ngrokData = DB::select("SELECT id, link, type, created_at, updated_at FROM ngrok");
+            $ngrokData = DB::select("SELECT id, link, link_local, type, created_at, updated_at FROM ngrok");
 
             $data = array_map(function ($row) {
                 return [
