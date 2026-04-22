@@ -53,13 +53,16 @@ class ScanAppsController extends Controller
     {
         $data = $request->all();
 
-        $codePayment = $data['code_payment'] ?? null;
-        $linkWebhook = $data['link_webhook'] ?? null;
-        $day         = $data['day'] ?? null;
-        $name        = $data['name'] ?? null;
-        $job         = $data['job_title'] ?? null;
-        $company     = $data['company'] ?? null;
-        $image       = $data['image'] ?? null;
+        $codePayment  = $data['code_payment'] ?? null;
+        $linkWebhook  = $data['link_webhook'] ?? null;
+        $day          = $data['day'] ?? null;
+        $displayName  = $data['display_name'] ?? null;
+        $namePart     = $data['name'] ?? null;
+        $name         = trim(implode(' ', array_filter([$displayName, $namePart]))) ?: null;
+        $job          = $data['job_title'] ?? null;
+        $company      = $data['company'] ?? null;
+        $image        = $data['image'] ?? null;
+        $ngrokId      = $data['ngrok_id'] ?? null;
 
         if (!$codePayment || !$day) {
             return $this->err('code_payment and day are required', 400);
@@ -70,9 +73,10 @@ class ScanAppsController extends Controller
                 $join->on('ud.users_id', '=', 'payment.users_id')
                     ->on('ud.events_id', '=', 'payment.events_id');
             })
+                ->join('events_tickets as et', 'et.id', '=', 'payment.package_id')
                 ->where('payment.code_payment', $codePayment)
                 ->where('payment.aproval_quota_users', 1)
-                ->select('payment.id as payment_id', 'ud.id as delegate_id', 'ud.users_id')
+                ->select('payment.id as payment_id', 'ud.id as delegate_id', 'ud.users_id', 'et.type as ticket_type_raw', 'et.title as ticket_title', 'et.category as ticket_category')
                 ->first();
 
             if (!$result) {
@@ -81,6 +85,16 @@ class ScanAppsController extends Controller
 
             $paymentId  = $result->payment_id;
             $delegateId = $result->delegate_id;
+
+            list($ticketLabel, $ticketColor, $accessAreas) = $this->mapTicketType($result->ticket_type_raw, $result->ticket_title);
+
+            $ngrokBaseUrl = null;
+            if ($ngrokId) {
+                $ngrokRow = DB::table('ngrok')->where('id', $ngrokId)->first();
+                if ($ngrokRow) {
+                    $ngrokBaseUrl = rtrim($ngrokRow->link, '/');
+                }
+            }
 
             $col = null;
             try {
@@ -127,12 +141,24 @@ class ScanAppsController extends Controller
             }
 
             if ($linkWebhook) {
-                $this->sendWebhook($linkWebhook, [
-                    'name'         => $name,
-                    'job_title'    => $job,
+                $webhookPayload = [
+                    'display_name' => $displayName,
+                    'name'         => $namePart,
                     'company'      => $company,
-                    'code_payment' => $codePayment
-                ]);
+                    'job_title'    => $job,
+                    'ticket_type'  => $ticketLabel,
+                    'ticket_color' => $ticketColor,
+                    'access_areas' => $accessAreas,
+                    'category'     => $result->ticket_category,
+                    'qr_code'      => $codePayment,
+                ];
+
+                if ($filename) {
+                    $base = $ngrokBaseUrl ?? url('');
+                    $webhookPayload['image_url'] = $base . '/storage/uploads/images/exhibition/' . $filename;
+                }
+
+                $this->sendWebhook($linkWebhook, $webhookPayload);
             }
 
             return $this->ok('Check-in berhasil', $payload);
