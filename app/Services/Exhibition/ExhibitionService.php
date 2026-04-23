@@ -66,7 +66,7 @@ class ExhibitionService implements ExhibitionRepositoryController
 
     public function listAllByType($events_id, $search, $category, $special_tags, $filter = null, $users_id, $sponsor_type, $perPage, $limit = 10, $sponsorType, $sorts)
     {
-        $column_filter = "events_company.sort";
+        $column_filter = "events_company.no_both";
         $type_filter = "asc";
         $query = DB::table('events_company')
             ->select(
