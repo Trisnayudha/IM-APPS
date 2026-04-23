@@ -560,7 +560,7 @@ class ScanAppsController extends Controller
         }
         if ($typeVal == 'Gold') {
             if (strpos($title, 'Workshop') !== false) {
-                return ['Workshop Pass', '#DAA520', []];
+                return ['Workshop Pass', '#DAA520', $allAccess];
             }
             if (strpos($title, 'Working') !== false) {
                 return ['Working Pass', '#DAA520', []];
@@ -572,7 +572,7 @@ class ScanAppsController extends Controller
         }
         if ($typeVal == 'Silver') {
             if (strpos($title, 'Workshop') !== false) {
-                return ['Workshop Pass', '#DAA520', []];
+                return ['Workshop Pass', '#DAA520', $allAccess];
             } elseif (strpos($title, 'Explore') !== false) {
                 return ['Explore Pass', '#F97316', $exploreAccess];
             } elseif (strpos($title, 'Investor') !== false) {
