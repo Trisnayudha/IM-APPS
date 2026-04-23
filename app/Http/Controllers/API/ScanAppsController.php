@@ -584,7 +584,7 @@ class ScanAppsController extends Controller
             } elseif (strpos($title, 'Exhibitor') !== false || strpos($title, 'Exhibition') !== false) {
                 return ['Exhibitor Pass', '#FFD700', $exhibitorAccess];
             }
-            return ['Working Pass', '#DAA520', $exhibitorAccess];
+            return ['Working Pass', '#DAA520', []];
         }
         return ['Unknown', '#808080', []];
     }
