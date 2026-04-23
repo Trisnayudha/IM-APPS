@@ -204,6 +204,51 @@ class SponsorsService implements SponsorRepositoryInterface
     }
 
 
+    public function getExhibitor()
+    {
+        $return = DB::table('events_company')
+            ->select(
+                'company.id',
+                'company.name as name',
+                'company.slug',
+                'company.image as image',
+                'company.email',
+                'company.phone',
+                'company.company_web',
+                'company.website',
+                'company.desc',
+                'company.info_one as company_info_one',
+                'company.info_two as company_info_second',
+                'company.info_three as company_info_third',
+                'company.location',
+                'company_video.url as video_url',
+                'company_video.thumbnail as video_thumbnail',
+                'company_video.title as video_title',
+                'events_company.type as sponsor_type',
+                'events_company.no_both'
+            )
+            ->leftJoin('company', function ($join) {
+                $join->on('events_company.company_id', '=', 'company.id');
+            })
+            ->leftJoin('company_video', function ($join) {
+                $join->on('company_video.company_id', '=', 'company.id');
+                $join->where('company_video.is_main', 1);
+            })
+            ->where(function ($q) {
+                $q->where('events_company.events_id', 14);
+                $q->where('events_company.status', 'Active');
+            })
+            ->where('events_company.exhibition_status', 'On')
+            ->orderBy('events_company.sort', 'asc')
+            ->get();
+
+        foreach ($return as $r) {
+            $r->desc = str_replace("&nbsp;", ' ', $r->desc);
+        }
+
+        return $return;
+    }
+
     public function getDetailSponsorFree($id, $type)
     {
         if ($type == 'Sponsor') {

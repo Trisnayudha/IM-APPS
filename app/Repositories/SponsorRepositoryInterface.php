@@ -9,6 +9,8 @@ interface SponsorRepositoryInterface
     public function getSupporting();
     public function getMedia();
 
+    public function getExhibitor();
+
     //Get Detail
     public function getDetailSponsorPremium($slug);
     public function getDetailSponsorFree($id, $type);

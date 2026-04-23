@@ -113,6 +113,15 @@ class HomeController extends Controller
                     'data' => $knowledge
                 ],
             ];
+        } elseif ($type == 'exhibitor') {
+            $exhibitor = $this->sponsorsService->getExhibitor();
+            $data = [
+                [
+                    'name' => 'EXHIBITOR LIST',
+                    'type' => 'exhibitor',
+                    'data' => $exhibitor
+                ]
+            ];
         } else {
             $supporting = $this->sponsorsService->getSupporting();
             $media = $this->sponsorsService->getMedia();
