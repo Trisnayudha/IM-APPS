@@ -553,7 +553,7 @@ class ScanAppsController extends Controller
         $exploreAccess  = ['Exhibition'];
 
         if ($typeVal == 'Platinum' || $typeVal == 'Delegate Speaker') {
-            return ['Delegate Pass', '#1428DF', $allAccess];
+            return ['Delegate', '#1428DF', $allAccess];
         }
         if ($typeVal == 'Speaker') {
             return ['Speaker Pass', '#D60000', $allAccess];
