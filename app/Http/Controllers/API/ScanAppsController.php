@@ -227,7 +227,7 @@ class ScanAppsController extends Controller
             $title     = $result->title;
 
             // Day access check for non-All Access tickets
-            if ($category !== 'All Access' && preg_match('/^Day (\d+)$/', $category, $matches)) {
+            if ($category !== 'All Access' && preg_match('/^Day (\d+) Access$/', $category, $matches)) {
                 $accessDay   = (int) $matches[1];
                 $expectedDay = 4 + $accessDay; // Day 1 → May 5, Day 2 → May 6, Day 3 → May 7
                 if ($dt->day !== $expectedDay) {
