@@ -208,6 +208,9 @@ Route::post('ai/suggest-meet', [AiController::class, 'suggestMeet']);
 
 // Ngrok routes
 Route::post('scan-qr', [ScanAppsController::class, 'scanQr']);
+Route::post('scan-qr/workshop-metso', [ScanAppsController::class, 'scanQrWorkshopMetso']);
+Route::get('scan-qr/workshop-metso/status/{codePayment}', [ScanAppsController::class, 'workshopMetsoApprovalStatus']);
+Route::post('scan-qr/workshop-metso/action/{delegateId}', [ScanAppsController::class, 'workshopMetsoAction']);
 Route::post('checkin', [ScanAppsController::class, 'checkin']);
 Route::get('list-delegate', [ScanAppsController::class, 'listDelegate']);
 Route::get('/ngrok', [ScanAppsController::class, 'getAllNgrok']);

@@ -63,6 +63,7 @@ class ScanAppsController extends Controller
         $company      = $data['company'] ?? null;
         $image        = $data['image'] ?? null;
         $ngrokId      = $data['ngrok_id'] ?? null;
+        $phone        = $data['phone'] ?? null;
 
         if (!$codePayment || !$day) {
             return $this->err('code_payment and day are required', 400);
@@ -74,9 +75,20 @@ class ScanAppsController extends Controller
                     ->on('ud.events_id', '=', 'payment.events_id');
             })
                 ->join('events_tickets as et', 'et.id', '=', 'payment.package_id')
+                ->join('users as u', 'u.id', '=', 'payment.users_id')
                 ->where('payment.code_payment', $codePayment)
                 ->where('payment.aproval_quota_users', 1)
-                ->select('payment.id as payment_id', 'ud.id as delegate_id', 'ud.users_id', 'et.type as ticket_type_raw', 'et.title as ticket_title', 'et.category as ticket_category')
+                ->select(
+                    'payment.id as payment_id',
+                    'ud.id as delegate_id',
+                    'ud.users_id',
+                    'ud.already_print_badge',
+                    'et.type as ticket_type_raw',
+                    'et.title as ticket_title',
+                    'et.category as ticket_category',
+                    'u.phone',
+                    'u.phone_is_office as need_phone_verification'
+                )
                 ->first();
 
             if (!$result) {
@@ -116,24 +128,28 @@ class ScanAppsController extends Controller
                 $filename = $existingImage;
             }
 
-            $delegateUpdate = ['image' => $filename];
+            $delegateUpdate = ['image' => $filename, 'already_print' => true];
             if ($col) {
                 $delegateUpdate[$col] = $day;
             }
             UsersDelegate::where('id', $delegateId)->update($delegateUpdate);
 
-            User::where('id', $result->users_id)->update([
-                'name'         => $name,
-                'job_title'    => $job,
-                'company_name' => $company
-            ]);
+            $userUpdate = ['name' => $name, 'job_title' => $job, 'company_name' => $company];
+            if ($phone) {
+                $userUpdate['phone']           = $phone;
+                $userUpdate['phone_is_office'] = false;
+            }
+            User::where('id', $result->users_id)->update($userUpdate);
 
             $payload = [
-                'name'         => $name,
-                'company'      => $company,
-                'job_title'    => $job,
-                'code_payment' => $codePayment,
-                'day'          => $day
+                'name'                   => $name,
+                'company'                => $company,
+                'job_title'              => $job,
+                'code_payment'           => $codePayment,
+                'day'                    => $day,
+                'phone_number'           => $result->phone,
+                'need_phone_verification' => empty($result->phone) || (bool) $result->phone_is_office,
+                'already_print_badge'    => true,
             ];
 
             if ($filename) {
@@ -195,6 +211,8 @@ class ScanAppsController extends Controller
             $result = DB::table('payment as p')
                 ->join('users as u', 'u.id', '=', 'p.users_id')
                 ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
+                ->leftJoin('users_delegate as ud', 'ud.payment_id', '=', 'p.id')
+                ->leftJoin('ms_side_events as se', 'se.id', '=', 'ud.side_event_id')
                 ->where('p.code_payment', $codePayment)
                 ->where('p.aproval_quota_users', 1)
                 ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled', 'Expired'])
@@ -203,9 +221,12 @@ class ScanAppsController extends Controller
                     'u.name',
                     'u.job_title',
                     'u.company_name',
+                    'u.phone',
+                    'u.phone_is_office',
                     'et.category',
                     'et.title',
-                    'et.type'
+                    'et.type',
+                    'se.name as side_event_name'
                 )
                 ->first();
 
@@ -262,16 +283,20 @@ class ScanAppsController extends Controller
             return $this->ok(
                 $alreadyCheckedIn ? 'Already checked in (re-scan)' : 'Scan QR successful',
                 [
-                    'name'               => $result->name,
-                    'job_title'          => $result->job_title,
-                    'company'            => $result->company_name,
-                    'code_payment'       => $codePayment,
-                    'checkin_field'      => $col,
-                    'ticket_type'        => $ticketLabel,
-                    'ticket_color'       => $ticketColor,
-                    'access_areas'       => $accessAreas,
-                    'image'              => $imageUrl,
-                    'already_checked_in' => $alreadyCheckedIn,
+                    'name'                    => $result->name,
+                    'job_title'               => $result->job_title,
+                    'company'                 => $result->company_name,
+                    'phone_number'            => $result->phone,
+                    'need_phone_verification' => empty($result->phone) || (bool) $result->phone_is_office,
+                    'already_print_badge'     => (bool) $delegate->already_print,
+                    'side_event'              => $result->side_event_name,
+                    'code_payment'            => $codePayment,
+                    'checkin_field'           => $col,
+                    'ticket_type'             => $ticketLabel,
+                    'ticket_color'            => $ticketColor,
+                    'access_areas'            => $accessAreas,
+                    'image'                   => $imageUrl,
+                    'already_checked_in'      => $alreadyCheckedIn,
                 ]
             );
         } catch (\Exception $e) {
@@ -300,6 +325,7 @@ class ScanAppsController extends Controller
                     ->join('users as u', 'u.id', '=', 'p.users_id')
                     ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
                     ->leftJoin('users_delegate as ud', 'ud.payment_id', '=', 'p.id')
+                    ->leftJoin('ms_side_events as se', 'se.id', '=', 'ud.side_event_id')
                     ->where('p.events_id', 14)
                     ->where('p.aproval_quota_users', 1)
                     ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled', 'Expired'])
@@ -309,13 +335,17 @@ class ScanAppsController extends Controller
                         'u.name',
                         'u.job_title',
                         'u.company_name',
+                        'u.phone',
+                        'u.phone_is_office',
                         'et.category',
                         'et.title',
                         'et.type',
                         'ud.image',
+                        'ud.already_print',
                         'ud.date_day1',
                         'ud.date_day2',
-                        'ud.date_day3'
+                        'ud.date_day3',
+                        'se.name as side_event_name'
                     )
                     ->get();
 
@@ -331,10 +361,14 @@ class ScanAppsController extends Controller
                         'ticket_color' => $ticketColor,
                         'access_areas' => $accessAreas,
                         'category'     => $r->category,
-                        'image'        => $r->image
+                        'image'          => $r->image
                             ? url("storage/uploads/images/exhibition/{$r->image}")
                             : null,
-                        'checkins'     => [
+                        'already_print'  => (bool) $r->already_print,
+                        'phone'          => $r->phone,
+                        'phone_is_office' => (bool) $r->phone_is_office,
+                        'side_event'     => $r->side_event_name,
+                        'checkins'       => [
                             'day1' => $r->date_day1,
                             'day2' => $r->date_day2,
                             'day3' => $r->date_day3,
@@ -624,6 +658,221 @@ class ScanAppsController extends Controller
             }
         } catch (\Exception $e) {
             Log::error("Error sending webhook: " . $e->getMessage());
+        }
+    }
+
+    public function scanQrWorkshopMetso(Request $request)
+    {
+        $data        = $request->json()->all();
+        $codePayment = $data['code_payment'] ?? null;
+
+        if (!$codePayment) {
+            return $this->err('code_payment is required', 400);
+        }
+
+        try {
+            $result = DB::table('payment as p')
+                ->join('users as u', 'u.id', '=', 'p.users_id')
+                ->join('events_tickets as et', 'et.id', '=', 'p.package_id')
+                ->join('users_delegate as ud', 'ud.payment_id', '=', 'p.id')
+                ->leftJoin('ms_side_events as se', 'se.id', '=', 'ud.side_event_id')
+                ->where('p.code_payment', $codePayment)
+                ->where('p.aproval_quota_users', 1)
+                ->whereNotIn('p.status', ['trash', 'Waiting', 'cancelled', 'Expired'])
+                ->select(
+                    'p.id as payment_id',
+                    'u.name',
+                    'u.job_title',
+                    'u.company_name',
+                    'u.phone',
+                    'u.phone_is_office',
+                    'et.title',
+                    'et.type',
+                    'ud.id as delegate_id',
+                    'ud.image',
+                    'ud.already_print',
+                    'ud.side_event_request',
+                    'ud.workshop_metso_checkin_at',
+                    'se.name as side_event_name'
+                )
+                ->first();
+
+            if (!$result) {
+                $exists = DB::table('payment')->where('code_payment', $codePayment)->exists();
+                return $exists
+                    ? $this->err('Payment tidak disetujui atau sudah dibatalkan', 403)
+                    : $this->err('Delegate Not Found', 404);
+            }
+
+            $imageUrl = $result->image
+                ? url("storage/uploads/images/exhibition/{$result->image}")
+                : null;
+
+            list($ticketLabel, $ticketColor, $accessAreas) = $this->mapTicketType($result->type, $result->title);
+
+            $baseData = [
+                'name'                   => $result->name,
+                'job_title'              => $result->job_title,
+                'company'                => $result->company_name,
+                'phone_number'           => $result->phone,
+                'need_phone_verification' => empty($result->phone) || (bool) $result->phone_is_office,
+                'already_print_badge'    => (bool) $result->already_print,
+                'code_payment'           => $codePayment,
+                'ticket_type'            => $ticketLabel,
+                'ticket_color'           => $ticketColor,
+                'access_areas'           => $accessAreas,
+                'image'                  => $imageUrl,
+            ];
+
+            $isWorkshopMetso = $result->side_event_name
+                && stripos($result->side_event_name, 'workshop metso') !== false;
+
+            // --- FLOW 1: side_event_id sudah terisi Workshop Metso → langsung check-in ---
+            if ($isWorkshopMetso) {
+                $alreadyCheckedIn = !empty($result->workshop_metso_checkin_at);
+                $jakartaTime      = Carbon::now('Asia/Jakarta');
+
+                DB::table('users_delegate')
+                    ->where('id', $result->delegate_id)
+                    ->update(['workshop_metso_checkin_at' => $jakartaTime->format('Y-m-d H:i:s')]);
+
+                return $this->ok(
+                    $alreadyCheckedIn ? 'Already checked in (re-scan)' : 'Scan QR Workshop Metso berhasil',
+                    array_merge($baseData, [
+                        'approval_status'           => 'approved',
+                        'side_event'                => $result->side_event_name,
+                        'already_checked_in'        => $alreadyCheckedIn,
+                        'workshop_metso_checkin_at' => $alreadyCheckedIn
+                            ? $result->workshop_metso_checkin_at
+                            : $jakartaTime->format('Y-m-d H:i:s'),
+                    ])
+                );
+            }
+
+            // --- FLOW 2: Belum ada side_event Workshop Metso → cek status request ---
+
+            // Sudah di-decline sebelumnya
+            if ($result->side_event_request === 'declined') {
+                return $this->err('Permintaan akses Workshop Metso ditolak oleh operator', 403);
+            }
+
+            // Sudah pending → kembalikan status yang sama
+            if ($result->side_event_request === 'pending') {
+                return response()->json([
+                    'status'  => 202,
+                    'message' => 'Menunggu persetujuan dari operator',
+                    'data'    => array_merge($baseData, [
+                        'approval_status' => 'pending',
+                        'side_event'      => $result->side_event_name,
+                    ]),
+                ], 202);
+            }
+
+            // Belum ada request → tandai pending di users_delegate
+            DB::table('users_delegate')
+                ->where('id', $result->delegate_id)
+                ->update(['side_event_request' => 'pending']);
+
+            return response()->json([
+                'status'  => 202,
+                'message' => 'Menunggu persetujuan dari operator',
+                'data'    => array_merge($baseData, [
+                    'approval_status' => 'pending',
+                    'side_event'      => $result->side_event_name,
+                ]),
+            ], 202);
+        } catch (\Exception $e) {
+            return $this->err($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * GET /api/scan-qr/workshop-metso/status/{codePayment}
+     * Polling status approval dari mobile delegate.
+     */
+    public function workshopMetsoApprovalStatus($codePayment)
+    {
+        try {
+            $result = DB::table('payment as p')
+                ->join('users as u', 'u.id', '=', 'p.users_id')
+                ->join('users_delegate as ud', 'ud.payment_id', '=', 'p.id')
+                ->leftJoin('ms_side_events as se', 'se.id', '=', 'ud.side_event_id')
+                ->where('p.code_payment', $codePayment)
+                ->select(
+                    'u.name',
+                    'ud.side_event_request',
+                    'ud.side_event_id',
+                    'se.name as side_event_name'
+                )
+                ->first();
+
+            if (!$result) {
+                return $this->err('Delegate Not Found', 404);
+            }
+
+            $isWorkshopMetso = $result->side_event_name
+                && stripos($result->side_event_name, 'workshop metso') !== false;
+
+            $status = $isWorkshopMetso ? 'approved' : ($result->side_event_request ?? 'none');
+
+            return $this->ok('Success', [
+                'code_payment'    => $codePayment,
+                'name'            => $result->name,
+                'approval_status' => $status,
+                'side_event'      => $result->side_event_name,
+            ]);
+        } catch (\Exception $e) {
+            return $this->err($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/scan-qr/workshop-metso/action/{delegateId}
+     * Operator approve atau decline request.
+     * Body: { "action": "approved" | "declined" }
+     */
+    public function workshopMetsoAction(Request $request, $delegateId)
+    {
+        $action = $request->json('action');
+
+        if (!in_array($action, ['approved', 'declined'])) {
+            return $this->err('action harus "approved" atau "declined"', 400);
+        }
+
+        try {
+            $delegate = DB::table('users_delegate')->where('id', $delegateId)->first();
+
+            if (!$delegate) {
+                return $this->err('Delegate tidak ditemukan', 404);
+            }
+
+            if ($delegate->side_event_request !== 'pending') {
+                return $this->err('Tidak ada request pending untuk delegate ini', 409);
+            }
+
+            $jakartaTime = Carbon::now('Asia/Jakarta');
+
+            if ($action === 'approved') {
+                $sideEvent = DB::table('ms_side_events')
+                    ->where('name', 'like', '%workshop metso%')
+                    ->first();
+
+                DB::table('users_delegate')->where('id', $delegateId)->update([
+                    'side_event_id'             => $sideEvent ? $sideEvent->id : $delegate->side_event_id,
+                    'side_event_request'        => null,
+                    'workshop_metso_checkin_at' => $jakartaTime->format('Y-m-d H:i:s'),
+                    'updated_at'                => $jakartaTime->format('Y-m-d H:i:s'),
+                ]);
+            } else {
+                DB::table('users_delegate')->where('id', $delegateId)->update([
+                    'side_event_request' => 'declined',
+                    'updated_at'         => $jakartaTime->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            return $this->ok("Request berhasil di-{$action}");
+        } catch (\Exception $e) {
+            return $this->err($e->getMessage(), 500);
         }
     }
 
