@@ -336,12 +336,12 @@ class ScanAppsController extends Controller
                         'u.job_title',
                         'u.company_name',
                         'u.phone',
-                        'u.phone_is_office as phone_is_office',
+                        'u.phone_is_office as need_phone_verification',
                         'et.category',
                         'et.title',
                         'et.type',
                         'ud.image',
-                        'ud.already_print as need_phone_verification',
+                        'ud.already_print as already_print_badge',
                         'ud.date_day1',
                         'ud.date_day2',
                         'ud.date_day3',
@@ -364,9 +364,9 @@ class ScanAppsController extends Controller
                         'image'          => $r->image
                             ? url("storage/uploads/images/exhibition/{$r->image}")
                             : null,
-                        'already_print'  => (bool) $r->already_print,
+                        'already_print_badge'  => (bool) $r->already_print_badge,
                         'phone'          => $r->phone,
-                        'phone_is_office' => (bool) $r->phone_is_office,
+                        'need_phone_verification' => (bool) $r->need_phone_verification,
                         'side_event'     => $r->side_event_name,
                         'checkins'       => [
                             'day1' => $r->date_day1,
