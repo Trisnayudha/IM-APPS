@@ -58,7 +58,13 @@ class ScanAppsController extends Controller
         $day          = $data['day'] ?? null;
         $displayName  = $data['display_name'] ?? null;
         $namePart     = $data['name'] ?? null;
-        $name         = trim(implode(' ', array_filter([$displayName, $namePart]))) ?: null;
+        // Prevent duplication: if namePart already starts with displayName (happens when client
+        // sends back the previously stored combined name), skip re-prepending displayName.
+        if ($displayName && $namePart && str_starts_with(trim($namePart), trim($displayName) . ' ')) {
+            $name = trim($namePart);
+        } else {
+            $name = trim(implode(' ', array_filter([$displayName, $namePart]))) ?: null;
+        }
         $job          = $data['job_title'] ?? null;
         $company      = $data['company'] ?? null;
         $image        = $data['image'] ?? null;
