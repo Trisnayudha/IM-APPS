@@ -82,7 +82,7 @@ class ScanAppsController extends Controller
                     'payment.id as payment_id',
                     'ud.id as delegate_id',
                     'ud.users_id',
-                    'ud.already_print_badge',
+                    'ud.already_print as already_print_badge',
                     'et.type as ticket_type_raw',
                     'et.title as ticket_title',
                     'et.category as ticket_category',
