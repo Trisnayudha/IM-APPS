@@ -63,7 +63,7 @@ class ScanAppsController extends Controller
         $company      = $data['company'] ?? null;
         $image        = $data['image'] ?? null;
         $ngrokId      = $data['ngrok_id'] ?? null;
-        $phone        = $data['phone'] ?? null;
+        $phone        = $data['phone_number'] ?? null;
 
         if (!$codePayment || !$day) {
             return $this->err('code_payment and day are required', 400);
