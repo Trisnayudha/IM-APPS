@@ -335,7 +335,7 @@ class ScanAppsController extends Controller
                         'u.name',
                         'u.job_title',
                         'u.company_name',
-                        'u.phone',
+                        'u.phone as phone_number',
                         'u.phone_is_office as need_phone_verification',
                         'et.category',
                         'et.title',
@@ -365,7 +365,7 @@ class ScanAppsController extends Controller
                             ? url("storage/uploads/images/exhibition/{$r->image}")
                             : null,
                         'already_print_badge'  => (bool) $r->already_print_badge,
-                        'phone'          => $r->phone,
+                        'phone_number'          => $r->phone_number,
                         'need_phone_verification' => (bool) $r->need_phone_verification,
                         'side_event'     => $r->side_event_name,
                         'checkins'       => [
