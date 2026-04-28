@@ -793,46 +793,6 @@ class ScanAppsController extends Controller
     }
 
     /**
-     * GET /api/scan-qr/workshop-metso/status/{codePayment}
-     * Polling status approval dari mobile delegate.
-     */
-    public function workshopMetsoApprovalStatus($codePayment)
-    {
-        try {
-            $result = DB::table('payment as p')
-                ->join('users as u', 'u.id', '=', 'p.users_id')
-                ->join('users_delegate as ud', 'ud.payment_id', '=', 'p.id')
-                ->leftJoin('ms_side_events as se', 'se.id', '=', 'ud.side_event_id')
-                ->where('p.code_payment', $codePayment)
-                ->select(
-                    'u.name',
-                    'ud.side_event_request',
-                    'ud.side_event_id',
-                    'se.name as side_event_name'
-                )
-                ->first();
-
-            if (!$result) {
-                return $this->err('Delegate Not Found', 404);
-            }
-
-            $isWorkshopMetso = $result->side_event_name
-                && stripos($result->side_event_name, 'workshop metso') !== false;
-
-            $status = $isWorkshopMetso ? 'approved' : ($result->side_event_request ?? 'none');
-
-            return $this->ok('Success', [
-                'code_payment'    => $codePayment,
-                'name'            => $result->name,
-                'approval_status' => $status,
-                'side_event'      => $result->side_event_name,
-            ]);
-        } catch (\Exception $e) {
-            return $this->err($e->getMessage(), 500);
-        }
-    }
-
-    /**
      * POST /api/scan-qr/workshop-metso/action/{delegateId}
      * Operator approve atau decline request.
      * Body: { "action": "approved" | "declined" }
