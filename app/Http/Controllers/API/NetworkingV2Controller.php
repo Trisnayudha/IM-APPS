@@ -17,6 +17,29 @@ class NetworkingV2Controller extends Controller
         $this->eventService = $eventService;
     }
 
+    private function isUnlimitedUser($payment): bool
+    {
+        if (!$payment) {
+            return false;
+        }
+
+        if ($payment->package === 'Platinum') {
+            return true;
+        }
+
+        $unlimitedTitles = [
+            'Mining Pass',
+            'Workshop MGEI Mining Pass',
+            'Upgrade Exhibition Pass',
+            'Investor Pass',
+            'Speaker Pass',
+            'Speaker Plus+',
+            'Workshop METSO',
+        ];
+
+        return in_array($payment->ticket_title, $unlimitedTitles);
+    }
+
     /**
      * GET Swipe Cards
      */
@@ -100,10 +123,7 @@ class NetworkingV2Controller extends Controller
              */
             $payment = $this->eventService->getCheckPayment($userId, $event->id);
 
-            $isFreeUser = (
-                $payment &&
-                trim(strtolower($payment->status)) === 'free'
-            );
+            $isFreeUser = !$this->isUnlimitedUser($payment);
 
             /**
              * =========================================
@@ -311,7 +331,22 @@ class NetworkingV2Controller extends Controller
             'updated_at'   => now(),
         ]);
 
-        // 👉 trigger email / push notif here
+        $requester = DB::table('users')->where('id', $userId)->first();
+        DB::table('email_notification_queue')->insert([
+            'recipient_id'   => $request->target_id,
+            'type'           => 'connection_request',
+            'actor_id'       => $userId,
+            'reference_id'   => null,
+            'reference_type' => 'networking_request',
+            'payload'        => json_encode([
+                'requester_name'    => $requester->name ?? '',
+                'requester_company' => $requester->company_name ?? '',
+                'message'           => $request->message,
+            ]),
+            'is_processed'   => 0,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
 
         $response['status']  = 200;
         $response['message'] = 'Request sent successfully';
@@ -551,7 +586,7 @@ class NetworkingV2Controller extends Controller
             ], 409);
         }
 
-        DB::table('networking_meeting_tables')->insert([
+        $meetingId = DB::table('networking_meeting_tables')->insertGetId([
             'requester_id'  => $userId,
             'target_id'     => $request->target_id,
             'events_id'     => $event->id,
@@ -560,6 +595,24 @@ class NetworkingV2Controller extends Controller
             'status'        => 'pending',
             'created_at'    => now(),
             'updated_at'    => now(),
+        ]);
+
+        $requesterMeeting = DB::table('users')->where('id', $userId)->first();
+        DB::table('email_notification_queue')->insert([
+            'recipient_id'   => $request->target_id,
+            'type'           => 'meeting_request',
+            'actor_id'       => $userId,
+            'reference_id'   => $meetingId,
+            'reference_type' => 'networking_meeting',
+            'payload'        => json_encode([
+                'requester_name'    => $requesterMeeting->name ?? '',
+                'requester_company' => $requesterMeeting->company_name ?? '',
+                'schedule_date'     => $scheduleDateTime,
+                'table_number'      => $request->table_number,
+            ]),
+            'is_processed'   => 0,
+            'created_at'     => now(),
+            'updated_at'     => now(),
         ]);
 
         return response()->json([
@@ -673,7 +726,7 @@ class NetworkingV2Controller extends Controller
          * =========================
          */
         $payment = $this->eventService->getCheckPayment($userId, $event->id);
-        $isFreeUser = (!$payment || in_array($payment->status, ['Free']));
+        $isFreeUser = !$this->isUnlimitedUser($payment);
 
 
         /**

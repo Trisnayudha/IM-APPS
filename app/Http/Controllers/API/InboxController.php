@@ -40,6 +40,25 @@ class InboxController extends Controller
         $chat_id = $request->chat_id;
         $user_id = auth('sanctum')->user()->id ?? null;
         $limit = (int) $request->limit ?? 5;
+
+        if ($user_id && $chat_id) {
+            DB::table('users_chat_users')
+                ->where('users_chat_id', $chat_id)
+                ->where('users_id', $user_id)
+                ->update(['last_read_at' => Carbon::now()]);
+
+            DB::table('email_notification_queue')
+                ->where('recipient_id', $user_id)
+                ->where('reference_id', $chat_id)
+                ->where('reference_type', 'chat')
+                ->where('is_processed', 0)
+                ->update([
+                    'is_processed' => 1,
+                    'processed_at' => Carbon::now(),
+                    'updated_at'   => Carbon::now(),
+                ]);
+        }
+
         $paginator = DB::table('users_chat_msg AS ucm')
             ->join('users AS u', 'ucm.users_id', '=', 'u.id')
             ->joinSub(function ($query) use ($chat_id) {
@@ -201,6 +220,22 @@ class InboxController extends Controller
         $short_message = substr($message, 0, 100); // Memotong teks menjadi 100 huruf
         $notif->message = $short_message;
         $notif->NotifApp();
+
+        $senderName = auth('sanctum')->user()->name ?? '';
+        DB::table('email_notification_queue')->insert([
+            'recipient_id'   => $target_fix_id,
+            'type'           => 'unread_message',
+            'actor_id'       => $user_id,
+            'reference_id'   => $request->chat_id,
+            'reference_type' => 'chat',
+            'payload'        => json_encode([
+                'sender_name'     => $senderName,
+                'message_preview' => substr($request->message, 0, 100),
+            ]),
+            'is_processed'   => 0,
+            'created_at'     => Carbon::now(),
+            'updated_at'     => Carbon::now(),
+        ]);
 
         $response['status'] = 200;
         $response['message'] = 'send message inbox successfully';
