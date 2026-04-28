@@ -764,14 +764,11 @@ class ScanAppsController extends Controller
 
             // Sudah pending → kembalikan status yang sama
             if ($result->side_event_request === 'pending') {
-                return response()->json([
-                    'status'  => 202,
-                    'message' => 'Menunggu persetujuan dari operator',
-                    'data'    => array_merge($baseData, [
-                        'approval_status' => 'pending',
-                        'side_event'      => $result->side_event_name,
-                    ]),
-                ], 202);
+                return $this->ok('Menunggu persetujuan dari operator', array_merge($baseData, [
+                    'approval_status' => 'pending',
+                    'delegate_id'     => $result->delegate_id,
+                    'side_event'      => $result->side_event_name,
+                ]), 202);
             }
 
             // Belum ada request → tandai pending di users_delegate
@@ -779,14 +776,11 @@ class ScanAppsController extends Controller
                 ->where('id', $result->delegate_id)
                 ->update(['side_event_request' => 'pending']);
 
-            return response()->json([
-                'status'  => 202,
-                'message' => 'Menunggu persetujuan dari operator',
-                'data'    => array_merge($baseData, [
-                    'approval_status' => 'pending',
-                    'side_event'      => $result->side_event_name,
-                ]),
-            ], 202);
+            return $this->ok('Menunggu persetujuan dari operator', array_merge($baseData, [
+                'approval_status' => 'pending',
+                'delegate_id'     => $result->delegate_id,
+                'side_event'      => $result->side_event_name,
+            ]), 202);
         } catch (\Exception $e) {
             return $this->err($e->getMessage(), 500);
         }
