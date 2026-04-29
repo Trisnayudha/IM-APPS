@@ -21,9 +21,12 @@ class EventsSpeakerService
                 'events_speaker.linkedin',
                 'events_speaker.twitter',
                 'events_speaker.instagram',
-                'events_schedule_speaker.moderator',
-                'events_schedule_speaker.interviewer',
-                'events_schedule_speaker.interviewee'
+                DB::raw("CASE
+                    WHEN events_schedule_speaker.moderator = 1 THEN 'moderator'
+                    WHEN events_schedule_speaker.interviewer = 1 THEN 'interviewer'
+                    WHEN events_schedule_speaker.interviewee = 1 THEN 'interviewee'
+                    ELSE NULL
+                END as tag")
             )
             ->leftjoin('events_speaker', function ($join) {
                 $join->on('events_schedule_speaker.events_speaker_id', '=', 'events_speaker.id');
