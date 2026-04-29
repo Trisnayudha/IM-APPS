@@ -106,7 +106,7 @@
         </div>
         <div class="body-email">
             <p>Dear {{ $name }},</p>
-            <p>Thank you for registering for Indonesia Miner 2025 as a {!! $type !!} Pass. Your registration
+            <p>Thank you for registering for Indonesia Miner 2026 as a {!! $type !!} Pass. Your registration
                 is
                 now
                 waiting for approval. You’ll be notified by email when your registration has been approved.</p>
