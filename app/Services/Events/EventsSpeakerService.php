@@ -20,7 +20,10 @@ class EventsSpeakerService
                 'events_speaker.bio_desc as desc',
                 'events_speaker.linkedin',
                 'events_speaker.twitter',
-                'events_speaker.instagram'
+                'events_speaker.instagram',
+                'events_schedule_speaker.moderator',
+                'events_schedule_speaker.interviewer',
+                'events_schedule_speaker.interviewee'
             )
             ->leftjoin('events_speaker', function ($join) {
                 $join->on('events_schedule_speaker.events_speaker_id', '=', 'events_speaker.id');
