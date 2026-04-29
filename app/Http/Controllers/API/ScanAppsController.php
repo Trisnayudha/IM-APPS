@@ -254,7 +254,8 @@ class ScanAppsController extends Controller
             $title     = $result->title;
 
             // Day access check for non-All Access tickets
-            if ($category !== 'All Access' && preg_match('/^Day (\d+) Access$/', $category, $matches)) {
+            // Matches "Day X Access" and "Day X <Type> Access" (e.g. "Day 2 Networking Access")
+            if ($category !== 'All Access' && preg_match('/^Day (\d+)(?: \w+)? Access$/', $category, $matches)) {
                 $accessDay   = (int) $matches[1];
                 $expectedDay = 4 + $accessDay; // Day 1 → May 5, Day 2 → May 6, Day 3 → May 7
                 if ($dt->day !== $expectedDay) {
@@ -621,6 +622,8 @@ class ScanAppsController extends Controller
                 return ['Mining Pass', '#228B22', $allAccess];
             } elseif (strpos($title, 'Media') !== false) {
                 return ['Media Pass', '#8A2BE2', $allAccess];
+            } elseif (strpos($title, 'Networking') !== false) {
+                return ['Networking Pass', '#00CED1', ['Networking Functions']];
             } elseif (strpos($title, 'Exhibitor') !== false || strpos($title, 'Exhibition') !== false) {
                 return ['Exhibitor Pass', '#FFD700', $exhibitorAccess];
             }
