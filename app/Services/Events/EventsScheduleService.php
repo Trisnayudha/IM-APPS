@@ -98,8 +98,8 @@ class EventsScheduleService
 
         foreach ($data as $x => $row) {
             $row->sponsor_image = (!empty($row->sponsor_image) ? $row->sponsor_image : '');
-            $row->time_start = (!empty($row->time_start) ? date('H:i A', strtotime($row->time_start)) : '');
-            $row->time_end = (!empty($row->time_end) ? date('H:i A', strtotime($row->time_end)) : '');
+            $row->time_start = (!empty($row->time_start) ? date('H:i', strtotime($row->time_start)) : '');
+            $row->time_end = (!empty($row->time_end) ? date('H:i', strtotime($row->time_end)) : '');
             $row->isBookmark = self::isBookmark('Conference Agenda', $row->id, $events_id);
             $row->speaker = EventsSpeakerService::listSpeakerSchedule($row->id);
         }
@@ -134,10 +134,10 @@ class EventsScheduleService
         foreach ($data as $row) {
             $row->sponsor_image = $row->sponsor_image ?? '';
             $row->time_start = $row->time_start
-                ? date('h:i A', strtotime($row->time_start))
+                ? date('H:i', strtotime($row->time_start))
                 : '';
             $row->time_end = $row->time_end
-                ? date('h:i A', strtotime($row->time_end))
+                ? date('H:i', strtotime($row->time_end))
                 : '';
             $row->isBookmark = self::isBookmark(
                 'Conference Agenda',
@@ -172,8 +172,8 @@ class EventsScheduleService
             ->first();
 
         $data->sponsor_image = (!empty($data->sponsor_image) ? $data->sponsor_image : '');
-        $data->time_start = (!empty($data->time_start) ? date('H:i A', strtotime($data->time_start)) : '');
-        $data->time_end = (!empty($data->time_end) ? date('H:i A', strtotime($data->time_end)) : '');
+        $data->time_start = (!empty($data->time_start) ? date('H:i', strtotime($data->time_start)) : '');
+        $data->time_end = (!empty($data->time_end) ? date('H:i', strtotime($data->time_end)) : '');
         $data->isBookmark = self::isBookmark('Conference Agenda', $data->id, $events_id->id);
         $data->speaker = EventsSpeakerService::listSpeakerSchedule($data->id);
 
