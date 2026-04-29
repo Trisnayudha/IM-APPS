@@ -133,7 +133,7 @@ class HomeController extends Controller
                     'data' => $supporting
                 ],
                 [
-                    'name' => 'MEDIA PARTNERS',
+                    'name' => 'MEDIA PARTNER',
                     'type' => 'media',
                     'data' => $media
                 ],
