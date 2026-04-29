@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Helpers\Notification;
+use App\Helpers\WhatsappApi;
 use App\Http\Controllers\Controller;
 use App\Services\Company\CompanyService;
 use App\Services\Email\EmailService;
@@ -280,6 +281,21 @@ class HomeController extends Controller
             $notif->NotifApp();
             $send = $this->emailService->sendBenefit($type, $find);
             $receive = $this->emailService->receiveBenefit($type, $find);
+
+            $wa = new WhatsappApi();
+            $wa->phone = '120363423742509266@g.us';
+            $wa->message = "*[Delegate Alert] Request Pendaftaran Baru*\n\n"
+                . "Ada peserta yang mengajukan request pendaftaran *melalui mobile apps* untuk *Indonesia Miner Conference & Exhibition 2026*.\n\n"
+                . "*Detail Pemohon:*\n"
+                . "- Nama: " . ($find->name ?? '-') . "\n"
+                . "- Email: " . ($find->email ?? '-') . "\n"
+                . "- No. HP: " . ($find->phone ?? $find->phone_number ?? '-') . "\n"
+                . "- Company: " . ($find->company_name ?? '-') . "\n"
+                . "- Tipe Pass: " . $type . "\n"
+                . "- Waktu Request: " . now()->format('Y-m-d H:i:s') . " WIB\n\n"
+                . "Mohon tim delegate untuk follow up pendaftaran ini.";
+            $wa->WhatsappMessageGroup();
+
             $response['status'] = 200;
             $response['message'] = 'Successfully send request event';
             $response['payload'] = $notif;
