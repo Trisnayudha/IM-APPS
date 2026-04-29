@@ -79,7 +79,8 @@ class EventsScheduleService
                 'events_schedule.timezone as status',
                 'events_schedule.location',
                 'md_sponsor.image as sponsor_image',
-                'events_schedule.desc'
+                'events_schedule.desc',
+                'events_schedule.is_invitation_only'
             )
             ->leftJoin('md_sponsor', function ($join) {
                 $join->on('md_sponsor.id', '=', 'events_schedule.md_sponsor_id');
