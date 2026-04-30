@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <p>Dear Mas Damun, </p>
+    <p>Dear Mba Lulla, </p>
 
 
     <p>I am writing to inform you that we have received a new registration for the Indonesia Miner event as a

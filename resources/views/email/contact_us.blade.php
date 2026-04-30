@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <p>Dear Mas Izom, </p>
+    <p>Dear Mba Lulla, </p>
 
 
     <p>I hope this email finds you well. I am reaching out to inquire about the contact information for your company. I
