@@ -220,7 +220,7 @@ class HomeController extends Controller
                 'replay' => false,
                 'mining_directory' => true,
                 'bookmark' => true,
-                'speakers' => true
+                'speakers' => false
 
             ];
             $response['status'] = 200;
