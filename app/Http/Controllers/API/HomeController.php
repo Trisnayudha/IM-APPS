@@ -209,7 +209,7 @@ class HomeController extends Controller
             $data = [
                 'type' => $checkPayment ? $checkPayment->package : 'guest',
                 'show_restriction' => $event->status_event == 'on' ? false : true,
-                'qr_code' => $checkPayment ? $checkPayment->qr_code : null,
+                'qr_code' => $checkPayment ? $checkPayment->code_payment : null,
                 'code_payment' => $checkPayment ? $checkPayment->code_payment : null,
                 'networking' => true,
                 'inbox' => true,
