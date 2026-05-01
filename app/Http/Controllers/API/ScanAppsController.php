@@ -49,6 +49,17 @@ class ScanAppsController extends Controller
         ], $httpCode);
     }
 
+    private function isNetworkingPassAusmincham(?string $title): bool
+    {
+        return Str::lower(trim((string) $title)) === 'networking pass ausmincham';
+    }
+
+    private function canScanNetworkingPassNow(Carbon $now): bool
+    {
+        // Networking Pass Ausmincham can only be scanned from 16:00 WIB.
+        return $now->format('H:i') >= '16:00';
+    }
+
     public function checkin(Request $request)
     {
         $data = $request->all();
@@ -99,6 +110,14 @@ class ScanAppsController extends Controller
 
             if (!$result) {
                 return $this->err('QR Code tidak valid', 404);
+            }
+
+            $nowJakarta = Carbon::now('Asia/Jakarta');
+            if (
+                $this->isNetworkingPassAusmincham($result->ticket_title)
+                && !$this->canScanNetworkingPassNow($nowJakarta)
+            ) {
+                return $this->err('Networking Pass Ausmincham can only be scanned starting at 16:00 WIB', 403);
             }
 
             $paymentId  = $result->payment_id;
@@ -252,6 +271,14 @@ class ScanAppsController extends Controller
             $category  = $result->category;
             $typeVal   = $result->type;
             $title     = $result->title;
+
+            $nowJakarta = Carbon::now('Asia/Jakarta');
+            if (
+                $this->isNetworkingPassAusmincham($title)
+                && !$this->canScanNetworkingPassNow($nowJakarta)
+            ) {
+                return $this->err('Networking Pass Ausmincham can only be scanned starting at 16:00 WIB', 403);
+            }
 
             // Day access check for non-All Access tickets
             // Matches "Day X Access" and "Day X <Type> Access" (e.g. "Day 2 Networking Access")
