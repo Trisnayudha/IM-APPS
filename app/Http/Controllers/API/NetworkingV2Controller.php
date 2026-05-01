@@ -562,7 +562,7 @@ class NetworkingV2Controller extends Controller
         $request->validate([
             'target_id'      => 'required|integer',
             'schedule_date'  => 'required|date', // atau date_format:Y-m-d H:i:s
-            'table_number'   => 'required|integer|min:1|max:12',
+            'table_number'   => 'required|integer|min:1|max:3',
         ]);
 
         $event = $this->eventService->getLastEvent();
@@ -668,7 +668,7 @@ class NetworkingV2Controller extends Controller
                 ->whereTime('schedule_date', $time)
                 ->count();
 
-            if ($count < 12) {
+            if ($count < 3) {
                 $availableTimes[] = $time;
             }
         }
@@ -693,7 +693,7 @@ class NetworkingV2Controller extends Controller
             ->pluck('table_number')
             ->toArray();
 
-        $tables = collect(range(1, 12))->map(fn($table) => [
+        $tables = collect(range(1, 3))->map(fn($table) => [
             'table_number' => $table,
             'status' => in_array($table, $usedTables) ? 'unavailable' : 'available',
         ]);
