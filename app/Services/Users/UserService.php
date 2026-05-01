@@ -26,7 +26,6 @@ class UserService implements UserRepositoryInterface
     public function getUserByEmailActive($email)
     {
         return User::where('email', $email)
-            ->where('is_register', '1')
             ->select('otp', 'is_register', 'email', 'name', 'created_at', 'updated_at', 'created_at', 'id')->first();
     }
 
