@@ -408,18 +408,18 @@ class ProfileController extends Controller
         $user = $this->userService->getUserById($id);
 
         $fields = [
-            'image_users',
-            'bio_desc',
+            // 'image_users',
+            // 'bio_desc',
             'name',
             'job_title',
-            'country',
-            'state',
-            'city',
+            // 'country',
+            // 'state',
+            // 'city',
             'email_alternate',
             'company_name',
-            'company_web',
+            // 'company_web',
             'ms_company_category_id',
-            'company_logo'
+            // 'company_logo'
         ];
 
         $filled = 0;
