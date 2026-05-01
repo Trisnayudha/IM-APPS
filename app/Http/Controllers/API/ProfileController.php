@@ -415,10 +415,10 @@ class ProfileController extends Controller
             // 'country',
             // 'state',
             // 'city',
-            'email_alternate',
+            // 'email_alternate',
             'company_name',
             // 'company_web',
-            'ms_company_category_id',
+            // 'ms_company_category_id',
             // 'company_logo'
         ];
 
