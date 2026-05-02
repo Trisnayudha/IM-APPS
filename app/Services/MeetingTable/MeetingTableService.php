@@ -76,6 +76,7 @@ class MeetingTableService
                     'table_name' => 'Table ' . str_pad($row->table_number, 2, '0', STR_PAD_LEFT),
                     'date' => date('d M Y h:i A', strtotime($row->schedule_date)),
                     'status' => self::statusLabel($row->status),
+                    'location' => null, //tbc nanti diisi
                     'participant' => [
                         'name' => $row->participant_name,
                         'job_title' => $row->job_title,
@@ -109,6 +110,7 @@ class MeetingTableService
                     'table_name' => 'Table ' . str_pad($row->table_number, 2, '0', STR_PAD_LEFT),
                     'date' => date('d M Y h:i A', strtotime($row->schedule_date)),
                     'status' => self::statusLabel('pending'),
+                    'location' => null, //tbc nanti diisi
                     'requester' => [
                         'name' => $row->requester_name,
                         'job_title' => $row->job_title,
