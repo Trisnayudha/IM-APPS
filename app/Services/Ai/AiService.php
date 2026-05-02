@@ -163,18 +163,55 @@ Write 2–3 concise, friendly yet professional sentences in English to start a c
 
     protected function callAnthropic(string $systemPrompt, string $userPrompt, int $maxTokens)
     {
-        return Http::withHeaders([
-            'x-api-key' => env('ANTHROPIC_API_KEY'),
-            'anthropic-version' => '2023-06-01',
-            'content-type' => 'application/json',
-        ])->post($this->anthropicEndpoint, [
-            'model' => env('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022'),
+        $model = env('ANTHROPIC_MODEL', 'claude-sonnet-4-6');
+
+        $payload = [
+            'model' => $model,
             'system' => $systemPrompt,
             'messages' => [
                 ['role' => 'user', 'content' => $userPrompt],
             ],
             'max_tokens' => $maxTokens,
             'temperature' => 0.7,
-        ]);
+        ];
+
+        $response = Http::withHeaders([
+            'x-api-key' => env('ANTHROPIC_API_KEY'),
+            'anthropic-version' => '2023-06-01',
+            'content-type' => 'application/json',
+        ])->post($this->anthropicEndpoint, $payload);
+
+        if (! $response->successful()) {
+            $errorType = $response->json('error.type');
+            $message = (string) $response->json('error.message', '');
+            $isModelNotFound = $errorType === 'not_found_error' && str_contains(strtolower($message), 'model');
+
+            if ($isModelNotFound) {
+                $fallbackModels = [
+                    'claude-sonnet-4-6',
+                    'claude-sonnet-4-20250514',
+                    'claude-opus-4-20250514',
+                ];
+
+                foreach ($fallbackModels as $fallbackModel) {
+                    if ($fallbackModel === $model) {
+                        continue;
+                    }
+
+                    $payload['model'] = $fallbackModel;
+                    $response = Http::withHeaders([
+                        'x-api-key' => env('ANTHROPIC_API_KEY'),
+                        'anthropic-version' => '2023-06-01',
+                        'content-type' => 'application/json',
+                    ])->post($this->anthropicEndpoint, $payload);
+
+                    if ($response->successful()) {
+                        return $response;
+                    }
+                }
+            }
+        }
+
+        return $response;
     }
 }
