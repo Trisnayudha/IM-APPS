@@ -29,7 +29,10 @@ class MeetingTableController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'My approved meeting table',
-            'payload' => $data
+            'payload' => $data,
+            'meta' => [
+                'status_options' => MeetingTableService::statusOptions()
+            ]
         ]);
     }
 
@@ -50,7 +53,10 @@ class MeetingTableController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Pending meeting request',
-            'payload' => $data
+            'payload' => $data,
+            'meta' => [
+                'status_options' => MeetingTableService::statusOptions()
+            ]
         ]);
     }
 
@@ -83,7 +89,10 @@ class MeetingTableController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Meeting request ' . $request->action,
-            'payload' => []
+            'payload' => [
+                'status' => $request->action,
+                'status_label' => MeetingTableService::statusLabel($request->action),
+            ]
         ]);
     }
 

@@ -7,6 +7,38 @@ use Illuminate\Support\Facades\DB;
 class MeetingTableService
 {
     /**
+     * Centralized status labels for frontend (marketing copy).
+     * Keep DB values as: pending, accepted, declined.
+     */
+    private static function meetingStatusLabels(): array
+    {
+        return [
+            'pending' => 'Awaiting Confirmation',
+            'accepted' => 'Meeting Confirmed',
+            'declined' => 'Request Declined',
+        ];
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        $labels = self::meetingStatusLabels();
+        return $labels[$status] ?? ucfirst((string) $status);
+    }
+
+    public static function statusOptions(): array
+    {
+        $result = [];
+        foreach (self::meetingStatusLabels() as $value => $label) {
+            $result[] = [
+                'value' => $value,
+                'label' => $label,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * List approved meeting table for logged-in user
      */
     public static function listApprovedMeetingTableByUser($userId)
@@ -44,6 +76,7 @@ class MeetingTableService
                     'table_name' => 'Table ' . str_pad($row->table_number, 2, '0', STR_PAD_LEFT),
                     'date' => date('d M Y h:i A', strtotime($row->schedule_date)),
                     'status' => $row->status,
+                    'status_label' => self::statusLabel($row->status),
                     'participant' => [
                         'name' => $row->participant_name,
                         'job_title' => $row->job_title,
@@ -76,6 +109,8 @@ class MeetingTableService
                     'meeting_id' => $row->id,
                     'table_name' => 'Table ' . str_pad($row->table_number, 2, '0', STR_PAD_LEFT),
                     'date' => date('d M Y h:i A', strtotime($row->schedule_date)),
+                    'status' => 'pending',
+                    'status_label' => self::statusLabel('pending'),
                     'requester' => [
                         'name' => $row->requester_name,
                         'job_title' => $row->job_title,
