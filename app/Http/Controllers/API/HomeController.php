@@ -216,11 +216,11 @@ class HomeController extends Controller
                 'floor_plan' => true,
                 'schedule' => true,
                 'exhibition' => true,
-                'event_booklet' => false,
-                'replay' => false,
+                'event_booklet' => true,
+                'replay' => true,
                 'mining_directory' => true,
                 'bookmark' => true,
-                'speakers' => false
+                'speakers' => true
 
             ];
             $response['status'] = 200;
