@@ -29,9 +29,10 @@ class MeetingTableService
                 'u.name as participant_name',
                 'u.job_title',
                 'u.company_name',
-                'u.image_users'
+                'u.image_users',
+                'nmt.status'
             )
-            ->where('nmt.status', 'accepted')
+            // ->where('nmt.status', 'accepted')
             ->where(function ($q) use ($userId) {
                 $q->where('nmt.requester_id', $userId)
                     ->orWhere('nmt.target_id', $userId);
