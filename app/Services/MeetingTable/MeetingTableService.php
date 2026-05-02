@@ -43,6 +43,7 @@ class MeetingTableService
                 return [
                     'table_name' => 'Table ' . str_pad($row->table_number, 2, '0', STR_PAD_LEFT),
                     'date' => date('d M Y h:i A', strtotime($row->schedule_date)),
+                    'status' => $row->status,
                     'participant' => [
                         'name' => $row->participant_name,
                         'job_title' => $row->job_title,
