@@ -26,14 +26,16 @@ class NetworkingController extends Controller
     {
         $search = $request->search;
         $limit = $request->limit;
+        $seed = $request->query('seed');
         $id =  auth('sanctum')->user()->id ?? null;
         if ($id) {
             $events_id =  $this->eventService->getLastEvent();
-            $data = $this->networkingService->listAll($search, $limit, $id, $events_id->id);
+            $data = $this->networkingService->listAll($search, $limit, $id, $events_id->id, $seed);
             self::countVisitNetworking($events_id->id, $id, null);
             $response['status'] = 200;
             $response['message'] = 'Show data networking successfully';
             $response['payload'] = $data;
+            $response['seed'] = $data->getOptions()['query']['seed'] ?? $seed;
         } else {
             $response['status'] = 401;
             $response['message'] = 'Unauthorized';

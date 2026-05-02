@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\DB;
 class NetworkingService implements NetworkingRepositoryInterface
 {
     use Directory;
-    public function listAll($search, $limit, $users_id, $events_id)
+    public function listAll($search, $limit, $users_id, $events_id, $seed = null)
     {
+        $seed = $seed ?? random_int(100000, 999999);
+
         return DB::table('users_delegate')
             ->select(
                 'users_delegate.id',
@@ -99,8 +101,11 @@ class NetworkingService implements NetworkingRepositoryInterface
                 $q->whereNotNull('users.name');
             })
 
-            ->orderBy('users.id', 'asc')
-            ->paginate($limit);
+            // Random tapi konsisten selama seed yang sama dipakai.
+            ->orderByRaw('MD5(CONCAT(users_delegate.users_id, ?)) asc', [$seed])
+            ->orderBy('users_delegate.users_id', 'asc')
+            ->paginate($limit)
+            ->appends(['seed' => $seed]);
     }
 
 

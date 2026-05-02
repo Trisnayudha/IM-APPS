@@ -168,7 +168,7 @@ class NetworkingV2Controller extends Controller
                     $quotaId = DB::table('networking_quotas')->insertGetId([
                         'users_id'    => $userId,
                         'events_id'   => $event->id,
-                        'total_quota' => 5,
+                        'total_quota' => 50,
                         'used_quota'  => 0,
                         'reset_date'  => now()->toDateString(),
                         'created_at'  => now(),
@@ -751,7 +751,7 @@ class NetworkingV2Controller extends Controller
          * USER FREE → QUOTA BASED
          * =========================
          */
-        $defaultQuota = 5;
+        $defaultQuota = 50;
 
         // READ ONLY — TIDAK RESET / TIDAK UPDATE
         $quota = DB::table('networking_quotas')
