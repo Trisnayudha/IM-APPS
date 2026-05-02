@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Http;
 
 class AiService implements AiRepositoryInterface
 {
+    protected $anthropicEndpoint = 'https://api.anthropic.com/v1/messages';
+
     protected $promptTemplates = [
         'Suggest Meeting' => "
 I’m {user_name} from {user_company_name}.
@@ -100,24 +102,18 @@ Write exactly 2 clear sentences in English, no salutations or subject lines.",
         if ($delegate) {
             $prompt .= " And ask for {$delegate->name} to reach out.";
         }
-        // Call OpenAI
-        $response = Http::withToken(env('OPENAI_API_KEY'))
-            ->post('https://api.openai.com/v1/chat/completions', [
-                'model'       => 'gpt-4',
-                'messages'    => [
-                    ['role' => 'system', 'content' => 'You are a professional business message assistant.'],
-                    ['role' => 'user',   'content' => trim($prompt)],
-                ],
-                'max_tokens'  => 200,
-                'temperature' => 0.7,
-            ]);
+        $response = $this->callAnthropic(
+            'You are a professional business message assistant.',
+            trim($prompt),
+            200
+        );
 
         if (! $response->successful()) {
             return ['error' => 'AI generation failed', 'detail' => $response->body()];
         }
 
         // Clean up the output: remove new lines & excess spaces
-        $raw = $response->json()['choices'][0]['message']['content'] ?? '';
+        $raw = $response->json()['content'][0]['text'] ?? '';
         $singleLine = preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $raw));
         $clean = trim($singleLine);
 
@@ -147,27 +143,38 @@ I am {$me->name}, {$me->job_title} at {$me->company_name}.
 You are {$them->name}.
 Write 2–3 concise, friendly yet professional sentences in English to start a chat with {$them->name}, without any salutations or subject lines.";
 
-        // Call OpenAI
-        $response = Http::withToken(env('OPENAI_API_KEY'))
-            ->post('https://api.openai.com/v1/chat/completions', [
-                'model'       => 'gpt-4',
-                'messages'    => [
-                    ['role' => 'system', 'content' => 'You are a professional business conversation assistant.'],
-                    ['role' => 'user', 'content' => trim($prompt)],
-                ],
-                'max_tokens'  => 150,
-                'temperature' => 0.7,
-            ]);
+        $response = $this->callAnthropic(
+            'You are a professional business conversation assistant.',
+            trim($prompt),
+            150
+        );
 
         if (! $response->successful()) {
             return ['error' => 'AI generation failed', 'detail' => $response->body()];
         }
 
         // Clean output
-        $raw       = $response->json()['choices'][0]['message']['content'] ?? '';
+        $raw       = $response->json()['content'][0]['text'] ?? '';
         $single    = preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $raw));
         $clean     = trim($single);
 
         return $clean ?: 'No response from AI.';
+    }
+
+    protected function callAnthropic(string $systemPrompt, string $userPrompt, int $maxTokens)
+    {
+        return Http::withHeaders([
+            'x-api-key' => env('ANTHROPIC_API_KEY'),
+            'anthropic-version' => '2023-06-01',
+            'content-type' => 'application/json',
+        ])->post($this->anthropicEndpoint, [
+            'model' => env('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022'),
+            'system' => $systemPrompt,
+            'messages' => [
+                ['role' => 'user', 'content' => $userPrompt],
+            ],
+            'max_tokens' => $maxTokens,
+            'temperature' => 0.7,
+        ]);
     }
 }
