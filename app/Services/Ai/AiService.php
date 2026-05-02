@@ -13,32 +13,40 @@ class AiService implements AiRepositoryInterface
 {
     protected $anthropicEndpoint = 'https://api.anthropic.com/v1/messages';
 
-    protected $promptTemplates = [
-        'Suggest Meeting' => "
-I’m {user_name} from {user_company_name}.
-I’d like to meet with {company_name} to discuss a possible collaboration—please have {delegate_name} reach out to set up a time.
-Write exactly 2 clear sentences in English, no salutations or subject lines.",
+    protected array $promptTemplates;
 
-        'Receive Quotation' => "
-I’m {user_name} from {user_company_name}.
-Please send me a current quote for {company_name}'s products/services.
-Write exactly 2 clear sentences in English, no salutations or subject lines.",
+    public function __construct()
+    {
+        $suffix = 'Output exactly 2 sentences in English. No salutations, no subject lines, no labels, no dashes, no intro phrases. Just the message itself.';
 
-        'Be Contacted by Phone' => "
-I’m {user_name} from {user_company_name}.
-Ask {company_name} to call me for a brief discussion—preferably have {delegate_name} reach out.
-Write exactly 2 clear sentences in English, no salutations or subject lines.",
-
-        'Receive Documentation' => "
-I’m {user_name} from {user_company_name}.
-Please send the product or service documentation for {company_name}.
-Write exactly 2 clear sentences in English, no salutations or subject lines.",
-
-        'Receive Pricing Information' => "
-I’m {user_name} from {user_company_name}.
-I’d like detailed pricing information for {company_name}'s offerings.
-Write exactly 2 clear sentences in English, no salutations or subject lines.",
-    ];
+        $this->promptTemplates = [
+            'Suggest Meeting' => implode("\n", [
+                'I\'m {user_name} from {user_company_name}.',
+                'I\'d like to meet with {company_name} to discuss a possible collaboration—please have {delegate_name} reach out to set up a time.',
+                $suffix,
+            ]),
+            'Receive Quotation' => implode("\n", [
+                'I\'m {user_name} from {user_company_name}.',
+                'Please send me a current quote for {company_name}\'s products/services.',
+                $suffix,
+            ]),
+            'Be Contacted by Phone' => implode("\n", [
+                'I\'m {user_name} from {user_company_name}.',
+                'Ask {company_name} to call me for a brief discussion—preferably have {delegate_name} reach out.',
+                $suffix,
+            ]),
+            'Receive Documentation' => implode("\n", [
+                'I\'m {user_name} from {user_company_name}.',
+                'Please send the product or service documentation for {company_name}.',
+                $suffix,
+            ]),
+            'Receive Pricing Information' => implode("\n", [
+                'I\'m {user_name} from {user_company_name}.',
+                'I\'d like detailed pricing information for {company_name}\'s offerings.',
+                $suffix,
+            ]),
+        ];
+    }
 
     /**
      * @param  int         $user_id
@@ -95,7 +103,7 @@ Write exactly 2 clear sentences in English, no salutations or subject lines.",
 
         // Append product context if exists
         if ($product) {
-            $prompt .= " Also mention the product “{$product->title}”.";
+            $prompt .= " Also mention the product '{$product->title}'.";
         }
 
         // Append delegate context if exists
@@ -120,13 +128,7 @@ Write exactly 2 clear sentences in English, no salutations or subject lines.",
         return $clean ?: 'No response from AI.';
     }
 
-    /**
-     * Generate a professional “room chat” intro message.
-     *
-     * @param int $user_id   ID of the sender
-     * @param int $target_id ID of the recipient
-     * @return string|array
-     */
+
     public function getRoomChat($user_id, $target_id)
     {
         // Fetch both users
