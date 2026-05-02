@@ -75,13 +75,12 @@ class MeetingTableService
                 return [
                     'table_name' => 'Table ' . str_pad($row->table_number, 2, '0', STR_PAD_LEFT),
                     'date' => date('d M Y h:i A', strtotime($row->schedule_date)),
-                    'status' => $row->status,
-                    'status_label' => self::statusLabel($row->status),
+                    'status' => self::statusLabel($row->status),
                     'participant' => [
                         'name' => $row->participant_name,
                         'job_title' => $row->job_title,
                         'company' => $row->company_name,
-                        'photo' => $row->photo ?? ''
+                        'photo' => $row->image ?? ''
                     ]
                 ];
             });
@@ -109,8 +108,7 @@ class MeetingTableService
                     'meeting_id' => $row->id,
                     'table_name' => 'Table ' . str_pad($row->table_number, 2, '0', STR_PAD_LEFT),
                     'date' => date('d M Y h:i A', strtotime($row->schedule_date)),
-                    'status' => 'pending',
-                    'status_label' => self::statusLabel('pending'),
+                    'status' => self::statusLabel('pending'),
                     'requester' => [
                         'name' => $row->requester_name,
                         'job_title' => $row->job_title,
