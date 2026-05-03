@@ -520,7 +520,7 @@ class CompanyService implements CompanyRepositoryInterface
                 `desc`,
                 views,
                 0 as download,
-                CONCAT('detail/', slug, '/product') as path_link,
+                slug as path_link,
                 slug
             ")
             ->where('company_id', $company);
@@ -536,7 +536,7 @@ class CompanyService implements CompanyRepositoryInterface
                 `desc`,
                 views,
                 COALESCE(download, 0) as download,
-                CONCAT('detail/', slug, '/media') as path_link,
+                slug as path_link,
                 slug
             ")
             ->where('company_id', $company);
@@ -552,7 +552,7 @@ class CompanyService implements CompanyRepositoryInterface
                 `desc`,
                 views,
                 COALESCE(download, 0) as download,
-                CONCAT('detail/', slug, '/project') as path_link,
+                slug as path_link,
                 slug
             ")
             ->where('company_id', $company);
@@ -568,7 +568,7 @@ class CompanyService implements CompanyRepositoryInterface
                 `desc`,
                 views,
                 0 as download,
-                CONCAT('detail/', slug, '/news') as path_link,
+                slug as path_link,
                 slug
             ")
             ->where('company_id', $company)
