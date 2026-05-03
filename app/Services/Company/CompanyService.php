@@ -518,7 +518,7 @@ class CompanyService implements CompanyRepositoryInterface
                 image,
                 COALESCE(date_product, created_at) as date_timeline,
                 `desc`,
-                views,
+
                 0 as download,
                 slug as path_link,
                 slug
@@ -534,7 +534,7 @@ class CompanyService implements CompanyRepositoryInterface
                 image,
                 COALESCE(date_media, created_at) as date_timeline,
                 `desc`,
-                views,
+
                 COALESCE(download, 0) as download,
                 slug as path_link,
                 slug
@@ -550,7 +550,7 @@ class CompanyService implements CompanyRepositoryInterface
                 image,
                 COALESCE(date_project, created_at) as date_timeline,
                 `desc`,
-                views,
+
                 COALESCE(download, 0) as download,
                 slug as path_link,
                 slug
@@ -566,7 +566,7 @@ class CompanyService implements CompanyRepositoryInterface
                 image,
                 COALESCE(date_news, created_at) as date_timeline,
                 `desc`,
-                views,
+
                 0 as download,
                 slug as path_link,
                 slug
