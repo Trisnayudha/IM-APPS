@@ -446,9 +446,6 @@ class CompanyService implements CompanyRepositoryInterface
                 $join->on('news_tag_list.news_id', '=', 'news.id');
                 $join->whereNotNull('news_tag_list.news_tag_id');
             })
-            ->leftJoin('news_events', function ($join) {
-                $join->on('news_events.news_id', '=', 'news.id');
-            })
             ->where(function ($q) use ($search, $tags, $category, $company) {
                 if (!empty($search)) {
                     $q->where('news.title', 'LIKE', '%' . $search . '%')
