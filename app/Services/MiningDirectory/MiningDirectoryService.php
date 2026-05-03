@@ -411,10 +411,6 @@ class MiningDirectoryService implements MiningDirectoryRepositoryInterface
                 // $q->where('news.flag', 'Company');
                 // $q->where('news.highlight', 'Yes');
             })
-            ->where(function ($q) use ($events_id) {
-                //                $q->whereNotNull('news_category_list.news_id');
-                $q->where('news_events.events_id', '=', $events_id);
-            })
             // ->groupBy('news.id')
             ->orderby($column_filter, $type_filter);
         // if ($is_mining_directory) {

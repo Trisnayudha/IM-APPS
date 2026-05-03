@@ -430,7 +430,6 @@ class CompanyService implements CompanyRepositoryInterface
                 'news.last_update',
                 'news.created_at',
                 'company.name as company_name',
-                'news_events.id as news_events_id'
             )
             ->leftJoin("company", function ($join) {
                 $join->on('company.id', '=', 'news.company_id');
