@@ -31,6 +31,14 @@ class ScanAppsController extends Controller
         return null;
     }
 
+    private function parseEventDay($day): Carbon
+    {
+        // Normalize to date-only to prevent timezone-shifted day mapping (e.g. ISO strings with Z).
+        $dayString = trim((string) $day);
+        $datePart  = substr($dayString, 0, 10);
+        return Carbon::createFromFormat('Y-m-d', $datePart, 'Asia/Jakarta')->startOfDay();
+    }
+
     private function ok($message, $data = null, int $httpCode = 200)
     {
         return response()->json([
@@ -135,7 +143,7 @@ class ScanAppsController extends Controller
 
             $col = null;
             try {
-                $dt  = Carbon::parse($day);
+                $dt  = $this->parseEventDay($day);
                 $col = $this->resolveCheckinColumn($dt);
             } catch (\Exception $e) {
                 // parsing fails — skip checkin column update
@@ -153,9 +161,10 @@ class ScanAppsController extends Controller
                 $filename = $existingImage;
             }
 
+            $checkinAt      = Carbon::now('Asia/Jakarta');
             $delegateUpdate = ['image' => $filename, 'already_print' => true];
             if ($col) {
-                $delegateUpdate[$col] = $day;
+                $delegateUpdate[$col] = $checkinAt->format('Y-m-d H:i:s');
             }
             UsersDelegate::where('id', $delegateId)->update($delegateUpdate);
 
@@ -172,6 +181,7 @@ class ScanAppsController extends Controller
                 'job_title'              => $job,
                 'code_payment'           => $codePayment,
                 'day'                    => $day,
+                'checkin_at'             => $col ? $checkinAt->format('Y-m-d H:i:s') : null,
                 'phone_number'           => $result->phone,
                 'need_phone_verification' => empty($result->phone) || (bool) $result->phone_is_office,
                 'already_print_badge'    => true,
@@ -223,7 +233,7 @@ class ScanAppsController extends Controller
             $col = null;
             $dt  = null;
             try {
-                $dt  = Carbon::parse($day);
+                $dt  = $this->parseEventDay($day);
                 $col = $this->resolveCheckinColumn($dt);
             } catch (\Exception $e) {
                 return $this->err('Invalid day format', 400);
@@ -461,7 +471,7 @@ class ScanAppsController extends Controller
             }
 
             try {
-                $dt  = Carbon::parse($day);
+                $dt  = $this->parseEventDay($day);
                 $col = $this->resolveCheckinColumn($dt);
 
                 if (!$col) {
