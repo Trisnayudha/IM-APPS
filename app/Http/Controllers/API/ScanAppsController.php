@@ -651,6 +651,8 @@ class ScanAppsController extends Controller
         if ($typeVal == 'Silver') {
             if (strpos($title, 'Workshop') !== false) {
                 return ['Workshop Pass', '#DAA520', $allAccess];
+            } elseif (preg_match('/Delegate Pass Day [1-3]/i', (string) $title)) {
+                return ['Delegate', '#1428DF', $allAccess];
             } elseif (strpos($title, 'Explore') !== false) {
                 return ['Explore Pass', '#F97316', $exploreAccess];
             } elseif (strpos($title, 'Investor') !== false) {
