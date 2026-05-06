@@ -40,7 +40,7 @@ class EventsController extends Controller
         $data['first_day'] = $this->eventService->listAll($events_id->id, '2026-05-05', $limit, 'replay');
         $data['second_day'] = $this->eventService->listAll($events_id->id, '2026-05-06', $limit, 'replay');
         $data['third_day'] = $this->eventService->listAll($events_id->id, '2026-05-07', $limit, 'replay');
-        $data['miners_talk'] = $this->eventService->listAll($events_id->id, '2026-05-05', $limit, 'showcase');
+        $data['showcase'] = $this->eventService->listAll($events_id->id, '2026-05-05', $limit, 'showcase');
         $data['workshop'] = $this->eventService->listAll($events_id->id, '2026-05-06', $limit, 'workshop');
         $response['status'] = 200;
         $response['message'] = 'Success show data';
