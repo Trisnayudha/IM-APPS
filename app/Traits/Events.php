@@ -263,7 +263,7 @@ trait Events
             ->whereIn('payment.status', ['Free', 'Paid Off'])
             ->select('events_tickets.type', 'events_tickets.title')
             ->first();
-        if ($check->type == 'Platinum' || $check->type == 'Delegate Speaker' || $check->type == 'Speaker' || $check->title == 'Mining Pass') {
+        if ($check->type == 'Platinum' || $check->type == 'Delegate Speaker' || $check->type == 'Speaker' || $check->title == 'Mining Pass' || $check->title == 'Investor Pass') {
             return true;
         }
         return false;
